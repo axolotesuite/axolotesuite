@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="260" viewBox="0 0 900 260" role="img" aria-labelledby="title">
+<title id="title">Axolote Suite</title>
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e879f9"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>
+<g transform="translate(26 15)" stroke="url(#g)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none">
+<path d="M105 83 C55 10 35 25 65 105 C18 68 4 90 54 145"/>
+<path d="M195 83 C245 10 265 25 235 105 C282 68 296 90 246 145"/>
+</g>
+<ellipse cx="166" cy="146" rx="85" ry="70" fill="#f8fafc"/>
+<circle cx="135" cy="139" r="8" fill="#171827"/><circle cx="197" cy="139" r="8" fill="#171827"/>
+<path d="M143 170 Q166 190 189 170" stroke="#171827" stroke-width="7" fill="none" stroke-linecap="round"/>
+<text x="310" y="143" font-family="Segoe UI, Arial, sans-serif" font-size="76" font-weight="700" fill="#f8fafc">Axolote</text>
+<text x="590" y="143" font-family="Segoe UI, Arial, sans-serif" font-size="76" font-weight="700" fill="url(#g)">Suite</text>
+<text x="315" y="194" font-family="Segoe UI, Arial, sans-serif" font-size="27" fill="#cbd5e1">Suíte de produtividade para Windows</text>
+</svg>

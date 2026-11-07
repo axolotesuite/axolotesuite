@@ -4,123 +4,177 @@
 
 # Axolote Suite
 
-### Uma proposta de suíte de produtividade modular para Windows.
+### Uma suíte de produtividade e ferramentas locais para Windows.
 
 <p>
-  <img src="https://img.shields.io/badge/Windows-10%20%2F%2011-5865F2?logo=windows&logoColor=white" alt="Windows 10 e 11">
-  <img src="https://img.shields.io/badge/Abordagem-Offline--first-64748b" alt="Offline first">
-  <img src="https://img.shields.io/badge/IA-Fora%20do%20escopo-7c3aed" alt="Sem IA integrada">
-  <img src="https://img.shields.io/badge/Estado-Planejamento-f59e0b" alt="Em planejamento">
+  <img src="https://img.shields.io/badge/Status-Em%20desenvolvimento-f59e0b" alt="Em desenvolvimento">
+  <img src="https://img.shields.io/badge/Linguagem-TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Desktop-Electron-47848F?logo=electron&logoColor=white" alt="Electron">
+  <img src="https://img.shields.io/badge/Plataforma-Windows%2010%20%2F%2011-5865F2?logo=windows&logoColor=white" alt="Windows 10 e 11">
 </p>
 
-**Produtividade • Modularidade • Privacidade • Controle local**
+**Produtividade • Conversão de arquivos • Privacidade • Controle local**
 
 </div>
 
 ---
 
-## 🦎 Conheça o projeto
+> [!IMPORTANT]
+> **O Axolote Suite ainda está em desenvolvimento.** O projeto está sendo reorganizado em uma versão inicial menor, chamada provisoriamente de **Axolote Suite Mini**. Ainda não existe uma versão pública pronta para download. As ferramentas descritas nesta página representam o escopo planejado e não devem ser consideradas implementadas ou testadas.
 
-O **Axolote Suite** é um projeto que pretende reunir ferramentas de produtividade em um único ambiente para computadores com Windows 10 e Windows 11.
+## 🦎 O que é o Axolote Suite?
 
-Em vez de obrigar o usuário a procurar e organizar vários programas separados para tarefas cotidianas, a proposta é oferecer uma suíte com áreas diferentes, chamadas de **módulos**. Cada módulo teria uma finalidade própria, mas todos fariam parte da mesma experiência.
+O **Axolote Suite** é um projeto de aplicativo desktop para Windows 10 e Windows 11. A proposta é reunir, em uma única interface, ferramentas úteis para produtividade, organização e conversão de arquivos.
 
-O projeto nasce com uma prioridade clara: o usuário deve conseguir trabalhar com seus arquivos localmente, sem depender de uma conta online ou de uma conexão permanente com a internet para as funções principais.
+A ideia é evitar que o usuário precise abrir vários programas diferentes para tarefas simples, como organizar notas, gerenciar tarefas, converter imagens, trabalhar com PDFs ou processar arquivos de áudio e vídeo.
 
-> **Importante: este repositório é uma apresentação do conceito e da identidade visual. O aplicativo ainda não está disponível como produto pronto. Os módulos, telas e recursos descritos nesta página são objetivos planejados, não funcionalidades implementadas ou testadas.**
+O desenvolvimento está sendo recomeçado com um escopo menor e mais realista. Em vez de tentar criar muitos módulos complexos de uma só vez, a prioridade será construir uma base funcional, testar cada ferramenta e ampliar o programa por etapas.
 
-## 🎯 Qual problema o projeto pretende resolver?
+## 🚧 Estado atual do desenvolvimento
 
-No uso diário, é comum alternar entre diversos aplicativos para escrever, organizar imagens, converter arquivos e realizar outras tarefas. Isso pode deixar o fluxo de trabalho fragmentado.
+O projeto está em fase de reorganização e desenvolvimento inicial.
 
-O Axolote Suite pretende estudar uma forma de reunir essas atividades em um só lugar, com uma interface consistente e ferramentas organizadas por finalidade.
-
-A intenção não é prometer que todos os recursos de programas especializados serão reproduzidos. O objetivo é construir, passo a passo, ferramentas úteis, compreensíveis e adequadas ao escopo do projeto.
-
-## 👥 Para quem está sendo pensado?
-
-A proposta é voltada principalmente a pessoas que:
-
-- usam Windows 10 ou Windows 11;
-- preferem ferramentas organizadas em um único ambiente;
-- trabalham com documentos e arquivos no próprio computador;
-- valorizam a privacidade e querem entender o que um programa faz com seus dados;
-- preferem não depender de login, assinatura ou conexão constante para as funções principais;
-- procuram uma experiência simples, modular e fácil de acompanhar.
-
-## 🧩 Como a suíte poderá funcionar?
-
-A experiência ainda será definida por protótipos. A visão inicial é a seguinte:
-
-1. **Abrir o Axolote Suite:** o usuário encontra uma tela inicial com as áreas disponíveis.
-2. **Escolher uma ferramenta:** cada módulo apresenta sua finalidade e seus recursos.
-3. **Trabalhar com arquivos locais:** o usuário abre ou salva arquivos no próprio computador.
-4. **Organizar o ambiente:** módulos e configurações ficam apresentados de forma consistente.
-5. **Gerenciar a instalação:** a proposta inclui meios claros para instalar, atualizar e remover componentes.
-
-Esse fluxo é uma descrição conceitual. A interface e o comportamento final dependerão dos testes e das decisões técnicas.
-
-## 🧰 Módulos planejados
-
-A suíte deverá crescer por partes. Cada módulo precisará ter uma finalidade bem definida, documentação própria e testes antes de ser apresentado como pronto.
-
-| Módulo | Objetivo explicado |
+| Item | Situação atual |
 |---|---|
-| 📝 **Documentos** | Criar, abrir, editar e organizar documentos de texto. |
-| 🖼️ **Imagens** | Oferecer ferramentas para visualizar, organizar e realizar edições de imagem compatíveis com o escopo. |
-| 🎬 **Vídeo** | Reunir ferramentas para tarefas básicas com arquivos de vídeo, conforme a viabilidade técnica. |
-| 🎧 **Áudio** | Permitir trabalhar com arquivos de áudio por meio de ferramentas específicas. |
-| 🔄 **Conversão** | Converter arquivos entre formatos que sejam efetivamente suportados. |
-| 🧰 **Utilitários** | Disponibilizar pequenas ferramentas para tarefas cotidianas no computador. |
-| 📦 **Gerenciador** | Ajudar a visualizar, instalar, atualizar ou remover módulos da suíte. |
+| Nome e identidade visual | Preparados |
+| Objetivo e escopo do produto | Em definição |
+| Linguagem principal | TypeScript escolhida |
+| Aplicativo desktop | Electron planejado |
+| Ferramentas de desenvolvimento | Vite e electron-builder planejados |
+| Ferramentas de produtividade | Planejadas |
+| Ferramentas de PDF | Planejadas |
+| Conversão de imagens | Planejada |
+| Conversão de vídeo e áudio | Planejada |
+| Instalador do Windows | Ainda não disponível |
+| Versão pública para download | Ainda não disponível |
 
-### O que significa ser modular?
+**Importante:** este repositório contém a apresentação e a documentação do projeto. O código do aplicativo, os instaladores e as funcionalidades finais ainda não estão publicados aqui. O estado desta tabela será atualizado conforme houver entregas verificáveis.
 
-Significa que a suíte não precisa ser construída como um bloco único. Cada área poderá ser desenvolvida, testada e documentada separadamente. Isso facilita priorizar recursos menores, corrigir problemas e evitar que uma mudança em uma ferramenta afete desnecessariamente as outras.
+## 🎯 O que o projeto pretende resolver?
 
-A forma técnica de implementar essa separação ainda será estudada.
+Tarefas cotidianas podem exigir vários aplicativos: um para converter imagens, outro para juntar PDFs, outro para comprimir vídeos e mais um para anotar compromissos.
 
-## 🔐 Privacidade e funcionamento offline
+O Axolote Suite pretende reunir ferramentas desse tipo em um ambiente organizado, com uma experiência visual consistente e operações realizadas localmente sempre que possível.
 
-Privacidade é uma diretriz de projeto, não apenas uma frase de divulgação.
+O objetivo não é prometer substituir todos os programas profissionais. A prioridade é oferecer ferramentas práticas, fáceis de entender e confiáveis para necessidades comuns.
 
-### O que queremos dizer com “offline-first”?
+## 🧰 Ferramentas planejadas
 
-Significa planejar as funções principais para trabalhar no computador do usuário. Abrir ou editar um arquivo local, por exemplo, não deverá depender de enviar esse arquivo para um serviço na internet.
+Os módulos serão desenvolvidos por etapas. A ordem poderá mudar conforme os testes, a complexidade técnica e a viabilidade de cada recurso.
 
-Algumas atividades futuras, como baixar um instalador ou obter uma atualização, podem exigir conexão. Qualquer comportamento desse tipo deverá ser explicado claramente, e não deve ser confundido com a operação local das ferramentas.
+### 📝 Produtividade
 
-### Compromissos pretendidos
+- **Bloco de notas:** criar, editar, pesquisar e organizar notas.
+- **Gerenciador de tarefas:** registrar atividades, marcar como concluídas e filtrar pendências.
+- **Calculadora:** operações matemáticas básicas.
 
-- **Sem login obrigatório:** a proposta é permitir o uso local sem criar uma conta.
+### 📄 PDF
+
+- Juntar documentos PDF.
+- Dividir um PDF em arquivos menores.
+- Extrair páginas específicas.
+- Reorganizar, girar ou remover páginas.
+- Criar PDF a partir de imagens.
+- Avaliar opções de compressão.
+
+### 🖼️ Imagens
+
+- Converter PNG, JPG, JPEG e WebP, conforme suporte implementado.
+- Comprimir imagens.
+- Redimensionar com proporção preservada.
+- Processar várias imagens em lote.
+- Consultar dimensões e informações básicas.
+
+### 🎬 Vídeo
+
+- Converter arquivos entre formatos suportados.
+- Escolher opções de codificação e qualidade.
+- Redimensionar vídeos.
+- Cortar trechos.
+- Consultar duração, resolução e codecs.
+- Acompanhar o progresso e cancelar operações.
+
+### 🎧 Áudio
+
+- Converter formatos de áudio compatíveis.
+- Extrair áudio de vídeos.
+- Cortar trechos.
+- Ajustar parâmetros de qualidade e bitrate, quando suportados.
+
+### 🗂️ Arquivos e utilitários
+
+- Compactar e descompactar arquivos ZIP.
+- Renomear vários arquivos em lote.
+- Organizar operações em uma fila.
+- Consultar o histórico de conversões.
+
+> **Sobre formatos e codecs:** a lista final dependerá das bibliotecas e ferramentas efetivamente integradas, das capacidades da versão utilizada e das respectivas licenças. O programa deverá mostrar apenas opções realmente suportadas.
+
+## 🧭 Como o Axolote Suite deverá funcionar?
+
+A experiência planejada é simples:
+
+1. O usuário abre o aplicativo e encontra um painel com as categorias de ferramentas.
+2. Escolhe uma ferramenta, como PDF, imagens ou vídeo.
+3. Seleciona arquivos do próprio computador.
+4. Configura a operação desejada.
+5. Acompanha o processamento e o resultado.
+6. Escolhe onde salvar o arquivo gerado.
+
+As operações de conversão e edição local deverão preservar o arquivo original. O aplicativo deverá informar erros, limitações e formatos não suportados de maneira clara.
+
+## 🛠️ Tecnologias escolhidas
+
+A base planejada para a primeira versão utiliza:
+
+| Tecnologia | Finalidade |
+|---|---|
+| **TypeScript** | Linguagem principal do projeto |
+| **Electron** | Aplicativo desktop para Windows |
+| **Vite** | Ambiente de desenvolvimento e construção da interface |
+| **HTML e CSS** | Estrutura e aparência da interface |
+| **electron-builder** | Empacotamento e geração do instalador |
+| **FFmpeg / ffprobe** | Processamento e análise de áudio e vídeo, após avaliação das licenças |
+
+A escolha de TypeScript busca facilitar a organização do código e a identificação de erros durante o desenvolvimento. Electron será utilizado para criar a aplicação desktop.
+
+O projeto não pretende utilizar .NET, Python ou inteligência artificial integrada.
+
+## 🔐 Privacidade e funcionamento local
+
+Privacidade e controle dos arquivos são diretrizes do Axolote Suite.
+
+Os objetivos são:
+
+- **Sem login obrigatório:** as ferramentas locais não deverão depender de uma conta.
 - **Sem telemetria por padrão:** não planejar coleta automática de dados de uso.
-- **Sem envio automático de documentos:** os arquivos do usuário devem permanecer locais durante as operações locais.
-- **Sem IA integrada:** inteligência artificial não faz parte do escopo definido para o produto.
-- **Transparência de rede:** qualquer recurso que precise se conectar deverá explicar o motivo.
-- **Controle do usuário:** instalação, atualização e remoção devem ser documentadas.
+- **Sem envio automático de arquivos:** operações locais deverão ocorrer no computador.
+- **Uso offline como prioridade:** as funções principais deverão funcionar sem conexão sempre que tecnicamente possível.
+- **Transparência:** qualquer recurso que dependa de internet deverá explicar sua finalidade.
+- **Controle do usuário:** arquivos originais não deverão ser apagados ou substituídos sem autorização.
 
-Esses pontos são requisitos que deverão ser verificados na implementação. Eles ainda não representam auditoria, certificação ou garantia de segurança.
+Esses pontos são requisitos de desenvolvimento, não uma declaração de que o aplicativo já foi auditado ou certificado. O comportamento real deverá ser verificado antes de cada lançamento.
 
-## 🖥️ Plataforma e decisões técnicas
+## 🗺️ Etapas de desenvolvimento
 
-| Tema | Direção atual |
+O trabalho será dividido em etapas pequenas para que cada entrega possa ser testada antes de aumentar o escopo.
+
+| Etapa | Objetivo |
 |---|---|
-| Sistema operacional | Windows 10 e Windows 11 |
-| Modelo de uso | Prioridade para funcionamento local |
-| Conta de usuário | Sem login obrigatório |
-| Telemetria | Não prevista por padrão |
-| Inteligência artificial | Fora do escopo |
-| Organização | Suíte dividida em módulos |
-| Linguagem e ferramentas | Ainda serão avaliadas |
-| Tecnologia .NET | Não faz parte das diretrizes do projeto |
+| 1. Fundação | Configurar TypeScript, Electron e a estrutura do aplicativo |
+| 2. Interface | Criar painel, navegação e identidade visual dentro do programa |
+| 3. Produtividade | Implementar notas, tarefas e calculadora |
+| 4. PDF e imagens | Criar as primeiras ferramentas de manipulação e conversão |
+| 5. Áudio e vídeo | Integrar processamento local e opções de codificação |
+| 6. Arquivos | Adicionar ZIP, renomeação em lote e fila de operações |
+| 7. Validação | Testar, corrigir, revisar dependências e documentar limitações |
+| 8. Distribuição | Preparar e testar o instalador para Windows |
 
-A linguagem de programação e as ferramentas de desenvolvimento não foram definidas nesta apresentação. A escolha deverá considerar compatibilidade com Windows, desempenho, acessibilidade, manutenção, segurança e licenças das dependências.
+Não há data de lançamento confirmada. A prioridade é concluir e validar uma etapa antes de apresentá-la como pronta.
 
 ## 🎨 Identidade visual
 
-O mascote do Axolote Suite é um axolote estilizado. A identidade utiliza roxo, branco e tons escuros, com uma proposta minimalista e tecnológica.
-
-Os elementos visuais foram preparados em formato SVG, que permite redimensionar as imagens sem perda de qualidade.
+O projeto utiliza um mascote de axolote e uma identidade visual minimalista, com roxo, branco e tons escuros.
 
 <div align="center">
   <img src="assets/branding/logo.svg" alt="Logotipo Axolote Suite" width="74%">
@@ -132,59 +186,36 @@ Arquivos da identidade:
 - [Ícone](assets/branding/icon.svg)
 - [Guia da identidade visual](assets/branding/README.md)
 
-## 🗺️ Como o projeto pretende evoluir?
-
-O desenvolvimento será dividido em etapas. Isso ajuda a evitar promessas exageradas e permite mostrar o que realmente foi concluído.
-
-| Etapa | O que precisa acontecer |
-|---|---|
-| 1. Planejamento | Definir o escopo, as necessidades e os limites do produto. |
-| 2. Pesquisa técnica | Comparar tecnologias, dependências, licenças e compatibilidade. |
-| 3. Protótipos | Testar ideias de interface e organização dos módulos. |
-| 4. Núcleo da suíte | Construir a base que poderá integrar os módulos. |
-| 5. Módulos | Desenvolver e testar cada ferramenta por etapas. |
-| 6. Instalação | Preparar instalação, atualização e desinstalação. |
-| 7. Validação | Testar em ambientes compatíveis e documentar resultados. |
-
-Não há datas de lançamento confirmadas. Uma etapa só deverá ser marcada como concluída quando houver implementação e evidência verificável.
-
 ## 📚 Documentação
 
-Os documentos explicam o conceito e as diretrizes do projeto:
-
-- [Visão geral do Axolote Suite](docs/VISAO-GERAL.md)
+- [Visão geral do projeto](docs/VISAO-GERAL.md)
 - [Módulos planejados](docs/MODULOS-PLANEJADOS.md)
 - [Princípios do projeto](docs/PRINCIPIOS.md)
+- [Estado atual do desenvolvimento](docs/ESTADO-ATUAL.md)
 - [Identidade visual](assets/branding/README.md)
-
-## 🤝 Sugestões e participação
-
-Ideias, perguntas e sugestões podem ajudar a melhorar o planejamento. Ao apresentar uma proposta, explique qual problema ela resolveria, quem seria beneficiado e como ela respeitaria os princípios do projeto.
-
-Sugestões não significam que uma funcionalidade já foi aprovada ou que será implementada. Cada ideia deverá ser avaliada quanto à utilidade, viabilidade, segurança, manutenção e compatibilidade.
 
 ## ❓ Perguntas frequentes
 
-**O Axolote Suite já pode ser baixado?**  
-Ainda não. Esta página apresenta o projeto e seus objetivos. Uma versão para download só deverá ser anunciada quando existir um pacote real, testado e documentado.
+**O Axolote Suite já está pronto?**  
+Não. O projeto ainda está em desenvolvimento. A implementação está sendo organizada em uma versão inicial menor para que as ferramentas possam ser concluídas e testadas por etapas.
 
-**O projeto vai funcionar sem internet?**  
-A prioridade é que as funções principais trabalhem localmente. Download de programas e atualizações poderá exigir conexão, e isso deverá ser informado.
+**Já posso baixar e instalar?**  
+Ainda não existe um instalador público. Uma versão para download será anunciada quando houver um pacote real e testado.
 
-**Vai exigir cadastro ou assinatura?**  
-A proposta é não exigir login nem assinatura para as funções locais principais.
+**Qual linguagem será utilizada?**  
+TypeScript. A aplicação desktop está planejada com Electron e Vite.
 
-**Terá inteligência artificial?**  
-Não. IA integrada está fora do escopo definido para o Axolote Suite.
+**Quais ferramentas estarão disponíveis?**  
+O escopo planejado inclui produtividade, PDF, imagens, vídeo, áudio e utilitários para arquivos. A disponibilidade dependerá da implementação e dos testes.
 
-**Quais linguagens serão usadas?**  
-Ainda não foi escolhida uma linguagem. A decisão será tomada depois de pesquisa e protótipos.
+**O programa funcionará sem internet?**  
+O objetivo é priorizar operações locais e funcionamento offline. Downloads e atualizações poderão exigir conexão.
 
-**Todos os módulos já estão prontos?**  
-Não. Os módulos apresentados são ideias e objetivos de desenvolvimento.
+**Terá inteligência artificial, login ou telemetria?**  
+IA integrada está fora do escopo. Login obrigatório e telemetria por padrão também não fazem parte dos objetivos do projeto.
 
-**O projeto já possui certificação de segurança ou conformidade legal?**  
-Não há certificação declarada. Segurança, privacidade, licenças e obrigações legais deverão ser analisadas e documentadas durante o desenvolvimento.
+**Todos os formatos e codecs serão aceitos?**  
+Não necessariamente. O suporte dependerá das bibliotecas, codecs e ferramentas efetivamente integradas. A documentação deverá listar os formatos testados.
 
 ---
 
@@ -194,8 +225,8 @@ Não há certificação declarada. Segurança, privacidade, licenças e obrigaç
 
 ### Axolote Suite
 
-**Ferramentas organizadas. Arquivos sob controle. Produtividade local.**
+**Um projeto em desenvolvimento, construído por etapas.**
 
-<sub>Projeto em planejamento. Acompanhe este repositório para ver a evolução.</sub>
+<sub>Ideias claras, ferramentas úteis e evolução com testes.</sub>
 
 </div>

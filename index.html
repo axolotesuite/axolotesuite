@@ -419,14 +419,52 @@
           <svg class="svg-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
           Código 100% Seguro &amp; Auditado
         </span>
-        <h2>Verificado no <span class="gradient-text">VirusTotal</span> &amp; Código Aberto</h2>
+        <h2>Por que aparece aviso ao baixar? <span class="gradient-text">Explicação Transparente</span></h2>
         <p>
-          Por ser um projeto gratuito e independente (sem certificado corporativo pago de US$ 400/ano da Microsoft), o navegador ou o Windows SmartScreen pode exibir um aviso padrão no 1º uso. Veja abaixo a verificação completa:
+          O <strong>Axolote Suite</strong> é 100% gratuito, sem anúncios, 100% offline e de <strong>Código Aberto (Open Source)</strong> em Rust. Entenda por que o Windows ou o navegador exibe um alerta no primeiro download e como abrir com tranquilidade:
         </p>
       </div>
 
-      <div class="interactive-demo" style="border-color: rgba(16, 185, 129, 0.40);">
-        <img src="assets/virustotal_seguro.svg" alt="Painel de Verificação VirusTotal e Guia Windows SmartScreen" style="width: 100%; border-radius: 16px; display: block; margin-bottom: 22px;" />
+      <div class="steps-grid" style="margin-bottom: 24px;">
+        <div class="step-card" style="border-color: rgba(59, 130, 246, 0.35);">
+          <div class="step-header">
+            <div class="step-num">?</div>
+            <h3>Por que o aviso aparece?</h3>
+          </div>
+          <p style="color: var(--text-muted); line-height: 1.65;">
+            A Microsoft cobra mais de <strong>US$ 400 por ano</strong> por um certificado corporativo (<em>EV Code Signing</em>). Como o Axolote Suite é um projeto independente e gratuito, o Windows mostra o aviso padrão de <em>"Editor desconhecido / Arquivo pouco baixado"</em>.
+          </p>
+        </div>
+
+        <div class="step-card" style="border-color: rgba(124, 58, 237, 0.35);">
+          <div class="step-header">
+            <div class="step-num">1</div>
+            <h3>No Navegador (Chrome / Edge)</h3>
+          </div>
+          <p style="color: var(--text-muted); line-height: 1.65;">
+            Se o navegador avisar que o arquivo <code>axolote_suite.exe</code> não é baixado com frequência, clique nos <strong>três pontinhos (⋯)</strong> ao lado do download e escolha <strong>Manter</strong> → <strong>Manter assim mesmo</strong>.
+          </p>
+        </div>
+
+        <div class="step-card" style="border-color: rgba(16, 185, 129, 0.35);">
+          <div class="step-header">
+            <div class="step-num">2</div>
+            <h3>No Windows SmartScreen</h3>
+          </div>
+          <p style="color: var(--text-muted); line-height: 1.65;">
+            Ao abrir o instalador pela 1ª vez, se aparecer a janela <em>"O Windows protegeu o computador"</em>, clique em <strong>Mais informações</strong> e em seguida no botão <strong>Executar assim mesmo</strong>.
+          </p>
+        </div>
+      </div>
+
+      <div class="interactive-demo" style="border-color: rgba(16, 185, 129, 0.40); text-align: center;">
+        <h3 style="margin-bottom: 10px; color: #34d399;">🔍 Verifique Você Mesmo no VirusTotal (Hash SHA-256 Oficial)</h3>
+        <p style="color: var(--text-muted); max-width: 760px; margin: 0 auto 16px; line-height: 1.6;">
+          Qualquer pessoa pode auditar o código-fonte completo em Rust no GitHub ou conferir a assinatura criptográfica <strong>SHA-256</strong> do executável oficial (<code>13.55 MB</code>) diretamente no <strong>VirusTotal</strong>:
+        </p>
+        <div style="background: rgba(8, 9, 15, 0.85); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 12px; padding: 14px 18px; margin: 0 auto 22px; max-width: 780px; font-family: monospace; font-size: 0.92rem; color: #a7f3d0; word-break: break-all;">
+          SHA-256: 3abc6ab3cd54cc8eb479ef34dbc49c0b2619e9f114d38e57b26e4c9fea000398
+        </div>
         <div style="display: flex; flex-wrap: wrap; gap: 14px; justify-content: center;">
           <a href="https://www.virustotal.com/gui/search/3abc6ab3cd54cc8eb479ef34dbc49c0b2619e9f114d38e57b26e4c9fea000398" target="_blank" rel="noopener" class="btn-secondary" style="border-color: #10b981; color: #34d399;">
             <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>

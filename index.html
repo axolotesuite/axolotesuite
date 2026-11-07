@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Axolote Suite v1.3.0 — Central 100% Offline & Nativa para Windows</title>
+  <meta name="description" content="Central 100% offline e nativa em Rust para Windows 10 e 11: Conversor Fácil Universal, Estúdio de Cores & Senhas, Editor de Fotos, Editor de Vídeo, PDF e ZIP." />
+  <link rel="icon" href="assets/icon.ico" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Definições globais de gradientes Neon para todos os ícones SVG -->
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <linearGradient id="axo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#c4b5fd" />
+        <stop offset="50%" stop-color="#60a5fa" />
+        <stop offset="100%" stop-color="#22d3ee" />
+      </linearGradient>
+      <linearGradient id="axo-cyan" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#38bdf8" />
+        <stop offset="100%" stop-color="#10b981" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <!-- Fundo animado de partículas e orbes neon -->
+  <canvas id="bg-canvas"></canvas>
+  <div class="aurora-orb orb-1"></div>
+  <div class="aurora-orb orb-2"></div>
+  <div class="aurora-orb orb-3"></div>
+
+  <!-- Barra de Navegação -->
+  <nav class="navbar">
+    <a href="#" class="brand">
+      <div class="brand-logo-wrap">
+        <img src="assets/logo_full.jpg" alt="Logo Axolote Suite" />
+      </div>
+      <div class="brand-name">Axolote <span>Suite</span></div>
+      <span class="brand-tag">v1.3.0</span>
+    </a>
+    <ul class="nav-links">
+      <li>
+        <a href="#simulador">
+          <svg class="svg-icon-sm" viewBox="0 0 24 24" fill="none" stroke="url(#axo-grad)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+          Conversor Fácil
+        </a>
+      </li>
+      <li>
+        <a href="#ferramentas">
+          <svg class="svg-icon-sm" viewBox="0 0 24 24" fill="none" stroke="url(#axo-grad)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+          12 Ferramentas
+        </a>
+      </li>
+      <li>
+        <a href="#instalacao">
+          <svg class="svg-icon-sm" viewBox="0 0 24 24" fill="none" stroke="url(#axo-grad)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+          Instalação
+        </a>
+      </li>
+      <li>
+        <a href="https://github.com/axolotesuite/axolotesuite" target="_blank" rel="noopener">
+          <svg class="svg-icon-sm" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2Z"/></svg>
+          GitHub
+        </a>
+      </li>
+    </ul>
+    <a href="https://github.com/axolotesuite/axolotesuite/releases/download/v1.3.0/axolote_suite.exe" class="nav-cta">
+      <svg class="svg-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Baixar v1.3.0
+    </a>
+  </nav>
+
+  <main class="container">
+    <!-- Hero Principal -->
+    <section class="hero">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="pulse-dot"></span>
+          Versão 1.3.0 Oficial • Windows 10 & 11 (64-bit) • 100% Offline
+        </div>
+        <h1>
+          Sua central completa de ferramentas em <span class="gradient-text">Rust Nativo</span>.
+        </h1>
+        <p>
+          Converta imagens, documentos (<strong>DOCX, PDF, HTML, MD, TXT</strong>), vídeos, áudios e <strong>ZIP</strong> em 1 clique. Inclui Editor de Fotos ao vivo, Editor de Vídeo na linha do tempo, Estúdio de Cores & Senhas, Calculadora e instalador com <strong>FFmpeg automático</strong>.
+        </p>
+        <div class="hero-actions">
+          <a href="https://github.com/axolotesuite/axolotesuite/releases/download/v1.3.0/axolote_suite.exe" class="btn-primary">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+            Baixar Instalador Oficial (.exe)
+          </a>
+          <a href="https://github.com/axolotesuite/axolotesuite/releases/tag/v1.3.0" target="_blank" rel="noopener" class="btn-secondary">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="url(#axo-grad)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Novidades da v1.3.0
+          </a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <div class="stat-icon-box">
+              <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="url(#axo-grad)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div>
+              <strong>100% Offline</strong>
+              <span>Zero nuvem ou telemetria</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon-box">
+              <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="url(#axo-grad)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            </div>
+            <div>
+              <strong>12 Módulos</strong>
+              <span>Tudo em 1 único app</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon-box">
+              <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="url(#axo-grad)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            </div>
+            <div>
+              <strong>60 FPS</strong>
+              <span>Motor nativo em Rust</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="showcase-window" id="hero-tilt-card">
+          <div class="win-titlebar">
+            <div class="win-dots">
+              <span class="dot-r"></span>
+              <span class="dot-y"></span>
+              <span class="dot-g"></span>
+            </div>
+            <div class="win-title">
+              <svg class="svg-icon-sm" viewBox="0 0 24 24" fill="none" stroke="url(#axo-grad)" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+              Axolote Suite v1.3.0 — 100% Offline
+            </div>
+            <div style="width: 36px;"></div>
+          </div>
+          <img src="assets/logo_full.jpg" alt="Banner Oficial Axolote Suite" class="hero-banner-img" />
+          <div class="mini-pills">
+            <div class="mini-pill">
+              <svg class="svg-icon-sm" viewBox="0 0 24 24" fill="none" stroke="url(#axo-grad)" stroke-width="2.2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+              Conversor Fácil
+            </div>
+            <div class="mini-pill">
+              <svg class="svg-icon-sm" viewBox="0 0 24 24" fill="none" stroke="url(#axo-grad)" stroke-width="2.2"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+              Cores & Senhas
+            </div>
+            <div class="mini-pill">
+              <svg class="svg-icon-sm" viewBox="0 0 24 24" fill="none" stroke="url(#axo-grad)" stroke-width="2.2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+              Editor de Fotos
+            </div>
+            <div class="mini-pill">
+              <svg class="svg-icon-sm" viewBox="0 0 24 24" fill="none" stroke="url(#axo-grad)" stroke-width="2.2"><rect width="20" height="20" x="2" y="2" rx="2.18" ry="2.18"/><line x1="7" x2="7" y1="2" y2="22"/><line x1="17" x2="17" y1="2" y2="22"/><line x1="2" x2="22" y1="12" y2="12"/></svg>
+              Editor de Vídeo
+            </div>
+            <div class="mini-pill">
+              <svg class="svg-icon-sm" viewBox="0 0 24 24" fill="none" stroke="url(#axo-grad)" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              PDF & ZIP Seguro
+            </div>
+            <div class="mini-pill">
+              <svg class="svg-icon-sm" viewBox="0 0 24 24" fill="none" stroke="url(#axo-cyan)" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              FFmpeg Automático
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Simulador Interativo ao Vivo -->
+    <section class="section" id="simulador">
+      <div class="section-header">
+        <span class="section-tag">
+          <svg class="svg-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Interativo no Navegador
+        </span>
+        <h2>Experimente a velocidade do <span class="gradient-text">Conversor Fácil</span></h2>
+        <p>
+          Clique nos botões abaixo para ver como o Axolote Suite exibe apenas conversões reais suportadas, preserva o arquivo original e nunca sobrescreve nada.
+        </p>
+      </div>
+
+      <div class="interactive-demo">
+        <div class="demo-tabs">
+          <button class="demo-tab active" data-target="panel-convert">
+            <svg class="svg-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+            Conversor Fácil (1-Clique)
+          </button>
+          <button class="demo-tab" data-target="panel-colors">
+            <svg class="svg-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Estúdio de Cores & Senhas
+          </button>
+          <button class="demo-tab" data-target="panel-media">
+            <svg class="svg-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="23 7 16 12 23 17 23 7"/><rect width="15" height="14" x="1" y="5" rx="2" ry="2"/></svg>
+            Fotos & Vídeo ao Vivo
+          </button>
+        </div>
+
+        <!-- Painel 1: Conversor Fácil -->
+        <div class="demo-panel active" id="panel-convert">
+          <div>
+            <h3 style="margin-bottom: 8px;">Aperte no formato de destino desejado:</h3>
+            <p style="color: var(--text-muted); font-size: 0.92rem;">
+              Suporta Imagens, Documentos (TXT ↔ MD ↔ HTML ↔ DOCX ↔ PDF), Vídeos, Áudios e ZIP.
+            </p>
+            <div class="format-buttons-grid">
+              <button class="fmt-btn selected" data-fmt="WEBP">✔ WEBP</button>
+              <button class="fmt-btn" data-fmt="PDF">➜ PDF</button>
+              <button class="fmt-btn" data-fmt="JPG">➜ JPG</button>
+              <button class="fmt-btn" data-fmt="DOCX">➜ DOCX</button>
+              <button class="fmt-btn" data-fmt="HTML">➜ HTML</button>
+              <button class="fmt-btn" data-fmt="MP4">➜ MP4</button>
+              <button class="fmt-btn" data-fmt="GIF">➜ GIF</button>
+              <button class="fmt-btn" data-fmt="ZIP">➜ ZIP</button>
+            </div>
+            <p style="color: #a78bfa; font-size: 0.85rem; font-weight: 600;">
+              Atalho Global no Windows: arraste qualquer arquivo do Explorer ou pressione <code>Ctrl + Alt + N</code>!
+            </p>
+          </div>
+          <div class="demo-status-box">
+            <h4>
+              <svg class="svg-icon-sm" viewBox="0 0 24 24" fill="none" stroke="url(#axo-cyan)" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+              Motor de Preservação Atômica
+            </h4>
+            <div class="demo-log" id="demo-convert-log">
+              <div>✔ <strong>Origem (Somente Leitura):</strong> relatorio_anual.png</div>
+              <div>⚡ <strong>Escrita Atômica:</strong> .relatorio_anual.webp.axolote_tmp</div>
+              <div>🛡 <strong>Sem Sobrescrita:</strong> relatorio_anual (1).webp</div>
+              <div style="color:#10b981;margin-top:6px;font-weight:700;">🚀 Convertido para WEBP com sucesso (100% offline)!</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Painel 2: Cores & Senhas -->
+        <div class="demo-panel" id="panel-colors">
+          <div>
+            <h3 style="margin-bottom: 8px;">Harmonia Cromática, Paleta de Fotos & Senhas</h3>
+            <p style="color: var(--text-muted); font-size: 0.94rem; line-height: 1.6; margin-bottom: 14px;">
+              Extraia automaticamente as 6 cores dominantes de qualquer foto do seu PC, converta entre <strong>HEX, RGB, HSL e CMYK</strong> ao vivo e gere senhas fortes com cálculo de entropia em bits e <strong>UUID v4</strong>.
+            </p>
+            <div class="mini-pills">
+              <div class="mini-pill" style="background:#7c3aed;">#7C3AED • Roxo Axolote</div>
+              <div class="mini-pill" style="background:#3b82f6;">#3B82F6 • Azul Elétrico</div>
+              <div class="mini-pill" style="background:#06b6d4;">#06B6D4 • Ciano Neon</div>
+            </div>
+          </div>
+          <div class="demo-status-box">
+            <h4>
+              <svg class="svg-icon-sm" viewBox="0 0 24 24" fill="none" stroke="url(#axo-cyan)" stroke-width="2.2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Gerador de Senhas com Entropia Local
+            </h4>
+            <div class="demo-log">
+              <div>✔ <strong>Comprimento:</strong> 20 caracteres</div>
+              <div>✔ <strong>Entropia:</strong> 128.4 bits • Nível Militar</div>
+              <div>✔ <strong>UUID v4:</strong> f47ac10b-58cc-4372-a567-0e02b2c3d479</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Painel 3: Fotos & Vídeo -->
+        <div class="demo-panel" id="panel-media">
+          <div>
+            <h3 style="margin-bottom: 8px;">Estúdio de Fotos & Editor de Vídeo</h3>
+            <p style="color: var(--text-muted); font-size: 0.94rem; line-height: 1.6; margin-bottom: 14px;">
+              Ajuste brilho, contraste, saturação e filtros instantâneos (*P&B, Sépia, Neon, Quente, Frio*) com preview em tempo real. No Editor de Vídeo, corte na linha do tempo, mude a velocidade (<code>0.5×</code> a <code>2.0×</code>) e converta para <code>9:16</code>, <code>16:9</code> ou <code>1:1</code>.
+            </p>
+          </div>
+          <div class="demo-status-box">
+            <h4>
+              <svg class="svg-icon-sm" viewBox="0 0 24 24" fill="none" stroke="url(#axo-cyan)" stroke-width="2.2"><polygon points="23 7 16 12 23 17 23 7"/><rect width="15" height="14" x="1" y="5" rx="2" ry="2"/></svg>
+              FFmpeg Integrado Automaticamente
+            </h4>
+            <div class="demo-log">
+              <div>✔ <strong>Instalador Inteligente:</strong> baixa o FFmpeg sozinho no 1º uso</div>
+              <div>✔ <strong>Formatos:</strong> MP4, MKV, WEBM, MOV, AVI, GIF, MP3, WAV, FLAC</div>
+              <div>✔ <strong>Compressor CRF:</strong> reduza o tamanho sem perder qualidade</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bento Grid das Ferramentas com Ícones Vetoriais SVG Neon -->
+    <section class="section" id="ferramentas">
+      <div class="section-header">
+        <span class="section-tag">
+          <svg class="svg-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+          12 Módulos Nativos
+        </span>
+        <h2>Tudo o que você precisa em <span class="gradient-text">um só aplicativo</span></h2>
+        <p>Sem anúncios, sem mensalidades e sem enviar seus arquivos para servidores externos.</p>
+      </div>
+
+      <div class="bento-grid">
+        <article class="bento-card">
+          <div class="card-icon">
+            <svg class="svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="url(#axo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+          </div>
+          <h3>Conversor Fácil Universal</h3>
+          <p>Botões diretos para converter imagens, textos, DOCX, PDF, HTML, Markdown, vídeos, GIF, áudios e pacotes ZIP preservando o original.</p>
+          <div class="card-tags"><span>1-Clique</span><span>Drag & Drop</span><span>Sem Sobrescrita</span></div>
+        </article>
+
+        <article class="bento-card">
+          <div class="card-icon">
+            <svg class="svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="url(#axo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="1" fill="#22d3ee"/><circle cx="17.5" cy="10.5" r="1" fill="#a78bfa"/><circle cx="8.5" cy="7.5" r="1" fill="#60a5fa"/><circle cx="6.5" cy="12.5" r="1" fill="#10b981"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+          </div>
+          <h3>Estúdio de Cores & Senhas</h3>
+          <p>Conversor HEX/RGB/HSL/CMYK, extrator de paleta dominante de imagens e gerador de senhas fortes com medidor de entropia e UUID.</p>
+          <div class="card-tags"><span>Paleta de Fotos</span><span>Entropia</span><span>UUID v4</span></div>
+        </article>
+
+        <article class="bento-card">
+          <div class="card-icon">
+            <svg class="svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="url(#axo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+          </div>
+          <h3>Editor de Fotos ao Vivo</h3>
+          <p>Brilho, contraste, saturação, filtros em tempo real, recorte 1:1 / 16:9 / 9:16, rotação, redimensionamento Lanczos3 e compressão.</p>
+          <div class="card-tags"><span>Preview Real-Time</span><span>Filtros</span><span>Recorte</span></div>
+        </article>
+
+        <article class="bento-card">
+          <div class="card-icon">
+            <svg class="svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="url(#axo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect width="15" height="14" x="1" y="5" rx="2" ry="2"/></svg>
+          </div>
+          <h3>Editor & Compressor de Vídeo</h3>
+          <p>Corte na linha do tempo, controle de velocidade (0.5× a 2.0×), formatos 9:16 / 16:9 / 1:1, filtros de cinema e compressão CRF.</p>
+          <div class="card-tags"><span>Timeline</span><span>Velocidade</span><span>FFmpeg</span></div>
+        </article>
+
+        <article class="bento-card">
+          <div class="card-icon">
+            <svg class="svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="url(#axo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>
+          </div>
+          <h3>Central Completa de PDF</h3>
+          <p>Junte múltiplos arquivos PDF na ordem que desejar, divida páginas ou intervalos e inspecione metadados técnicos em segundos.</p>
+          <div class="card-tags"><span>Unir PDF</span><span>Dividir Páginas</span><span>Inspeção</span></div>
+        </article>
+
+        <article class="bento-card">
+          <div class="card-icon">
+            <svg class="svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="url(#axo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          </div>
+          <h3>Estúdio de Áudio</h3>
+          <p>Converta entre MP3, WAV, FLAC, OGG, AAC e M4A, extraia a trilha sonora de vídeos e comprima áudios com controle de bitrate.</p>
+          <div class="card-tags"><span>MP3 / FLAC / WAV</span><span>Extrair de Vídeo</span></div>
+        </article>
+
+        <article class="bento-card">
+          <div class="card-icon">
+            <svg class="svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="url(#axo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
+          </div>
+          <h3>Compactador ZIP Seguro</h3>
+          <p>Compacte arquivos e pastas completas ou extraia pacotes ZIP com blindagem automática contra ataques Zip-Slip.</p>
+          <div class="card-tags"><span>Anti Zip-Slip</span><span>Pastas Completas</span></div>
+        </article>
+
+        <article class="bento-card">
+          <div class="card-icon">
+            <svg class="svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="url(#axo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>
+          </div>
+          <h3>Calculadora & Produtividade</h3>
+          <p>Calculadora científica expressa, bloco de notas (.txt), lista de tarefas com filtros, organizador de pastas e renomeação em lote.</p>
+          <div class="card-tags"><span>Calculadora</span><span>Notas .TXT</span><span>Tarefas</span></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Como Instalar em 3 Passos -->
+    <section class="section" id="instalacao">
+      <div class="section-header">
+        <span class="section-tag">
+          <svg class="svg-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Setup Automático
+        </span>
+        <h2>Pronto para usar em <span class="gradient-text">3 passos simples</span></h2>
+        <p>O instalador integrado configura tudo no seu perfil de usuário sem exigir permissões complicadas.</p>
+      </div>
+
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-num">1</div>
+            <h3>Baixe o Executável Oficial</h3>
+          </div>
+          <p style="color: var(--text-muted); line-height: 1.6;">
+            Clique no botão de download para baixar o <code>axolote_suite.exe</code> (v1.3.0) direto do GitHub Releases oficial.
+          </p>
+        </div>
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-num">2</div>
+            <h3>Setup + FFmpeg Automático</h3>
+          </div>
+          <p style="color: var(--text-muted); line-height: 1.6;">
+            Ao abrir pela primeira vez, o assistente cria os atalhos na Área de Trabalho e no Menu Iniciar e baixa o FFmpeg sozinho.
+          </p>
+        </div>
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-num">3</div>
+            <h3>Use 100% Offline</h3>
+          </div>
+          <p style="color: var(--text-muted); line-height: 1.6;">
+            Pronto! Use todas as 12 ferramentas localmente com velocidade máxima, tema escuro/claro e privacidade total.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Banner Final de Download -->
+    <section class="cta-banner">
+      <h2>Baixe o <span class="gradient-text">Axolote Suite v1.3.0</span> agora mesmo</h2>
+      <p>Gratuito, código aberto (MIT / Apache-2.0), leve e construído nativamente em Rust para Windows 10 e 11.</p>
+      <a href="https://github.com/axolotesuite/axolotesuite/releases/download/v1.3.0/axolote_suite.exe" class="btn-primary">
+        <svg class="svg-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+        Baixar Instalador Oficial para Windows (64-bit)
+      </a>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>
+        <strong>Axolote Suite v1.3.0</strong> • Desenvolvido em Rust + Iced •
+        <a href="https://github.com/axolotesuite/axolotesuite" target="_blank" rel="noopener">Repositório Oficial no GitHub</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

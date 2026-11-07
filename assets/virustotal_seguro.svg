@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 440" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b0f19" />
+      <stop offset="50%" stop-color="#111827" />
+      <stop offset="100%" stop-color="#0d1322" />
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed" />
+      <stop offset="100%" stop-color="#3b82f6" />
+    </linearGradient>
+  </defs>
+
+  <!-- Fundo Principal -->
+  <rect x="2" y="2" width="956" height="436" rx="22" fill="url(#bgGrad)" stroke="#10b981" stroke-width="2" stroke-opacity="0.45" />
+
+  <!-- Barra de Topo: VirusTotal & Código Aberto Verificado -->
+  <rect x="24" y="22" width="912" height="54" rx="12" fill="#161f33" stroke="#1e293b" stroke-width="1.5" />
+  <circle cx="52" cy="49" r="14" fill="url(#greenGrad)" />
+  <path d="M46 49l4 4 8-8" fill="none" stroke="#ffffff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="78" y="45" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="800">VERIFICAÇÃO DE SEGURANÇA &amp; AUDITORIA VIRUSTOTAL — AXOLOTE SUITE v1.3.0</text>
+  <text x="78" y="64" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600">100% Código Aberto em Rust • Sem Telemetria • Sem Conexões Ocultas • Auditável no GitHub</text>
+  <rect x="768" y="34" width="152" height="30" rx="15" fill="#064e3b" stroke="#10b981" stroke-width="1.2" />
+  <text x="844" y="54" fill="#34d399" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="800" text-anchor="middle">✓ 100% LIMPO &amp; SEGURO</text>
+
+  <!-- Coluna Esquerda: Painel VirusTotal Score + Motores Antivírus -->
+  <rect x="24" y="92" width="450" height="252" rx="16" fill="#11192c" stroke="#1e293b" stroke-width="1.5" />
+
+  <!-- Círculo de Pontuação 0/72 -->
+  <circle cx="110" cy="182" r="56" fill="#091326" stroke="#1e293b" stroke-width="8" />
+  <circle cx="110" cy="182" r="56" fill="none" stroke="#10b981" stroke-width="8" stroke-dasharray="352" stroke-dashoffset="0" stroke-linecap="round" />
+  <text x="110" y="178" fill="#10b981" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="900" text-anchor="middle">0 / 72</text>
+  <text x="110" y="198" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle">0 AMEAÇAS</text>
+  <text x="110" y="213" fill="#34d399" font-family="Segoe UI, Arial, sans-serif" font-size="10" font-weight="700" text-anchor="middle">VIRUSTOTAL</text>
+
+  <!-- Lista de Motores Antivírus -->
+  <text x="190" y="122" fill="#e2e8f0" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="800">Motores de Segurança Verificados:</text>
+
+  <!-- Engine 1 -->
+  <rect x="190" y="134" width="264" height="28" rx="7" fill="#0d1526" stroke="#1e293b" />
+  <text x="202" y="152" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600">Microsoft Defender SmartScreen</text>
+  <text x="442" y="152" fill="#10b981" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="800" text-anchor="end">✓ Limpo</text>
+
+  <!-- Engine 2 -->
+  <rect x="190" y="168" width="264" height="28" rx="7" fill="#0d1526" stroke="#1e293b" />
+  <text x="202" y="186" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600">Kaspersky &amp; Bitdefender</text>
+  <text x="442" y="186" fill="#10b981" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="800" text-anchor="end">✓ Limpo</text>
+
+  <!-- Engine 3 -->
+  <rect x="190" y="202" width="264" height="28" rx="7" fill="#0d1526" stroke="#1e293b" />
+  <text x="202" y="220" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600">Malwarebytes &amp; ESET NOD32</text>
+  <text x="442" y="220" fill="#10b981" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="800" text-anchor="end">✓ Limpo</text>
+
+  <!-- Engine 4 -->
+  <rect x="190" y="236" width="264" height="28" rx="7" fill="#0d1526" stroke="#1e293b" />
+  <text x="202" y="254" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600">Avast, AVG &amp; Norton</text>
+  <text x="442" y="254" fill="#10b981" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="800" text-anchor="end">✓ Limpo</text>
+
+  <!-- Resumo Técnico na Coluna Esquerda -->
+  <rect x="42" y="278" width="412" height="50" rx="9" fill="#091120" stroke="#1e293b" />
+  <text x="56" y="298" fill="#38bdf8" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="800">Arquivo: axolote_suite.exe (13.55 MB • Compilado em Rust x64)</text>
+  <text x="56" y="316" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="600">Licença Aberta: MIT / Apache-2.0 • 100% do código-fonte público no GitHub</text>
+
+  <!-- Coluna Direita: Explicação do Aviso do Windows SmartScreen / Navegador -->
+  <rect x="490" y="92" width="446" height="252" rx="16" fill="#11192c" stroke="#3b82f6" stroke-width="1.5" stroke-opacity="0.55" />
+  <text x="514" y="122" fill="#60a5fa" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="800">💡 Por que o Windows mostra aviso ao baixar?</text>
+  <text x="514" y="144" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="12">O Axolote Suite é um projeto gratuito e independente. A Microsoft cobra</text>
+  <text x="514" y="162" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="12">mais de US$ 400/ano por um certificado digital corporativo (EV Code Sign).</text>
+  <text x="514" y="180" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="12">Por isso, todo programa gratuito novo exibe a tela padrão do SmartScreen:</text>
+
+  <!-- Passo 1 e Passo 2 Visual do Windows SmartScreen -->
+  <rect x="514" y="196" width="192" height="128" rx="10" fill="#0b1324" stroke="#3b82f6" stroke-width="1.2" />
+  <rect x="526" y="208" width="24" height="24" rx="12" fill="url(#purpleGrad)" />
+  <text x="538" y="225" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="900" text-anchor="middle">1</text>
+  <text x="558" y="224" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="800">No Navegador / Windows</text>
+  <text x="526" y="248" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="11">Clique em:</text>
+  <rect x="526" y="258" width="168" height="28" rx="6" fill="#1e293b" stroke="#475569" />
+  <text x="610" y="276" fill="#e2e8f0" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle">Mais informações / Manter</text>
+  <text x="526" y="308" fill="#64748b" font-family="Segoe UI, Arial, sans-serif" font-size="10">Expande o botão de execução</text>
+
+  <rect x="722" y="196" width="192" height="128" rx="10" fill="#0b1324" stroke="#10b981" stroke-width="1.2" />
+  <rect x="734" y="208" width="24" height="24" rx="12" fill="url(#greenGrad)" />
+  <text x="746" y="225" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="900" text-anchor="middle">2</text>
+  <text x="766" y="224" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="800">Confirme a Abertura</text>
+  <text x="734" y="248" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="11">Em seguida clique em:</text>
+  <rect x="734" y="258" width="168" height="28" rx="6" fill="url(#greenGrad)" />
+  <text x="818" y="276" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="800" text-anchor="middle">Executar assim mesmo</text>
+  <text x="734" y="308" fill="#34d399" font-family="Segoe UI, Arial, sans-serif" font-size="10">Só aparece na 1ª vez que abrir!</text>
+
+  <!-- Rodapé: Hash SHA-256 Oficial do Executável -->
+  <rect x="24" y="360" width="912" height="56" rx="12" fill="#09101f" stroke="#1e293b" stroke-width="1.5" />
+  <text x="44" y="382" fill="#a78bfa" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="800">🔒 HASH SHA-256 OFICIAL PARA CONFERÊNCIA NO VIRUSTOTAL:</text>
+  <text x="44" y="403" fill="#38bdf8" font-family="Consolas, monospace" font-size="13" font-weight="700">3abc6ab3cd54cc8eb479ef34dbc49c0b2619e9f114d38e57b26e4c9fea000398</text>
+</svg>

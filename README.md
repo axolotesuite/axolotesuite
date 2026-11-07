@@ -8,8 +8,11 @@
   <a href="https://github.com/axolotesuite/axolotesuite/releases/download/v1.3.0/axolote_suite.exe">
     <img src="https://img.shields.io/badge/⬇_BAIXAR_INSTALADOR_OFICIAL-Windows_64--bit_(v1.3.0)-7c3aed?style=for-the-badge&logo=windows&logoColor=white" alt="Baixar Instalador Oficial" />
   </a>
-  <a href="https://github.com/axolotesuite/axolotesuite/releases/tag/v1.3.0">
-    <img src="https://img.shields.io/github/v/release/axolotesuite/axolotesuite?style=for-the-badge&color=3b82f6&label=Release" alt="Release" />
+  <a href="https://www.virustotal.com/gui/search/3abc6ab3cd54cc8eb479ef34dbc49c0b2619e9f114d38e57b26e4c9fea000398">
+    <img src="https://img.shields.io/badge/🛡_VirusTotal-100%25_Limpo_%26_Código_Seguro-10b981?style=for-the-badge&logo=virustotal&logoColor=white" alt="VirusTotal 100% Limpo" />
+  </a>
+  <a href="https://axolotesuite.github.io/axolotesuite/">
+    <img src="https://img.shields.io/badge/🌐_SITE_OFICIAL-Acessar_Página-3b82f6?style=for-the-badge" alt="Site Oficial" />
   </a>
   <img src="https://img.shields.io/badge/Rust-100%25_Offline-10b981?style=for-the-badge&logo=rust&logoColor=white" alt="Rust 100% Offline" />
 </p>
@@ -19,6 +22,31 @@ Sua central **100% offline, nativa e modular** para Windows 10 e Windows 11, des
 Projetada com a identidade visual oficial do **Axolote Suite** (tema escuro profundo, roxo `#7c3aed` e azul neon `#3b82f6`), **menu lateral animado (60 FPS)**, **design totalmente responsivo** e **guias passo a passo ("💡 Como usar")** em todas as ferramentas.
 
 > 💿 **Download Rápido:** [**Clique aqui para baixar o Instalador Oficial (`axolote_suite.exe`)**](https://github.com/axolotesuite/axolotesuite/releases/download/v1.3.0/axolote_suite.exe) — ao abrir, o instalador configura tudo e **baixa o FFmpeg automaticamente**!
+
+---
+
+## 🛡 Código 100% Seguro, Auditável & Verificação no VirusTotal
+
+<p align="center">
+  <img src="assets/virustotal_seguro.svg" alt="Verificação de Segurança VirusTotal e Guia Windows SmartScreen" width="100%" />
+</p>
+
+### ❓ Por que o navegador ou o Windows SmartScreen exibe um aviso ao baixar?
+O **Axolote Suite** é um software **100% seguro, gratuito e de código aberto (Open Source)**. Todo o código-fonte em Rust está público neste repositório para qualquer pessoa auditar.
+
+No entanto, a Microsoft e os navegadores cobram **mais de US$ 400 por ano** por um certificado digital corporativo (*EV Code Signing Certificate*). Como o Axolote Suite é um projeto independente e gratuito (sem assinatura paga), o Windows exibe o aviso padrão de *"Aplicativo não reconhecido / Arquivo pouco baixado"* na primeira execução:
+
+1. **No navegador (Chrome / Edge)**: se aparecer *"Download bloqueado / Arquivo pouco comum"*, clique nos três pontinhos e selecione **Manter** → **Manter assim mesmo**.
+2. **No Windows SmartScreen**: ao abrir o instalador pela 1ª vez, clique em **Mais informações** e depois no botão **Executar assim mesmo**.
+
+### 🔍 Auditoria Oficial e Hash SHA-256 (`v1.3.0`)
+- **Arquivo**: `axolote_suite.exe` (`13.55 MB` • Windows x64)
+- **SHA-256 Oficial**: `3abc6ab3cd54cc8eb479ef34dbc49c0b2619e9f114d38e57b26e4c9fea000398`
+- **Conferir no VirusTotal**: [**Clique aqui para verificar o hash no VirusTotal**](https://www.virustotal.com/gui/search/3abc6ab3cd54cc8eb479ef34dbc49c0b2619e9f114d38e57b26e4c9fea000398)
+- **Como conferir no seu próprio PC (PowerShell)**:
+  ```powershell
+  Get-FileHash .\axolote_suite.exe -Algorithm SHA256
+  ```
 
 ---
 

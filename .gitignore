@@ -1,0 +1,40 @@
+# Rust / Cargo
+/target/
+**/*.rs.bk
+
+# Build e instaladores gerados
+/dist/
+/build/
+/out/
+/installer/output/
+/installer/dist/
+
+# Logs e arquivos temporários
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# Segredos e configurações locais
+.env
+.env.*
+!.env.example
+
+# Windows e macOS
+Thumbs.db
+Desktop.ini
+*.stackdump
+.DS_Store
+
+# IDEs
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Cobertura de testes
+/coverage/
+
+# Cargo.lock NÃO deve ser ignorado em aplicativos.
+# Mantenha Cargo.lock versionado para builds reproduzíveis.

@@ -1,232 +1,198 @@
 <div align="center">
 
-<img src="assets/branding/banner.svg" alt="Banner do Axolote Suite" width="100%">
+<img src="assets/branding/banner.svg" alt="Axolote Suite" width="100%">
 
-# Axolote Suite
+# Axolote Suite v1.2.0
 
-### Uma suíte de produtividade e ferramentas locais para Windows.
+### Ferramentas locais para produtividade, documentos e multimídia no Windows.
 
 <p>
-  <img src="https://img.shields.io/badge/Status-Em%20desenvolvimento-f59e0b" alt="Em desenvolvimento">
-  <img src="https://img.shields.io/badge/Linguagem-TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
-  <img src="https://img.shields.io/badge/Desktop-Electron-47848F?logo=electron&logoColor=white" alt="Electron">
-  <img src="https://img.shields.io/badge/Plataforma-Windows%2010%20%2F%2011-5865F2?logo=windows&logoColor=white" alt="Windows 10 e 11">
+  <img src="https://img.shields.io/badge/Rust-Linguagem%20principal-black?logo=rust" alt="Rust">
+  <img src="https://img.shields.io/badge/Iced-Interface-7c3aed" alt="Iced">
+  <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-2563eb?logo=windows" alt="Windows 10 e 11">
+  <img src="https://img.shields.io/badge/Status-Código%20em%20preparação-f59e0b" alt="Código em preparação">
 </p>
 
-**Produtividade • Conversão de arquivos • Privacidade • Controle local**
+**Produtividade • Arquivos • PDF • Imagens • Áudio • Vídeo**
 
 </div>
 
 ---
 
 > [!IMPORTANT]
-> **O Axolote Suite ainda está em desenvolvimento.** O projeto está sendo reorganizado em uma versão inicial menor, chamada provisoriamente de **Axolote Suite Mini**. Ainda não existe uma versão pública pronta para download. As ferramentas descritas nesta página representam o escopo planejado e não devem ser consideradas implementadas ou testadas.
+> Esta atualização organiza o repositório para receber o código-fonte Rust + Iced descrito pelo desenvolvedor. O código-fonte ainda precisa ser enviado para esta estrutura e compilado a partir dela. Não considere build, instalador ou testes aprovados até que sejam executados e registrados.
 
-## 🦎 O que é o Axolote Suite?
+## 🦎 Sobre o projeto
 
-O **Axolote Suite** é um projeto de aplicativo desktop para Windows 10 e Windows 11. A proposta é reunir, em uma única interface, ferramentas úteis para produtividade, organização e conversão de arquivos.
+O **Axolote Suite** é uma aplicação desktop para Windows 10 e Windows 11 que reúne ferramentas de produtividade, edição de imagens, processamento de vídeo e áudio, manipulação de PDF e organização de arquivos.
 
-A ideia é evitar que o usuário precise abrir vários programas diferentes para tarefas simples, como organizar notas, gerenciar tarefas, converter imagens, trabalhar com PDFs ou processar arquivos de áudio e vídeo.
+A proposta é manter o processamento no computador do usuário, com uma interface única e consistente. Depois que os componentes necessários estiverem instalados, as ferramentas locais deverão funcionar sem depender de serviços em nuvem.
 
-O desenvolvimento está sendo recomeçado com um escopo menor e mais realista. Em vez de tentar criar muitos módulos complexos de uma só vez, a prioridade será construir uma base funcional, testar cada ferramenta e ampliar o programa por etapas.
+## ✨ Funcionalidades descritas para a versão 1.2.0
 
-## 🚧 Estado atual do desenvolvimento
+As funcionalidades abaixo foram descritas no README de desenvolvimento enviado para organizar este repositório. A implementação e os formatos suportados devem ser confirmados com o código-fonte e testes reproduzíveis.
 
-O projeto está em fase de reorganização e desenvolvimento inicial.
+### 🎨 Estúdio e editor de fotos
 
-| Item | Situação atual |
+- Pré-visualização de ajustes antes da exportação.
+- Brilho, contraste e saturação.
+- Filtros: original, preto e branco, sépia, quente, frio, neon/axolote e negativo.
+- Recorte livre e proporções 1:1, 16:9, 9:16 e 4:3.
+- Rotação e espelhamento.
+- Redimensionamento com filtro Lanczos3.
+- Conversão entre PNG, JPG, WebP, BMP e ICO.
+- Compressão JPEG com qualidade ajustável.
+
+### 🎬 Estúdio e editor de vídeo
+
+- Pré-visualização de quadro e seleção de trecho.
+- Controle de velocidade e ajuste de áudio.
+- Proporções de tela 16:9, 9:16 e 1:1.
+- Filtros visuais, rotação, espelhamento e controle de volume.
+- Conversão entre MP4, MKV, AVI, MOV e WebM.
+- Compressão com controle CRF.
+
+### 📄 Central de documentos PDF
+
+- Unir documentos na ordem escolhida.
+- Dividir documentos e extrair intervalos de páginas.
+- Consultar número de páginas, versão, tamanho e criptografia.
+
+### 📋 Produtividade, arquivos e ZIP
+
+- Bloco de notas com salvamento local.
+- Lista de tarefas com filtros e salvamento automático.
+- Calculadora com expressões, parênteses, potência, resto e histórico.
+- Organizador de pastas com pré-visualização.
+- Renomeação em lote com substituição, prefixos, sufixos e numeração.
+- Compactação e extração ZIP com proteção contra Zip Slip.
+
+### 💿 Instalação e desinstalação
+
+- Instalador para Windows.
+- Criação de atalhos.
+- Configuração local do FFmpeg, quando necessário.
+- Desinstalador com opção de preservar dados pessoais.
+
+**Nota sobre internet:** o objetivo é que as operações do aplicativo sejam locais. O primeiro instalador poderá precisar de internet para baixar componentes opcionais, como FFmpeg. O aplicativo não deve depender de nuvem para processar os arquivos do usuário.
+
+## 🧱 Tecnologias
+
+| Tecnologia | Uso |
 |---|---|
-| Nome e identidade visual | Preparados |
-| Objetivo e escopo do produto | Em definição |
-| Linguagem principal | TypeScript escolhida |
-| Aplicativo desktop | Electron planejado |
-| Ferramentas de desenvolvimento | Vite e electron-builder planejados |
-| Ferramentas de produtividade | Planejadas |
-| Ferramentas de PDF | Planejadas |
-| Conversão de imagens | Planejada |
-| Conversão de vídeo e áudio | Planejada |
-| Instalador do Windows | Ainda não disponível |
-| Versão pública para download | Ainda não disponível |
+| **Rust** | Linguagem principal |
+| **Iced** | Interface desktop |
+| **FFmpeg / ffprobe** | Processamento e análise de áudio e vídeo |
+| **Cargo** | Dependências e compilação |
+| **NSIS**, se adotado | Geração do instalador Windows |
 
-**Importante:** este repositório contém a apresentação e a documentação do projeto. O código do aplicativo, os instaladores e as funcionalidades finais ainda não estão publicados aqui. O estado desta tabela será atualizado conforme houver entregas verificáveis.
+As versões das dependências, recursos habilitados e licenças de distribuição devem ser registradas no projeto. Não distribua binários de terceiros sem verificar os respectivos termos.
 
-## 🎯 O que o projeto pretende resolver?
+## 📂 Organização do repositório
 
-Tarefas cotidianas podem exigir vários aplicativos: um para converter imagens, outro para juntar PDFs, outro para comprimir vídeos e mais um para anotar compromissos.
+~~~text
+AxoloteSuite/
+├── .github/                  # Modelos de issues e pull requests
+├── assets/
+│   └── branding/             # Banner, logotipo e ícone oficiais
+├── docs/
+│   ├── architecture/
+│   ├── modules/
+│   ├── security/
+│   └── testing/
+├── installer/
+├── scripts/
+├── src/
+│   ├── core/
+│   ├── shared/
+│   └── modules/
+├── tests/
+├── Cargo.toml
+├── Cargo.lock
+├── LICENSE
+├── README.md
+└── .gitignore
+~~~
 
-O Axolote Suite pretende reunir ferramentas desse tipo em um ambiente organizado, com uma experiência visual consistente e operações realizadas localmente sempre que possível.
+A estrutura será preenchida com os arquivos reais do aplicativo. Não foram criados arquivos Rust vazios para simular implementação.
 
-O objetivo não é prometer substituir todos os programas profissionais. A prioridade é oferecer ferramentas práticas, fáceis de entender e confiáveis para necessidades comuns.
+## 🛠️ Compilar no Windows
 
-## 🧰 Ferramentas planejadas
+Depois de enviar o código-fonte e incluir Cargo.toml na raiz:
 
-Os módulos serão desenvolvidos por etapas. A ordem poderá mudar conforme os testes, a complexidade técnica e a viabilidade de cada recurso.
+~~~powershell
+cargo build
+cargo build --release
+~~~
 
-### 📝 Produtividade
+O executável de produção deverá ser gerado em:
 
-- **Bloco de notas:** criar, editar, pesquisar e organizar notas.
-- **Gerenciador de tarefas:** registrar atividades, marcar como concluídas e filtrar pendências.
-- **Calculadora:** operações matemáticas básicas.
+~~~text
+target\release\axolote_suite.exe
+~~~
 
-### 📄 PDF
+O nome final do executável depende da configuração efetiva do pacote Cargo. O processo de instalador deve ser documentado e testado separadamente.
 
-- Juntar documentos PDF.
-- Dividir um PDF em arquivos menores.
-- Extrair páginas específicas.
-- Reorganizar, girar ou remover páginas.
-- Criar PDF a partir de imagens.
-- Avaliar opções de compressão.
+## 🧪 Qualidade e validação
 
-### 🖼️ Imagens
+Antes de marcar uma funcionalidade como pronta:
 
-- Converter PNG, JPG, JPEG e WebP, conforme suporte implementado.
-- Comprimir imagens.
-- Redimensionar com proporção preservada.
-- Processar várias imagens em lote.
-- Consultar dimensões e informações básicas.
+1. Compilar o projeto.
+2. Executar os testes automatizados disponíveis.
+3. Testar operações com arquivos de exemplo.
+4. Verificar cancelamento, erros e permissões.
+5. Confirmar que os arquivos originais não foram alterados indevidamente.
+6. Documentar formatos suportados e limitações.
 
-### 🎬 Vídeo
+Comandos recomendados após o código Rust ser enviado:
 
-- Converter arquivos entre formatos suportados.
-- Escolher opções de codificação e qualidade.
-- Redimensionar vídeos.
-- Cortar trechos.
-- Consultar duração, resolução e codecs.
-- Acompanhar o progresso e cancelar operações.
+~~~powershell
+cargo fmt --all -- --check
+cargo check --all-targets
+cargo test --all-targets
+cargo clippy --all-targets -- -D warnings
+cargo build --release
+~~~
 
-### 🎧 Áudio
+## 🔐 Privacidade e segurança
 
-- Converter formatos de áudio compatíveis.
-- Extrair áudio de vídeos.
-- Cortar trechos.
-- Ajustar parâmetros de qualidade e bitrate, quando suportados.
+- Prioridade para processamento local.
+- Sem login obrigatório para ferramentas locais.
+- Sem telemetria ativada por padrão.
+- Sem envio automático de arquivos.
+- Validação de entradas e caminhos.
+- Preservação dos arquivos originais.
+- Proteção contra caminhos maliciosos em arquivos compactados.
 
-### 🗂️ Arquivos e utilitários
-
-- Compactar e descompactar arquivos ZIP.
-- Renomear vários arquivos em lote.
-- Organizar operações em uma fila.
-- Consultar o histórico de conversões.
-
-> **Sobre formatos e codecs:** a lista final dependerá das bibliotecas e ferramentas efetivamente integradas, das capacidades da versão utilizada e das respectivas licenças. O programa deverá mostrar apenas opções realmente suportadas.
-
-## 🧭 Como o Axolote Suite deverá funcionar?
-
-A experiência planejada é simples:
-
-1. O usuário abre o aplicativo e encontra um painel com as categorias de ferramentas.
-2. Escolhe uma ferramenta, como PDF, imagens ou vídeo.
-3. Seleciona arquivos do próprio computador.
-4. Configura a operação desejada.
-5. Acompanha o processamento e o resultado.
-6. Escolhe onde salvar o arquivo gerado.
-
-As operações de conversão e edição local deverão preservar o arquivo original. O aplicativo deverá informar erros, limitações e formatos não suportados de maneira clara.
-
-## 🛠️ Tecnologias escolhidas
-
-A base planejada para a primeira versão utiliza:
-
-| Tecnologia | Finalidade |
-|---|---|
-| **TypeScript** | Linguagem principal do projeto |
-| **Electron** | Aplicativo desktop para Windows |
-| **Vite** | Ambiente de desenvolvimento e construção da interface |
-| **HTML e CSS** | Estrutura e aparência da interface |
-| **electron-builder** | Empacotamento e geração do instalador |
-| **FFmpeg / ffprobe** | Processamento e análise de áudio e vídeo, após avaliação das licenças |
-
-A escolha de TypeScript busca facilitar a organização do código e a identificação de erros durante o desenvolvimento. Electron será utilizado para criar a aplicação desktop.
-
-O projeto não pretende utilizar .NET, Python ou inteligência artificial integrada.
-
-## 🔐 Privacidade e funcionamento local
-
-Privacidade e controle dos arquivos são diretrizes do Axolote Suite.
-
-Os objetivos são:
-
-- **Sem login obrigatório:** as ferramentas locais não deverão depender de uma conta.
-- **Sem telemetria por padrão:** não planejar coleta automática de dados de uso.
-- **Sem envio automático de arquivos:** operações locais deverão ocorrer no computador.
-- **Uso offline como prioridade:** as funções principais deverão funcionar sem conexão sempre que tecnicamente possível.
-- **Transparência:** qualquer recurso que dependa de internet deverá explicar sua finalidade.
-- **Controle do usuário:** arquivos originais não deverão ser apagados ou substituídos sem autorização.
-
-Esses pontos são requisitos de desenvolvimento, não uma declaração de que o aplicativo já foi auditado ou certificado. O comportamento real deverá ser verificado antes de cada lançamento.
-
-## 🗺️ Etapas de desenvolvimento
-
-O trabalho será dividido em etapas pequenas para que cada entrega possa ser testada antes de aumentar o escopo.
-
-| Etapa | Objetivo |
-|---|---|
-| 1. Fundação | Configurar TypeScript, Electron e a estrutura do aplicativo |
-| 2. Interface | Criar painel, navegação e identidade visual dentro do programa |
-| 3. Produtividade | Implementar notas, tarefas e calculadora |
-| 4. PDF e imagens | Criar as primeiras ferramentas de manipulação e conversão |
-| 5. Áudio e vídeo | Integrar processamento local e opções de codificação |
-| 6. Arquivos | Adicionar ZIP, renomeação em lote e fila de operações |
-| 7. Validação | Testar, corrigir, revisar dependências e documentar limitações |
-| 8. Distribuição | Preparar e testar o instalador para Windows |
-
-Não há data de lançamento confirmada. A prioridade é concluir e validar uma etapa antes de apresentá-la como pronta.
-
-## 🎨 Identidade visual
-
-O projeto utiliza um mascote de axolote e uma identidade visual minimalista, com roxo, branco e tons escuros.
-
-<div align="center">
-  <img src="assets/branding/logo.svg" alt="Logotipo Axolote Suite" width="74%">
-</div>
-
-Arquivos da identidade:
-- [Banner](assets/branding/banner.svg)
-- [Logotipo](assets/branding/logo.svg)
-- [Ícone](assets/branding/icon.svg)
-- [Guia da identidade visual](assets/branding/README.md)
+Esses itens são requisitos do projeto. Não representam uma auditoria ou certificação de segurança concluída.
 
 ## 📚 Documentação
 
-- [Visão geral do projeto](docs/VISAO-GERAL.md)
-- [Módulos planejados](docs/MODULOS-PLANEJADOS.md)
-- [Princípios do projeto](docs/PRINCIPIOS.md)
-- [Estado atual do desenvolvimento](docs/ESTADO-ATUAL.md)
-- [Identidade visual](assets/branding/README.md)
+- [Estado atual](docs/ESTADO-ATUAL.md)
+- [Visão geral](docs/VISAO-GERAL.md)
+- [Módulos](docs/MODULOS-PLANEJADOS.md)
+- [Estrutura de pastas](docs/architecture/ESTRUTURA.md)
+- [Checklist de testes](docs/testing/CHECKLIST.md)
+- [Princípios](docs/PRINCIPIOS.md)
+- [Como contribuir](CONTRIBUTING.md)
+- [Segurança](SECURITY.md)
 
-## ❓ Perguntas frequentes
+## 📦 Versões e downloads
 
-**O Axolote Suite já está pronto?**  
-Não. O projeto ainda está em desenvolvimento. A implementação está sendo organizada em uma versão inicial menor para que as ferramentas possam ser concluídas e testadas por etapas.
+Nenhum instalador deve ser considerado oficial até que seja gerado a partir do código deste repositório e validado. Quando houver uma versão pronta, publique os binários na página **Releases** do GitHub, acompanhados de versão, notas de lançamento e hashes SHA-256.
 
-**Já posso baixar e instalar?**  
-Ainda não existe um instalador público. Uma versão para download será anunciada quando houver um pacote real e testado.
+## 📄 Licença
 
-**Qual linguagem será utilizada?**  
-TypeScript. A aplicação desktop está planejada com Electron e Vite.
-
-**Quais ferramentas estarão disponíveis?**  
-O escopo planejado inclui produtividade, PDF, imagens, vídeo, áudio e utilitários para arquivos. A disponibilidade dependerá da implementação e dos testes.
-
-**O programa funcionará sem internet?**  
-O objetivo é priorizar operações locais e funcionamento offline. Downloads e atualizações poderão exigir conexão.
-
-**Terá inteligência artificial, login ou telemetria?**  
-IA integrada está fora do escopo. Login obrigatório e telemetria por padrão também não fazem parte dos objetivos do projeto.
-
-**Todos os formatos e codecs serão aceitos?**  
-Não necessariamente. O suporte dependerá das bibliotecas, codecs e ferramentas efetivamente integradas. A documentação deverá listar os formatos testados.
+O README de desenvolvimento informa a intenção de distribuir o projeto sob **MIT OR Apache-2.0**. Os arquivos completos das licenças devem estar presentes na raiz antes da publicação de uma versão distribuível. Confira essa inclusão antes de liberar o código.
 
 ---
 
 <div align="center">
 
-<img src="assets/branding/icon.svg" alt="Mascote Axolote" width="84">
+<img src="assets/branding/icon.svg" alt="Mascote Axolote" width="72">
 
 ### Axolote Suite
 
-**Um projeto em desenvolvimento, construído por etapas.**
-
-<sub>Ideias claras, ferramentas úteis e evolução com testes.</sub>
+**Ferramentas úteis. Processamento local. Desenvolvimento verificável.**
 
 </div>

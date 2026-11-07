@@ -1,76 +1,100 @@
 # Módulos planejados
 
-Este documento explica as áreas consideradas para o Axolote Suite. Todas as descrições são propostas: não significam que os recursos já foram programados, testados ou lançados.
+**Estado geral: em desenvolvimento.** As ferramentas descritas abaixo fazem parte do escopo pretendido do Axolote Suite Mini. Não significa que estejam implementadas, testadas ou disponíveis para download.
 
-## 📝 Documentos
+O objetivo é desenvolver por etapas, priorizando ferramentas úteis e verificáveis.
 
-**Finalidade:** oferecer ferramentas para trabalhar com documentos de texto.
+## 📝 1. Produtividade
 
-Possibilidades a avaliar:
-- criar e editar textos;
-- abrir e salvar formatos compatíveis;
-- organizar documentos no computador;
-- oferecer opções de formatação e impressão, conforme a viabilidade.
+### Bloco de notas
+- Criar, editar e excluir notas.
+- Pesquisar notas.
+- Salvar automaticamente.
+- Manter os dados localmente.
 
-## 🖼️ Imagens
+### Gerenciador de tarefas
+- Criar, editar e excluir tarefas.
+- Marcar tarefas como concluídas.
+- Filtrar pendências e tarefas concluídas.
+- Salvar os dados localmente.
 
-**Finalidade:** reunir ferramentas para visualizar e realizar edições de imagem.
+### Calculadora
+- Operações matemáticas básicas.
+- Números decimais.
+- Suporte ao teclado.
+- Tratamento de divisão por zero.
 
-Possibilidades a avaliar:
-- visualizar imagens;
-- recortar e redimensionar;
-- ajustar propriedades básicas;
-- exportar para formatos compatíveis.
+## 📄 2. PDF
 
-## 🎬 Vídeo
+Ferramentas a avaliar e desenvolver:
+- Juntar arquivos PDF.
+- Dividir um documento.
+- Extrair páginas selecionadas.
+- Reorganizar, girar e remover páginas.
+- Criar PDF a partir de imagens.
+- Avaliar compressão de PDF.
 
-**Finalidade:** oferecer ferramentas para tarefas com arquivos de vídeo.
+O suporte dependerá das bibliotecas escolhidas e de testes com documentos reais. Conversão de PDF para Word não faz parte do primeiro escopo.
 
-Possibilidades a avaliar:
-- consultar informações do arquivo;
-- realizar operações simples de corte ou conversão;
-- exportar em formatos que sejam efetivamente suportados.
+## 🖼️ 3. Imagens
 
-O escopo dependerá de desempenho, codecs, licenças e viabilidade técnica.
+- Converter PNG, JPG/JPEG e WebP, conforme suporte real.
+- Comprimir imagens.
+- Redimensionar mantendo proporção.
+- Processar várias imagens em lote.
+- Consultar dimensões.
+- Avaliar remoção de metadados na exportação.
 
-## 🎧 Áudio
+## 🎬 4. Vídeo
 
-**Finalidade:** trabalhar com arquivos de áudio.
+Com FFmpeg e ffprobe, após revisão de licença e distribuição:
+- Converter formatos suportados.
+- Selecionar opções de codificação.
+- Ajustar resolução, FPS e qualidade.
+- Comprimir vídeo.
+- Cortar trechos.
+- Consultar duração, resolução e codecs.
+- Acompanhar progresso e cancelar operações.
 
-Possibilidades a avaliar:
-- abrir e organizar arquivos;
-- consultar informações;
-- realizar conversões ou operações básicas, conforme o escopo aprovado.
+Os codecs disponíveis dependerão da compilação e dos componentes efetivamente integrados.
 
-## 🔄 Conversão
+## 🎧 5. Áudio
 
-**Finalidade:** converter arquivos entre formatos compatíveis.
+- Converter formatos compatíveis.
+- Extrair áudio de vídeos.
+- Cortar trechos.
+- Ajustar bitrate e qualidade, quando suportado.
+- Consultar informações do arquivo.
 
-Cada conversão deverá informar formatos de entrada e saída suportados, limitações conhecidas e possíveis perdas de qualidade.
+## 🗂️ 6. Arquivos e utilitários
 
-## 🧰 Utilitários
+- Criar e extrair arquivos ZIP.
+- Renomear vários arquivos em lote.
+- Visualizar alterações antes de renomear.
+- Detectar nomes duplicados.
+- Organizar uma fila de operações.
+- Consultar histórico de conversões.
 
-**Finalidade:** agrupar pequenas ferramentas que ajudam nas tarefas cotidianas do computador.
+## Ordem de implementação pretendida
 
-Cada utilitário deverá ter uma função clara, explicação de uso e comportamento previsível.
+| Etapa | Área |
+|---|---|
+| 1 | Base do aplicativo e painel |
+| 2 | Notas, tarefas e calculadora |
+| 3 | PDF e imagens |
+| 4 | Vídeo e áudio |
+| 5 | ZIP, renomeação e fila de operações |
+| 6 | Testes e instalador |
 
-## 📦 Gerenciador
+A ordem poderá ser ajustada conforme a viabilidade e os resultados dos testes.
 
-**Finalidade:** apresentar os módulos instalados e apoiar o gerenciamento da suíte.
+## Critério para marcar uma ferramenta como concluída
 
-A proposta inclui estudar processos claros para instalação, atualização e remoção. Nenhum instalador ou atualizador está sendo anunciado como disponível neste momento.
+Uma ferramenta só deverá ser marcada como concluída quando:
+1. Estiver implementada no aplicativo.
+2. Tiver sido testada com arquivos ou dados reais.
+3. Tratar erros e cancelamentos relevantes.
+4. Preservar os arquivos originais quando aplicável.
+5. Tiver limitações e formatos suportados documentados.
 
-## Critérios para aprovar um módulo
-
-Antes de entrar no produto, cada módulo deverá responder:
-1. Que problema resolve?
-2. Para quem será útil?
-3. Quais formatos ou dados manipula?
-4. Funciona sem internet?
-5. Quais dependências e licenças utiliza?
-6. Como será testado?
-7. Como o usuário poderá remover ou desativar o componente?
-
-## Estado
-
-Todos os módulos desta página estão em fase de planejamento. A lista poderá mudar conforme pesquisa, protótipos e testes.
+**Estado atual:** módulos planejados; implementação e validação ainda em andamento.

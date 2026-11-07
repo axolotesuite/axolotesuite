@@ -261,3 +261,124 @@ pub fn probe_media(ffmpeg: &Path, input: &Path) -> Vec<String> {
     }
     lines
 }
+
+// ---------------------------------------------------------------------------
+// Detector Global de Atalho (Ctrl + Alt + N) e Gesto (Ctrl + Alt + Arrastar)
+// ---------------------------------------------------------------------------
+
+#[cfg(windows)]
+mod win_gesture {
+    use std::sync::atomic::{AtomicBool, Ordering};
+
+    #[link(name = "user32")]
+    extern "system" {
+        fn GetAsyncKeyState(vkey: i32) -> i16;
+        fn GetForegroundWindow() -> isize;
+        fn GetClassNameW(hwnd: isize, lp_class_name: *mut u16, max_count: i32) -> i32;
+        fn EnumWindows(lp_enum_func: unsafe extern "system" fn(isize, isize) -> i32, lparam: isize) -> i32;
+        fn GetWindowThreadProcessId(hwnd: isize, lpdw_process_id: *mut u32) -> u32;
+        fn IsWindowVisible(hwnd: isize) -> i32;
+        fn ShowWindow(hwnd: isize, cmd_show: i32) -> i32;
+        fn SetForegroundWindow(hwnd: isize) -> i32;
+    }
+
+    static WAS_TRIGGERED: AtomicBool = AtomicBool::new(false);
+
+    const VK_LBUTTON: i32 = 0x01;
+    const VK_CONTROL: i32 = 0x11;
+    const VK_MENU: i32 = 0x12; // Alt
+    const VK_N: i32 = 0x4E;
+    const SW_RESTORE: i32 = 9;
+
+    fn key_down(vk: i32) -> bool {
+        unsafe { (GetAsyncKeyState(vk) as u16 & 0x8000) != 0 }
+    }
+
+    fn is_explorer_foreground() -> bool {
+        unsafe {
+            let fg = GetForegroundWindow();
+            if fg == 0 {
+                return false;
+            }
+            let mut buf = [0u16; 64];
+            let len = GetClassNameW(fg, buf.as_mut_ptr(), 63);
+            if len <= 0 {
+                return false;
+            }
+            let cls = String::from_utf16_lossy(&buf[..len as usize]);
+            matches!(cls.as_str(), "CabinetWClass" | "ExploreWClass" | "Progman" | "WorkerW")
+        }
+    }
+
+    unsafe extern "system" fn enum_proc(hwnd: isize, lparam: isize) -> i32 {
+        let mut pid = 0u32;
+        GetWindowThreadProcessId(hwnd, &mut pid);
+        if pid == std::process::id() && IsWindowVisible(hwnd) != 0 {
+            let out_ptr = lparam as *mut isize;
+            *out_ptr = hwnd;
+            return 0;
+        }
+        1
+    }
+
+    pub fn bring_self_to_front() {
+        unsafe {
+            let mut my_hwnd: isize = 0;
+            EnumWindows(enum_proc, (&mut my_hwnd as *mut isize) as isize);
+            if my_hwnd != 0 {
+                ShowWindow(my_hwnd, SW_RESTORE);
+                SetForegroundWindow(my_hwnd);
+            }
+        }
+    }
+
+    pub fn poll_ctrl_alt_n_or_drag() -> Option<bool> {
+        let ctrl_alt = key_down(VK_CONTROL) && key_down(VK_MENU);
+        let n_pressed = ctrl_alt && key_down(VK_N);
+        let explorer_drag = ctrl_alt && key_down(VK_LBUTTON) && is_explorer_foreground();
+        let active = n_pressed || explorer_drag;
+
+        let prev = WAS_TRIGGERED.swap(active, Ordering::SeqCst);
+        if active && !prev {
+            bring_self_to_front();
+            // true = foi gesto de arrastar no Explorer; false = foi tecla Ctrl+Alt+N
+            Some(explorer_drag && !n_pressed)
+        } else {
+            None
+        }
+    }
+}
+
+/// Verifica globalmente no Windows se o usuário apertou `Ctrl + Alt + N` ou
+/// segurou `Ctrl + Alt` arrastando um arquivo no Windows Explorer.
+/// Retorna `Some(true)` se foi gesto de arrastar no Explorer, `Some(false)` se foi `Ctrl + Alt + N`.
+pub fn poll_global_quick_convert() -> Option<bool> {
+    #[cfg(windows)]
+    {
+        win_gesture::poll_ctrl_alt_n_or_drag()
+    }
+    #[cfg(not(windows))]
+    {
+        None
+    }
+}
+
+/// Subscription em segundo plano (0% CPU quando ocioso) que escuta globalmente no Windows
+/// o atalho `Ctrl + Alt + N` e o gesto `Ctrl + Alt + Arrastar no Explorer`.
+pub fn global_gesture_subscription() -> iced::Subscription<bool> {
+    struct GlobalGestureWatcher;
+    iced::subscription::unfold(
+        std::any::TypeId::of::<GlobalGestureWatcher>(),
+        (),
+        |_| async move {
+            let is_drag = run_blocking(|| loop {
+                std::thread::sleep(std::time::Duration::from_millis(80));
+                if let Some(drag) = poll_global_quick_convert() {
+                    return drag;
+                }
+            })
+            .await;
+            (is_drag, ())
+        },
+    )
+}

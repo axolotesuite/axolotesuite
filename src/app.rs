@@ -8,6 +8,7 @@
 //! - Roteamento para todos os módulos, incluindo Editor de Fotos, Editor de Vídeo
 //!   e Instalador / Desinstalador integrado como tela inicial de Setup.
 
+use std::path::PathBuf;
 use std::time::Instant;
 
 use iced::widget::{button, column, container, image as iced_image, progress_bar, row, scrollable, text, Space};
@@ -15,7 +16,8 @@ use iced::{Alignment, Application, Command, Element, Event, Length, Subscription
 
 use crate::core::Ctx;
 use crate::modules::{
-    audio, batch_rename, history, images, installer, pdf, productivity, queue, settings, video, zip,
+    audio, batch_rename, devtools, history, images, installer, pdf, productivity, queue, quick_convert, settings,
+    video, zip,
 };
 use crate::shared::brand;
 use crate::shared::theme::{self, Btn};
@@ -25,6 +27,7 @@ use crate::shared::ui::{self, BOLD, SEMIBOLD};
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Module {
     Home,
+    QuickConvert,
     Productivity,
     Calculator,
     Pdf,
@@ -33,6 +36,7 @@ pub enum Module {
     Audio,
     BatchRename,
     Zip,
+    DevTools,
     Queue,
     History,
     Settings,
@@ -43,6 +47,7 @@ impl Module {
     pub fn icon(&self) -> &'static str {
         match self {
             Module::Home => "🏠",
+            Module::QuickConvert => "🔄",
             Module::Productivity => "📋",
             Module::Calculator => "🖩",
             Module::Pdf => "📄",
@@ -51,6 +56,7 @@ impl Module {
             Module::Audio => "🎵",
             Module::BatchRename => "📁",
             Module::Zip => "🗜",
+            Module::DevTools => "🎨",
             Module::Queue => "📦",
             Module::History => "🕒",
             Module::Settings => "⚙",
@@ -61,6 +67,7 @@ impl Module {
     pub fn title(&self) -> &'static str {
         match self {
             Module::Home => "Início",
+            Module::QuickConvert => "Conversor Fácil",
             Module::Productivity => "Produtividade",
             Module::Calculator => "Calculadora",
             Module::Pdf => "PDF",
@@ -69,6 +76,7 @@ impl Module {
             Module::Audio => "Áudio",
             Module::BatchRename => "Arquivos em Lote",
             Module::Zip => "ZIP (Compactador)",
+            Module::DevTools => "Cores & Senhas",
             Module::Queue => "Fila de Operações",
             Module::History => "Histórico",
             Module::Settings => "Configurações",
@@ -79,6 +87,7 @@ impl Module {
     pub fn summary(&self) -> &'static str {
         match self {
             Module::Home => "Central de ferramentas, busca rápida e visão geral.",
+            Module::QuickConvert => "Converta imagens, textos, documentos (DOCX/PDF), vídeos, áudios e ZIP.",
             Module::Productivity => "Bloco de notas (.txt), lista de tarefas e organizador de pastas.",
             Module::Calculator => "Calculadora expressa com parênteses, potência, porcentagem e histórico.",
             Module::Pdf => "Junte, divida em páginas e consulte informações de PDFs.",
@@ -87,6 +96,7 @@ impl Module {
             Module::Audio => "Converta, extraia trilha de vídeos e comprima áudios.",
             Module::BatchRename => "Renomeie arquivos em lote com regras e pré-visualização.",
             Module::Zip => "Compacte, descompacte e inspecione arquivos ZIP com segurança.",
+            Module::DevTools => "Estúdio de cores, paleta de fotos, gerador de senhas fortes e UUID.",
             Module::Queue => "Acompanhe as operações em segundo plano sem travar a tela.",
             Module::History => "Registro completo de atividades realizadas no aplicativo.",
             Module::Settings => "Tema escuro/claro, abertura automática de pastas e privacidade.",
@@ -98,12 +108,16 @@ impl Module {
 #[derive(Debug, Clone)]
 pub enum Message {
     Navigate(Module),
+    OpenQuickConvertShortcut,
+    GlobalGestureTriggered(bool),
     QuickLaunchProductivity(productivity::Tab),
     SearchChanged(String),
     ToggleSidebar,
     ToggleTheme,
     WindowResized(u32, u32),
+    FileDropped(PathBuf),
     AnimationFrame(Instant),
+    QuickConvert(quick_convert::Msg),
     Productivity(productivity::Msg),
     BatchRename(batch_rename::Msg),
     Zip(zip::Msg),
@@ -111,6 +125,7 @@ pub enum Message {
     Pdf(pdf::Msg),
     Audio(audio::Msg),
     Video(video::Msg),
+    DevTools(devtools::Msg),
     Queue(queue::Msg),
     History(history::Msg),
     Settings(settings::Msg),
@@ -131,6 +146,7 @@ pub struct AxoloteSuite {
     pub nav_pulse: f32,
     pub last_tick: Option<Instant>,
     // Estados persistentes de cada módulo
+    pub quick_convert: quick_convert::State,
     pub productivity: productivity::State,
     pub batch_rename: batch_rename::State,
     pub zip: zip::State,
@@ -138,6 +154,7 @@ pub struct AxoloteSuite {
     pub pdf: pdf::State,
     pub audio: audio::State,
     pub video: video::State,
+    pub devtools: devtools::State,
     pub queue: queue::State,
     pub history: history::State,
     pub settings: settings::State,
@@ -171,13 +188,26 @@ impl Application for AxoloteSuite {
             || !installer_state.is_ffmpeg_ready()
             || running_outside_installed_dir;
 
-        let (initial_module, installer_step, mandatory_setup) = if args.iter().any(|a| a == "--uninstall") {
+        let (mut initial_module, installer_step, mandatory_setup) = if args.iter().any(|a| a == "--uninstall") {
             (Module::Installer, installer::WizardStep::UninstallConfirm, false)
         } else if args.iter().any(|a| a == "--install" || a == "--setup") || needs_mandatory_setup {
             (Module::Installer, installer::WizardStep::Welcome, true)
         } else {
             (Module::Home, installer::WizardStep::Welcome, false)
         };
+
+        let mut qc_state = quick_convert::State::new();
+        for arg in args.iter().skip(1) {
+            if !arg.starts_with("--") {
+                let p = PathBuf::from(arg);
+                if p.is_file() {
+                    qc_state.push_dropped_file(p, ctx.settings.dark_mode);
+                    if !mandatory_setup {
+                        initial_module = Module::QuickConvert;
+                    }
+                }
+            }
+        }
 
         (
             Self {
@@ -191,6 +221,7 @@ impl Application for AxoloteSuite {
                 sidebar_open_t: 1.0,
                 nav_pulse: 1.0,
                 last_tick: None,
+                quick_convert: qc_state,
                 productivity: productivity::State::new(),
                 batch_rename: batch_rename::State::new(),
                 zip: zip::State::new(),
@@ -198,6 +229,7 @@ impl Application for AxoloteSuite {
                 pdf: pdf::State::new(),
                 audio: audio::State::new(),
                 video: video::State::new(),
+                devtools: devtools::State::new(),
                 queue: queue::State,
                 history: history::State::default(),
                 settings: settings::State::default(),
@@ -208,7 +240,7 @@ impl Application for AxoloteSuite {
     }
 
     fn title(&self) -> String {
-        format!("Axolote Suite v1.2 — {}", self.active.title())
+        format!("Axolote Suite v1.3 — {}", self.active.title())
     }
 
     fn theme(&self) -> Theme {
@@ -216,17 +248,34 @@ impl Application for AxoloteSuite {
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
-        let resize_sub = iced::event::listen_with(|event, _status| match event {
+        let win_sub = iced::event::listen_with(|event, _status| match event {
             Event::Window(_, iced::window::Event::Resized { width, height }) => {
                 Some(Message::WindowResized(width, height))
+            }
+            Event::Window(_, iced::window::Event::FileDropped(path)) => {
+                Some(Message::FileDropped(path))
+            }
+            Event::Keyboard(iced::keyboard::Event::KeyPressed {
+                key: iced::keyboard::Key::Character(ref c),
+                modifiers,
+                ..
+            }) if modifiers.control() && modifiers.alt() && c.eq_ignore_ascii_case("n") => {
+                Some(Message::OpenQuickConvertShortcut)
             }
             _ => None,
         });
 
+        let gesture_sub = crate::core::system::global_gesture_subscription()
+            .map(Message::GlobalGestureTriggered);
+
         if self.is_animating() {
-            Subscription::batch([resize_sub, iced::window::frames().map(Message::AnimationFrame)])
+            Subscription::batch([
+                win_sub,
+                gesture_sub,
+                iced::window::frames().map(Message::AnimationFrame),
+            ])
         } else {
-            resize_sub
+            Subscription::batch([win_sub, gesture_sub])
         }
     }
 
@@ -239,6 +288,34 @@ impl Application for AxoloteSuite {
                 self.active = m;
                 self.nav_pulse = 1.0;
                 self.last_tick = Some(Instant::now());
+                Command::none()
+            }
+            Message::OpenQuickConvertShortcut => {
+                if !self.mandatory_setup {
+                    self.active = if self.active == Module::QuickConvert {
+                        Module::Home
+                    } else {
+                        Module::QuickConvert
+                    };
+                    self.nav_pulse = 1.0;
+                    self.last_tick = Some(Instant::now());
+                }
+                Command::none()
+            }
+            Message::GlobalGestureTriggered(is_drag) => {
+                if !self.mandatory_setup {
+                    if is_drag {
+                        self.active = Module::QuickConvert;
+                    } else {
+                        self.active = if self.active == Module::QuickConvert {
+                            Module::Home
+                        } else {
+                            Module::QuickConvert
+                        };
+                    }
+                    self.nav_pulse = 1.0;
+                    self.last_tick = Some(Instant::now());
+                }
                 Command::none()
             }
             Message::QuickLaunchProductivity(tab) => {
@@ -273,6 +350,15 @@ impl Application for AxoloteSuite {
                 self.last_tick = Some(Instant::now());
                 Command::none()
             }
+            Message::FileDropped(path) => {
+                if !self.mandatory_setup {
+                    self.quick_convert.push_dropped_file(path, self.ctx.settings.dark_mode);
+                    self.active = Module::QuickConvert;
+                    self.nav_pulse = 1.0;
+                    self.last_tick = Some(Instant::now());
+                }
+                Command::none()
+            }
             Message::AnimationFrame(now) => {
                 let dt = self
                     .last_tick
@@ -297,6 +383,7 @@ impl Application for AxoloteSuite {
                 }
                 Command::none()
             }
+            Message::QuickConvert(m) => self.quick_convert.update(m, &mut self.ctx).map(Message::QuickConvert),
             Message::Productivity(m) => self.productivity.update(m, &mut self.ctx).map(Message::Productivity),
             Message::BatchRename(m) => self.batch_rename.update(m, &mut self.ctx).map(Message::BatchRename),
             Message::Zip(m) => self.zip.update(m, &mut self.ctx).map(Message::Zip),
@@ -304,6 +391,7 @@ impl Application for AxoloteSuite {
             Message::Pdf(m) => self.pdf.update(m, &mut self.ctx).map(Message::Pdf),
             Message::Audio(m) => self.audio.update(m, &mut self.ctx).map(Message::Audio),
             Message::Video(m) => self.video.update(m, &mut self.ctx).map(Message::Video),
+            Message::DevTools(m) => self.devtools.update(m, &mut self.ctx).map(Message::DevTools),
             Message::Queue(m) => self.queue.update(m, &mut self.ctx).map(Message::Queue),
             Message::History(m) => self.history.update(m, &mut self.ctx).map(Message::History),
             Message::Settings(m) => self.settings.update(m, &mut self.ctx).map(Message::Settings),
@@ -356,6 +444,7 @@ impl Application for AxoloteSuite {
         let sidebar = self.sidebar_view(!show_labels, sidebar_w, &env);
         let content = match self.active {
             Module::Home => self.home_view(&env),
+            Module::QuickConvert => quick_convert::view::view(&self.quick_convert, &env).map(Message::QuickConvert),
             Module::Productivity => productivity::view::view(&self.productivity, &env).map(Message::Productivity),
             Module::Calculator => self.calculator_standalone_view(&env),
             Module::BatchRename => batch_rename::view::view(&self.batch_rename, &env).map(Message::BatchRename),
@@ -364,6 +453,7 @@ impl Application for AxoloteSuite {
             Module::Pdf => pdf::view::view(&self.pdf, &env).map(Message::Pdf),
             Module::Audio => audio::view::view(&self.audio, &env).map(Message::Audio),
             Module::Video => video::view::view(&self.video, &env).map(Message::Video),
+            Module::DevTools => devtools::view::view(&self.devtools, &env).map(Message::DevTools),
             Module::Queue => queue::view::view(&self.ctx.jobs, &env).map(Message::Queue),
             Module::History => history::view::view(&self.history, &self.ctx.history, &env).map(Message::History),
             Module::Settings => settings::view::view(&self.settings, &self.ctx.settings, &env).map(Message::Settings),
@@ -439,7 +529,7 @@ impl AxoloteSuite {
                                 text("Axolote ").size(16).font(BOLD),
                                 ui::colored("Suite", 16, c.accent).font(BOLD),
                             ],
-                            text("v1.2.0 • 100% Offline").size(11).style(c.muted),
+                            text("v1.3.0 • 100% Offline").size(11).style(c.muted),
                         ]
                         .spacing(1),
                     ]
@@ -464,6 +554,7 @@ impl AxoloteSuite {
                 "CENTRAL DE FERRAMENTAS",
                 &[
                     Module::Home,
+                    Module::QuickConvert,
                     Module::Productivity,
                     Module::Calculator,
                     Module::Pdf,
@@ -472,6 +563,7 @@ impl AxoloteSuite {
                     Module::Audio,
                     Module::BatchRename,
                     Module::Zip,
+                    Module::DevTools,
                 ],
             ),
             (
@@ -614,7 +706,7 @@ impl AxoloteSuite {
         let hero = container(
             row![
                 column![
-                    ui::badge("✨ v1.2.0 • 100% Offline & Nativo", c.primary),
+                    ui::badge("✨ v1.3.0 • 100% Offline & Nativo", c.primary),
                     row![
                         ui::strong("Olá! 👋  Bem-vindo ao Axolote ", hero_title_size),
                         ui::colored("Suite", hero_title_size, c.accent).font(BOLD),
@@ -622,7 +714,7 @@ impl AxoloteSuite {
                     .align_items(Alignment::Center),
                     ui::muted(
                         env,
-                        "Uma central completa com ferramentas de produtividade, calculadora, edição de fotos ao vivo, editor de vídeo, PDF e arquivos para o seu dia a dia."
+                        "Uma central completa com Conversor Fácil universal, Cores & Senhas, produtividade, calculadora, edição de fotos ao vivo, editor de vídeo, PDF e arquivos."
                     )
                     .size(14),
                 ]
@@ -641,6 +733,18 @@ impl AxoloteSuite {
 
         // 3. Central de Ferramentas
         let cards_data: Vec<(&str, &str, &str, Message)> = vec![
+            (
+                "🔄",
+                "Conversor Fácil",
+                "Converta imagens, textos, documentos (DOCX/PDF), vídeos, áudios e ZIP.",
+                Message::Navigate(Module::QuickConvert),
+            ),
+            (
+                "🎨",
+                "Cores & Senhas",
+                "Estúdio de cores, paleta de fotos, senhas fortes e UUID.",
+                Message::Navigate(Module::DevTools),
+            ),
             (
                 "📝",
                 "Bloco de Notas",
@@ -764,12 +868,12 @@ impl AxoloteSuite {
             column![
                 row![
                     ui::strong("Últimas Novidades", 16).width(Length::Fill),
-                    ui::badge("v1.2.0", c.accent),
+                    ui::badge("v1.3.0", c.accent),
                 ]
                 .align_items(Alignment::Center),
-                ui::muted(env, "✔  Logo e identidade visual oficial Axolote Suite"),
-                ui::muted(env, "✔  Menu lateral com animação suave e indicador Neon"),
-                ui::muted(env, "✔  Editor de Fotos e Editor de Vídeo integrados"),
+                ui::muted(env, "✔  Conversor Fácil universal (Imagens, Docs, Vídeo, Áudio e ZIP)"),
+                ui::muted(env, "✔  Estúdio de Cores, Paleta de Fotos, Senhas Fortes e UUID"),
+                ui::muted(env, "✔  Preservação automática com sufixos (1), (2) sem sobrescrever"),
                 ui::muted(env, "✔  Instalador com download automático do FFmpeg"),
                 ui::btn(
                     "💿  Abrir Instalador / Desinstalador",

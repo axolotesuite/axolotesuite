@@ -27,23 +27,23 @@ Projetada com a identidade visual oficial do **Axolote Suite** (tema escuro prof
 
 ## 🛡 Código 100% Seguro, Auditável & Verificação no VirusTotal
 
-<p align="center">
-  <img src="assets/virustotal_seguro.svg" alt="Verificação de Segurança VirusTotal e Guia Windows SmartScreen" width="100%" />
-</p>
-
 ### ❓ Por que o navegador ou o Windows SmartScreen exibe um aviso ao baixar?
 O **Axolote Suite** é um software **100% seguro, gratuito e de código aberto (Open Source)**. Todo o código-fonte em Rust está público neste repositório para qualquer pessoa auditar.
 
-No entanto, a Microsoft e os navegadores cobram **mais de US$ 400 por ano** por um certificado digital corporativo (*EV Code Signing Certificate*). Como o Axolote Suite é um projeto independente e gratuito (sem assinatura paga), o Windows exibe o aviso padrão de *"Aplicativo não reconhecido / Arquivo pouco baixado"* na primeira execução:
+No entanto, a Microsoft e os navegadores cobram **mais de US$ 400 por ano** por um certificado digital corporativo (*EV Code Signing Certificate*). Como o Axolote Suite é um projeto independente e gratuito (sem assinatura paga), o navegador ou o Windows SmartScreen pode exibir o aviso padrão de *"Aplicativo não reconhecido / Arquivo pouco baixado"* na primeira execução.
 
-1. **No navegador (Chrome / Edge)**: se aparecer *"Download bloqueado / Arquivo pouco comum"*, clique nos três pontinhos e selecione **Manter** → **Manter assim mesmo**.
-2. **No Windows SmartScreen**: ao abrir o instalador pela 1ª vez, clique em **Mais informações** e depois no botão **Executar assim mesmo**.
+### ✅ Como abrir com segurança em 2 passos rápidos:
+| Onde aparece o aviso | O que fazer |
+| :--- | :--- |
+| **1. No Navegador (Chrome / Edge / Brave)** | Se aparecer *"Download bloqueado"* ou *"Arquivo pouco comum"*, clique nos **três pontinhos (`⋯`)** ao lado do download e selecione **Manter** → **Manter assim mesmo**. |
+| **2. No Windows SmartScreen (Tela Azul)** | Ao abrir o `axolote_suite.exe` pela 1ª vez, se aparecer *"O Windows protegeu o computador"*, clique em **Mais informações** e depois no botão **Executar assim mesmo**. |
 
 ### 🔍 Auditoria Oficial e Hash SHA-256 (`v1.3.0`)
-- **Arquivo**: `axolote_suite.exe` (`13.55 MB` • Windows x64)
-- **SHA-256 Oficial**: `3abc6ab3cd54cc8eb479ef34dbc49c0b2619e9f114d38e57b26e4c9fea000398`
-- **Conferir no VirusTotal**: [**Clique aqui para verificar o hash no VirusTotal**](https://www.virustotal.com/gui/search/3abc6ab3cd54cc8eb479ef34dbc49c0b2619e9f114d38e57b26e4c9fea000398)
-- **Como conferir no seu próprio PC (PowerShell)**:
+Você mesmo pode comprovar que o executável oficial é 100% limpo conferindo a assinatura criptográfica **SHA-256** no **VirusTotal** ou no próprio terminal do Windows:
+- **Arquivo Oficial**: `axolote_suite.exe` (`13.55 MB` • Windows 64-bit)
+- **Hash SHA-256**: `3abc6ab3cd54cc8eb479ef34dbc49c0b2619e9f114d38e57b26e4c9fea000398`
+- **Verificação no VirusTotal**: [**Clique aqui para consultar o relatório oficial no VirusTotal**](https://www.virustotal.com/gui/search/3abc6ab3cd54cc8eb479ef34dbc49c0b2619e9f114d38e57b26e4c9fea000398)
+- **Como verificar no seu próprio PC (PowerShell)**:
   ```powershell
   Get-FileHash .\axolote_suite.exe -Algorithm SHA256
   ```

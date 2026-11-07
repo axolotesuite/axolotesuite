@@ -1,10 +1,24 @@
 # 🦎 Axolote Suite v1.2.0
 
-![Logo Axolote Suite](assets/logo_full.jpg)
+<p align="center">
+  <img src="assets/logo_full.jpg" alt="Logo Axolote Suite" width="320" />
+</p>
+
+<p align="center">
+  <a href="https://github.com/axolotesuite/axolotesuite/releases/download/v1.2.0/axolote_suite.exe">
+    <img src="https://img.shields.io/badge/⬇_BAIXAR_INSTALADOR_OFICIAL-Windows_64--bit_(v1.2.0)-7c3aed?style=for-the-badge&logo=windows&logoColor=white" alt="Baixar Instalador Oficial" />
+  </a>
+  <a href="https://github.com/axolotesuite/axolotesuite/releases/tag/v1.2.0">
+    <img src="https://img.shields.io/github/v/release/axolotesuite/axolotesuite?style=for-the-badge&color=3b82f6&label=Release" alt="Release" />
+  </a>
+  <img src="https://img.shields.io/badge/Rust-100%25_Offline-10b981?style=for-the-badge&logo=rust&logoColor=white" alt="Rust 100% Offline" />
+</p>
 
 Sua central **100% offline, nativa e modular** para Windows 10 e Windows 11, desenvolvida em **Rust** com **Iced**.
 
-Projetada com a identidade visual oficial do **Axolote Suite** (tema escuro profundo, roxo `#7c3aed` e azul neon `#3b82f6`), **design totalmente responsivo** e **guias passo a passo ("💡 Como usar")** em todas as ferramentas.
+Projetada com a identidade visual oficial do **Axolote Suite** (tema escuro profundo, roxo `#7c3aed` e azul neon `#3b82f6`), **menu lateral animado (60 FPS)**, **design totalmente responsivo** e **guias passo a passo ("💡 Como usar")** em todas as ferramentas.
+
+> 💿 **Download Rápido:** [**Clique aqui para baixar o Instalador Oficial (`axolote_suite.exe`)**](https://github.com/axolotesuite/axolotesuite/releases/download/v1.2.0/axolote_suite.exe) — ao abrir, o instalador configura tudo e **baixa o FFmpeg automaticamente**!
 
 ---
 

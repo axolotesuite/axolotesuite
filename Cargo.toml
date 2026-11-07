@@ -1,0 +1,34 @@
+[package]
+name = "axolote_suite"
+version = "1.2.0"
+edition = "2021"
+description = "Axolote Suite - Sua central offline de ferramentas de produtividade, edição de foto e vídeo, PDF, conversão e arquivos"
+authors = ["Axolote"]
+license = "MIT OR Apache-2.0"
+keywords = ["desktop", "productivity", "utility", "windows", "iced"]
+categories = ["gui"]
+
+[dependencies]
+# Interface gráfica nativa com suporte a renderização de imagens (logos + preview de fotos)
+iced = { version = "0.12", features = ["image"] }
+# Diálogos nativos do Windows para escolher arquivos/pastas
+rfd = "0.15"
+# Processamento e edição de imagens
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "bmp", "gif", "ico", "tiff", "webp"] }
+# Arquivos ZIP
+zip = "0.6"
+walkdir = "2.4"
+# PDF (unir / dividir / informações)
+lopdf = "0.34"
+# Persistência local (configurações, histórico, tarefas)
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+# Data/hora local para o histórico
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

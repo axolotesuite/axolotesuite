@@ -1,0 +1,798 @@
+//! Aplicação principal do Axolote Suite:
+//! - Barra lateral com animação suave de expansão/recolhimento (60 FPS) e
+//!   indicador Neon animado no item selecionado
+//! - Calculadora como item direto do menu lateral (e também em Produtividade)
+//! - Barra superior com busca rápida de ferramentas (`🔍 Pesquisar ferramenta…`)
+//! - Painel de boas-vindas com o banner do mascote, Central de Ferramentas,
+//!   Status do Sistema e Últimas Novidades
+//! - Roteamento para todos os módulos, incluindo Editor de Fotos, Editor de Vídeo
+//!   e Instalador / Desinstalador integrado como tela inicial de Setup.
+
+use std::time::Instant;
+
+use iced::widget::{button, column, container, image as iced_image, progress_bar, row, scrollable, text, Space};
+use iced::{Alignment, Application, Command, Element, Event, Length, Subscription, Theme};
+
+use crate::core::Ctx;
+use crate::modules::{
+    audio, batch_rename, history, images, installer, pdf, productivity, queue, settings, video, zip,
+};
+use crate::shared::brand;
+use crate::shared::theme::{self, Btn};
+use crate::shared::types::Env;
+use crate::shared::ui::{self, BOLD, SEMIBOLD};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Module {
+    Home,
+    Productivity,
+    Calculator,
+    Pdf,
+    Images,
+    Video,
+    Audio,
+    BatchRename,
+    Zip,
+    Queue,
+    History,
+    Settings,
+    Installer,
+}
+
+impl Module {
+    pub fn icon(&self) -> &'static str {
+        match self {
+            Module::Home => "🏠",
+            Module::Productivity => "📋",
+            Module::Calculator => "🖩",
+            Module::Pdf => "📄",
+            Module::Images => "🖼",
+            Module::Video => "🎬",
+            Module::Audio => "🎵",
+            Module::BatchRename => "📁",
+            Module::Zip => "🗜",
+            Module::Queue => "📦",
+            Module::History => "🕒",
+            Module::Settings => "⚙",
+            Module::Installer => "💿",
+        }
+    }
+
+    pub fn title(&self) -> &'static str {
+        match self {
+            Module::Home => "Início",
+            Module::Productivity => "Produtividade",
+            Module::Calculator => "Calculadora",
+            Module::Pdf => "PDF",
+            Module::Images => "Imagens & Foto",
+            Module::Video => "Vídeos",
+            Module::Audio => "Áudio",
+            Module::BatchRename => "Arquivos em Lote",
+            Module::Zip => "ZIP (Compactador)",
+            Module::Queue => "Fila de Operações",
+            Module::History => "Histórico",
+            Module::Settings => "Configurações",
+            Module::Installer => "Instalar / Setup",
+        }
+    }
+
+    pub fn summary(&self) -> &'static str {
+        match self {
+            Module::Home => "Central de ferramentas, busca rápida e visão geral.",
+            Module::Productivity => "Bloco de notas (.txt), lista de tarefas e organizador de pastas.",
+            Module::Calculator => "Calculadora expressa com parênteses, potência, porcentagem e histórico.",
+            Module::Pdf => "Junte, divida em páginas e consulte informações de PDFs.",
+            Module::Images => "Editor de fotos ao vivo (luz, filtros, corte), converter e comprimir.",
+            Module::Video => "Editor rápido de vídeo (corte, velocidade, 9:16, filtros) e conversor.",
+            Module::Audio => "Converta, extraia trilha de vídeos e comprima áudios.",
+            Module::BatchRename => "Renomeie arquivos em lote com regras e pré-visualização.",
+            Module::Zip => "Compacte, descompacte e inspecione arquivos ZIP com segurança.",
+            Module::Queue => "Acompanhe as operações em segundo plano sem travar a tela.",
+            Module::History => "Registro completo de atividades realizadas no aplicativo.",
+            Module::Settings => "Tema escuro/claro, abertura automática de pastas e privacidade.",
+            Module::Installer => "Instale o essencial no PC + FFmpeg automático ou desinstale.",
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum Message {
+    Navigate(Module),
+    QuickLaunchProductivity(productivity::Tab),
+    SearchChanged(String),
+    ToggleSidebar,
+    ToggleTheme,
+    WindowResized(u32, u32),
+    AnimationFrame(Instant),
+    Productivity(productivity::Msg),
+    BatchRename(batch_rename::Msg),
+    Zip(zip::Msg),
+    Images(images::Msg),
+    Pdf(pdf::Msg),
+    Audio(audio::Msg),
+    Video(video::Msg),
+    Queue(queue::Msg),
+    History(history::Msg),
+    Settings(settings::Msg),
+    Installer(installer::Msg),
+}
+
+pub struct AxoloteSuite {
+    pub ctx: Ctx,
+    pub active: Module,
+    pub mandatory_setup: bool,
+    pub home_search: String,
+    pub window_width: f32,
+    pub window_height: f32,
+    pub sidebar_collapsed: Option<bool>,
+    // Estado de animação fluida do menu lateral (0.0 = recolhido, 1.0 = expandido)
+    pub sidebar_open_t: f32,
+    // Animação de pulso na seleção de item do menu (1.0 -> 0.0)
+    pub nav_pulse: f32,
+    pub last_tick: Option<Instant>,
+    // Estados persistentes de cada módulo
+    pub productivity: productivity::State,
+    pub batch_rename: batch_rename::State,
+    pub zip: zip::State,
+    pub images: images::State,
+    pub pdf: pdf::State,
+    pub audio: audio::State,
+    pub video: video::State,
+    pub queue: queue::State,
+    pub history: history::State,
+    pub settings: settings::State,
+    pub installer: installer::State,
+}
+
+impl Application for AxoloteSuite {
+    type Executor = iced::executor::Default;
+    type Message = Message;
+    type Theme = Theme;
+    type Flags = ();
+
+    fn new(_flags: ()) -> (Self, Command<Self::Message>) {
+        let ctx = Ctx::load();
+        let args: Vec<String> = std::env::args().collect();
+
+        let installer_state = installer::State::new(installer::WizardStep::Welcome);
+        let running_outside_installed_dir = std::env::current_exe()
+            .ok()
+            .and_then(|p| p.parent().map(|d| d.to_path_buf()))
+            .map(|exe_dir| {
+                let inst_dir = std::path::PathBuf::from(installer_state.install_dir.trim());
+                !exe_dir.to_string_lossy().eq_ignore_ascii_case(&inst_dir.to_string_lossy())
+            })
+            .unwrap_or(true);
+
+        // Sempre que abrir o .exe fora da pasta instalada, ou se faltar instalar o app/FFmpeg,
+        // entra direto na Tela Obrigatória do Instalador para baixar tudo!
+        let needs_mandatory_setup = !ctx.settings.setup_completed
+            || !installer_state.is_installed()
+            || !installer_state.is_ffmpeg_ready()
+            || running_outside_installed_dir;
+
+        let (initial_module, installer_step, mandatory_setup) = if args.iter().any(|a| a == "--uninstall") {
+            (Module::Installer, installer::WizardStep::UninstallConfirm, false)
+        } else if args.iter().any(|a| a == "--install" || a == "--setup") || needs_mandatory_setup {
+            (Module::Installer, installer::WizardStep::Welcome, true)
+        } else {
+            (Module::Home, installer::WizardStep::Welcome, false)
+        };
+
+        (
+            Self {
+                ctx,
+                active: initial_module,
+                mandatory_setup,
+                home_search: String::new(),
+                window_width: 1380.0,
+                window_height: 880.0,
+                sidebar_collapsed: None,
+                sidebar_open_t: 1.0,
+                nav_pulse: 1.0,
+                last_tick: None,
+                productivity: productivity::State::new(),
+                batch_rename: batch_rename::State::new(),
+                zip: zip::State::new(),
+                images: images::State::new(),
+                pdf: pdf::State::new(),
+                audio: audio::State::new(),
+                video: video::State::new(),
+                queue: queue::State,
+                history: history::State::default(),
+                settings: settings::State::default(),
+                installer: installer::State::new(installer_step),
+            },
+            Command::none(),
+        )
+    }
+
+    fn title(&self) -> String {
+        format!("Axolote Suite v1.2 — {}", self.active.title())
+    }
+
+    fn theme(&self) -> Theme {
+        theme::app_theme(self.ctx.settings.dark_mode)
+    }
+
+    fn subscription(&self) -> Subscription<Self::Message> {
+        let resize_sub = iced::event::listen_with(|event, _status| match event {
+            Event::Window(_, iced::window::Event::Resized { width, height }) => {
+                Some(Message::WindowResized(width, height))
+            }
+            _ => None,
+        });
+
+        if self.is_animating() {
+            Subscription::batch([resize_sub, iced::window::frames().map(Message::AnimationFrame)])
+        } else {
+            resize_sub
+        }
+    }
+
+    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
+        match message {
+            Message::Navigate(m) => {
+                if m == Module::Calculator {
+                    self.productivity.tab = productivity::Tab::Calc;
+                }
+                self.active = m;
+                self.nav_pulse = 1.0;
+                self.last_tick = Some(Instant::now());
+                Command::none()
+            }
+            Message::QuickLaunchProductivity(tab) => {
+                self.productivity.tab = tab;
+                self.active = if tab == productivity::Tab::Calc {
+                    Module::Calculator
+                } else {
+                    Module::Productivity
+                };
+                self.nav_pulse = 1.0;
+                self.last_tick = Some(Instant::now());
+                Command::none()
+            }
+            Message::SearchChanged(q) => {
+                self.home_search = q;
+                Command::none()
+            }
+            Message::ToggleSidebar => {
+                let current = self.is_sidebar_collapsed();
+                self.sidebar_collapsed = Some(!current);
+                self.last_tick = Some(Instant::now());
+                Command::none()
+            }
+            Message::ToggleTheme => {
+                self.ctx.settings.dark_mode = !self.ctx.settings.dark_mode;
+                self.ctx.settings.save();
+                Command::none()
+            }
+            Message::WindowResized(w, h) => {
+                self.window_width = (w as f32).max(360.0);
+                self.window_height = (h as f32).max(320.0);
+                self.last_tick = Some(Instant::now());
+                Command::none()
+            }
+            Message::AnimationFrame(now) => {
+                let dt = self
+                    .last_tick
+                    .map(|prev| now.saturating_duration_since(prev).as_secs_f32().min(0.05))
+                    .unwrap_or(0.016);
+                self.last_tick = Some(now);
+
+                let target_t = if self.is_sidebar_collapsed() { 0.0 } else { 1.0 };
+                let diff = target_t - self.sidebar_open_t;
+                if diff.abs() < 0.01 {
+                    self.sidebar_open_t = target_t;
+                } else {
+                    // Interpolação exponencial suave (ease-out)
+                    self.sidebar_open_t += diff * (dt * 14.0).min(1.0);
+                }
+
+                if self.nav_pulse > 0.0 {
+                    self.nav_pulse = (self.nav_pulse - dt * 3.2).max(0.0);
+                }
+                if !self.is_animating() {
+                    self.last_tick = None;
+                }
+                Command::none()
+            }
+            Message::Productivity(m) => self.productivity.update(m, &mut self.ctx).map(Message::Productivity),
+            Message::BatchRename(m) => self.batch_rename.update(m, &mut self.ctx).map(Message::BatchRename),
+            Message::Zip(m) => self.zip.update(m, &mut self.ctx).map(Message::Zip),
+            Message::Images(m) => self.images.update(m, &mut self.ctx).map(Message::Images),
+            Message::Pdf(m) => self.pdf.update(m, &mut self.ctx).map(Message::Pdf),
+            Message::Audio(m) => self.audio.update(m, &mut self.ctx).map(Message::Audio),
+            Message::Video(m) => self.video.update(m, &mut self.ctx).map(Message::Video),
+            Message::Queue(m) => self.queue.update(m, &mut self.ctx).map(Message::Queue),
+            Message::History(m) => self.history.update(m, &mut self.ctx).map(Message::History),
+            Message::Settings(m) => self.settings.update(m, &mut self.ctx).map(Message::Settings),
+            Message::Installer(m) => {
+                let go_home = matches!(m, installer::Msg::FinishAndGoHome);
+                let refresh_ff = matches!(
+                    m,
+                    installer::Msg::InstallFinished(_) | installer::Msg::DownloadFfmpegFinished(_)
+                );
+                let cmd = self.installer.update(m, &mut self.ctx).map(Message::Installer);
+                if refresh_ff {
+                    let ok = crate::core::system::find_ffmpeg().is_some();
+                    self.video.ffmpeg_ok = ok;
+                    self.audio.ffmpeg_ok = ok;
+                }
+                if go_home {
+                    self.mandatory_setup = false;
+                    self.active = Module::Home;
+                    self.nav_pulse = 1.0;
+                    self.last_tick = Some(Instant::now());
+                }
+                cmd
+            }
+        }
+    }
+
+    fn view(&self) -> Element<'_, Self::Message> {
+        // Enquanto o setup obrigatório não foi concluído, mostra APENAS a tela do instalador em tela cheia!
+        if self.mandatory_setup {
+            let env = Env {
+                width: self.window_width.max(320.0),
+                dark: self.ctx.settings.dark_mode,
+            };
+            let content = installer::view::view(&self.installer, true, &env).map(Message::Installer);
+            return container(content)
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .style(theme::app_bg)
+                .into();
+        }
+
+        // Largura interpolada continuamente entre 78px e 258px
+        let sidebar_w = 78.0 + (258.0 - 78.0) * self.sidebar_open_t;
+        let show_labels = self.sidebar_open_t > 0.55;
+        let env = Env {
+            width: (self.window_width - sidebar_w).max(320.0),
+            dark: self.ctx.settings.dark_mode,
+        };
+
+        let sidebar = self.sidebar_view(!show_labels, sidebar_w, &env);
+        let content = match self.active {
+            Module::Home => self.home_view(&env),
+            Module::Productivity => productivity::view::view(&self.productivity, &env).map(Message::Productivity),
+            Module::Calculator => self.calculator_standalone_view(&env),
+            Module::BatchRename => batch_rename::view::view(&self.batch_rename, &env).map(Message::BatchRename),
+            Module::Zip => zip::view::view(&self.zip, &env).map(Message::Zip),
+            Module::Images => images::view::view(&self.images, &env).map(Message::Images),
+            Module::Pdf => pdf::view::view(&self.pdf, &env).map(Message::Pdf),
+            Module::Audio => audio::view::view(&self.audio, &env).map(Message::Audio),
+            Module::Video => video::view::view(&self.video, &env).map(Message::Video),
+            Module::Queue => queue::view::view(&self.ctx.jobs, &env).map(Message::Queue),
+            Module::History => history::view::view(&self.history, &self.ctx.history, &env).map(Message::History),
+            Module::Settings => settings::view::view(&self.settings, &self.ctx.settings, &env).map(Message::Settings),
+            Module::Installer => installer::view::view(&self.installer, false, &env).map(Message::Installer),
+        };
+
+        container(row![sidebar, container(content).width(Length::Fill).height(Length::Fill)])
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .style(theme::app_bg)
+            .into()
+    }
+}
+
+impl AxoloteSuite {
+    fn is_sidebar_collapsed(&self) -> bool {
+        self.sidebar_collapsed.unwrap_or(self.window_width < 940.0)
+    }
+
+    fn is_animating(&self) -> bool {
+        let target_t = if self.is_sidebar_collapsed() { 0.0 } else { 1.0 };
+        (self.sidebar_open_t - target_t).abs() > 0.005 || self.nav_pulse > 0.005
+    }
+
+    fn calculator_standalone_view<'a>(&'a self, env: &Env) -> Element<'a, Message> {
+        let header = ui::page_header(
+            env,
+            "🖩",
+            "Calculadora Científica Expressa",
+            "Faça contas rápidas ou expressões completas com parênteses, potência (^), porcentagem (%) e histórico clicável.",
+            None,
+        );
+        let body = productivity::view::calc_view(&self.productivity, env).map(Message::Productivity);
+        ui::page(env, vec![header, body])
+    }
+
+    fn sidebar_view(&self, collapsed: bool, width: f32, env: &Env) -> Element<'_, Message> {
+        let c = env.c();
+        let running = self.ctx.jobs.running();
+
+        // Cabeçalho com a Logo Oficial do Axolote Suite
+        let brand_header: Element<'_, Message> = if collapsed {
+            column![
+                button(
+                    container(
+                        iced_image::Image::new(brand::logo_small())
+                            .width(Length::Fixed(38.0))
+                            .height(Length::Fixed(38.0)),
+                    )
+                    .center_x()
+                    .width(Length::Fill),
+                )
+                .padding(4)
+                .style(theme::btn(Btn::Ghost))
+                .on_press(Message::Navigate(Module::Home)),
+                button(container(text("»").size(16)).center_x().width(Length::Fill))
+                    .padding([4, 8])
+                    .style(theme::btn(Btn::Ghost))
+                    .on_press(Message::ToggleSidebar),
+            ]
+            .spacing(4)
+            .align_items(Alignment::Center)
+            .into()
+        } else {
+            row![
+                button(
+                    row![
+                        iced_image::Image::new(brand::logo_small())
+                            .width(Length::Fixed(40.0))
+                            .height(Length::Fixed(40.0)),
+                        column![
+                            row![
+                                text("Axolote ").size(16).font(BOLD),
+                                ui::colored("Suite", 16, c.accent).font(BOLD),
+                            ],
+                            text("v1.2.0 • 100% Offline").size(11).style(c.muted),
+                        ]
+                        .spacing(1),
+                    ]
+                    .spacing(10)
+                    .align_items(Alignment::Center),
+                )
+                .padding([4, 6])
+                .style(theme::btn(Btn::Ghost))
+                .on_press(Message::Navigate(Module::Home)),
+                ui::fill(),
+                button(text("«").size(16))
+                    .padding([6, 10])
+                    .style(theme::btn(Btn::Ghost))
+                    .on_press(Message::ToggleSidebar),
+            ]
+            .align_items(Alignment::Center)
+            .into()
+        };
+
+        let groups: &[(&str, &[Module])] = &[
+            (
+                "CENTRAL DE FERRAMENTAS",
+                &[
+                    Module::Home,
+                    Module::Productivity,
+                    Module::Calculator,
+                    Module::Pdf,
+                    Module::Images,
+                    Module::Video,
+                    Module::Audio,
+                    Module::BatchRename,
+                    Module::Zip,
+                ],
+            ),
+            (
+                "SISTEMA & SETUP",
+                &[Module::Queue, Module::History, Module::Settings, Module::Installer],
+            ),
+        ];
+
+        let mut nav = column![].spacing(5).width(Length::Fill);
+
+        for (group_title, mods) in groups {
+            if !collapsed {
+                nav = nav.push(
+                    container(text(*group_title).size(10).font(BOLD).style(c.muted))
+                        .padding([10, 10, 2, 10]),
+                );
+            } else {
+                nav = nav.push(Space::with_height(8));
+            }
+            for &m in *mods {
+                let is_active = self.active == m;
+                // Altura da barra indicadora Neon animada quando o item é selecionado
+                let pill_h = if is_active { 16.0 + 8.0 * self.nav_pulse } else { 0.0 };
+                let pill_ind: Element<'_, Message> = if is_active {
+                    container(Space::new(Length::Fixed(4.0), Length::Fixed(pill_h)))
+                        .style(theme::active_pill(self.nav_pulse))
+                        .into()
+                } else {
+                    Space::with_width(Length::Fixed(4.0)).into()
+                };
+
+                let item_content: Element<'_, Message> = if collapsed {
+                    row![
+                        pill_ind,
+                        container(text(m.icon()).size(if is_active { 21 } else { 19 }))
+                            .center_x()
+                            .width(Length::Fill),
+                    ]
+                    .align_items(Alignment::Center)
+                    .into()
+                } else {
+                    // Deslocamento suave do texto ao selecionar (efeito slide)
+                    let indent = if is_active { 4.0 * (1.0 - self.nav_pulse * 0.5) } else { 0.0 };
+                    let mut r = row![
+                        pill_ind,
+                        Space::with_width(Length::Fixed(indent)),
+                        text(m.icon()).size(if is_active { 18 } else { 16 }),
+                        text(m.title())
+                            .size(13)
+                            .font(if is_active { BOLD } else { SEMIBOLD })
+                            .width(Length::Fill),
+                    ]
+                    .spacing(9)
+                    .align_items(Alignment::Center);
+
+                    if m == Module::Queue && running > 0 {
+                        r = r.push(ui::badge(running, c.accent));
+                    } else if m == Module::Productivity && self.productivity.pending_tasks() > 0 {
+                        r = r.push(ui::badge(self.productivity.pending_tasks(), c.primary));
+                    } else if is_active {
+                        r = r.push(ui::colored("›", 16, c.accent).font(BOLD));
+                    }
+                    r.into()
+                };
+
+                nav = nav.push(
+                    button(item_content)
+                        .padding(if collapsed { [10, 6] } else { [9, 10] })
+                        .width(Length::Fill)
+                        .style(theme::btn(Btn::Nav(is_active)))
+                        .on_press(Message::Navigate(m)),
+                );
+            }
+        }
+
+        let theme_label = if collapsed {
+            if self.ctx.settings.dark_mode { "☀" } else { "🌙" }
+        } else if self.ctx.settings.dark_mode {
+            "☀  Tema Claro"
+        } else {
+            "🌙  Tema Escuro"
+        };
+
+        let footer = button(
+            container(text(theme_label).size(12).font(SEMIBOLD))
+                .center_x()
+                .width(Length::Fill),
+        )
+        .padding([10, 10])
+        .width(Length::Fill)
+        .style(theme::btn(Btn::Secondary))
+        .on_press(Message::ToggleTheme);
+
+        let col = column![
+            brand_header,
+            Space::with_height(6),
+            scrollable(nav).height(Length::Fill),
+            footer,
+        ]
+        .spacing(8)
+        .padding(if collapsed { 10 } else { 14 })
+        .width(Length::Fixed(width))
+        .height(Length::Fill);
+
+        container(col)
+            .width(Length::Fixed(width))
+            .height(Length::Fill)
+            .style(theme::sidebar)
+            .into()
+    }
+
+    fn home_view<'a>(&'a self, env: &Env) -> Element<'a, Message> {
+        let c = env.c();
+
+        // 1. Barra superior: Título "Início" + Barra de pesquisa "🔍 Pesquisar ferramenta..."
+        let top_bar: Element<'a, Message> = {
+            let search = ui::input(
+                "🔍  Pesquisar ferramenta (ex.: PDF, vídeo, foto, nota, calculadora, ZIP, instalar)...",
+                &self.home_search,
+                Message::SearchChanged,
+            )
+            .width(if env.narrow() { Length::Fill } else { Length::Fixed(420.0) });
+
+            if env.narrow() {
+                column![ui::strong("Início", 24), search].spacing(10).into()
+            } else {
+                row![
+                    ui::strong("Início", 26).width(Length::Fill),
+                    search,
+                    ui::btn("💿  Instalador / Setup", Btn::Secondary, Some(Message::Navigate(Module::Installer))),
+                ]
+                .spacing(12)
+                .align_items(Alignment::Center)
+                .into()
+            }
+        };
+
+        // 2. Banner de Boas-vindas com a Logo do Axolote à direita
+        let hero_title_size = if env.narrow() { 22 } else { 28 };
+        let hero = container(
+            row![
+                column![
+                    ui::badge("✨ v1.2.0 • 100% Offline & Nativo", c.primary),
+                    row![
+                        ui::strong("Olá! 👋  Bem-vindo ao Axolote ", hero_title_size),
+                        ui::colored("Suite", hero_title_size, c.accent).font(BOLD),
+                    ]
+                    .align_items(Alignment::Center),
+                    ui::muted(
+                        env,
+                        "Uma central completa com ferramentas de produtividade, calculadora, edição de fotos ao vivo, editor de vídeo, PDF e arquivos para o seu dia a dia."
+                    )
+                    .size(14),
+                ]
+                .spacing(8)
+                .width(Length::Fill),
+                iced_image::Image::new(brand::logo_banner())
+                    .width(Length::Fixed(if env.narrow() { 72.0 } else { 112.0 }))
+                    .height(Length::Fixed(if env.narrow() { 72.0 } else { 112.0 })),
+            ]
+            .spacing(18)
+            .align_items(Alignment::Center),
+        )
+        .padding(if env.narrow() { 18 } else { 24 })
+        .width(Length::Fill)
+        .style(theme::hero);
+
+        // 3. Central de Ferramentas
+        let cards_data: Vec<(&str, &str, &str, Message)> = vec![
+            (
+                "📝",
+                "Bloco de Notas",
+                "Crie, edite e salve suas notas .txt localmente.",
+                Message::QuickLaunchProductivity(productivity::Tab::Notes),
+            ),
+            (
+                "✅",
+                "Tarefas",
+                "Gerencie suas atividades diárias com filtros.",
+                Message::QuickLaunchProductivity(productivity::Tab::Tasks),
+            ),
+            (
+                "🖩",
+                "Calculadora",
+                "Realize cálculos rápidos e expressões avançadas.",
+                Message::Navigate(Module::Calculator),
+            ),
+            (
+                "📄",
+                "PDF",
+                "Junte, divida em páginas e consulte PDFs.",
+                Message::Navigate(Module::Pdf),
+            ),
+            (
+                "🖼",
+                "Imagens",
+                "Editor de fotos ao vivo, filtros, converter e comprimir.",
+                Message::Navigate(Module::Images),
+            ),
+            (
+                "🎬",
+                "Vídeos",
+                "Corte na linha do tempo, velocidade, formatos e compressão.",
+                Message::Navigate(Module::Video),
+            ),
+            (
+                "🎵",
+                "Áudio",
+                "Converta, extraia de vídeos e comprima áudios.",
+                Message::Navigate(Module::Audio),
+            ),
+            (
+                "🗜",
+                "ZIP (Compactador)",
+                "Compacte, descompacte e gerencie arquivos ZIP.",
+                Message::Navigate(Module::Zip),
+            ),
+            (
+                "📁",
+                "Arquivos",
+                "Renomeie em lote com prévia e organize pastas.",
+                Message::Navigate(Module::BatchRename),
+            ),
+        ];
+
+        let q = self.home_search.trim().to_lowercase();
+        let filtered_cards: Vec<Element<'a, Message>> = cards_data
+            .into_iter()
+            .filter(|(_, title, desc, _)| {
+                q.is_empty() || title.to_lowercase().contains(&q) || desc.to_lowercase().contains(&q)
+            })
+            .map(|(icon, title, desc, msg)| {
+                button(
+                    row![
+                        ui::icon_tile(icon, c.primary, 22),
+                        column![
+                            ui::strong(title, 15),
+                            ui::muted(env, desc).size(12),
+                        ]
+                        .spacing(3)
+                        .width(Length::Fill),
+                    ]
+                    .spacing(12)
+                    .align_items(Alignment::Center),
+                )
+                .padding(16)
+                .width(Length::Fill)
+                .style(theme::btn(Btn::Tile))
+                .on_press(msg)
+                .into()
+            })
+            .collect();
+
+        let tools_col = column![
+            ui::strong("Central de Ferramentas", 18),
+            ui::grid(filtered_cards, env.columns(250.0, 3), 12),
+        ]
+        .spacing(12)
+        .width(Length::Fill);
+
+        // 4. Painel lateral direito do Início (Status do Sistema + Últimas Novidades)
+        let status_card = ui::card(
+            env,
+            column![
+                row![
+                    ui::strong("Status do Sistema", 16).width(Length::Fill),
+                    ui::badge("100% Pronto", c.success),
+                ]
+                .align_items(Alignment::Center),
+                progress_bar(0.0..=100.0, 100.0).height(Length::Fixed(8.0)),
+                ui::muted(env, format!("✔  {} nota(s) salva(s) • {} tarefa(s) pendente(s)", self.productivity.notes.len(), self.productivity.pending_tasks())),
+                ui::muted(env, "✔  Editor de Fotos com Preview ao Vivo ativo"),
+                ui::muted(env, "✔  Editor de Vídeo com Linha do Tempo integrado"),
+                ui::muted(env, "✔  Ferramentas de PDF completas (Unir & Dividir)"),
+                ui::muted(env, "✔  Compactador ZIP com proteção anti Zip-Slip"),
+                ui::muted(
+                    env,
+                    if self.video.ffmpeg_ok {
+                        "✔  Motor FFmpeg detectado e pronto"
+                    } else {
+                        "⬇  FFmpeg automático disponível no Instalador"
+                    }
+                ),
+            ]
+            .spacing(8),
+        );
+
+        let news_card = ui::card(
+            env,
+            column![
+                row![
+                    ui::strong("Últimas Novidades", 16).width(Length::Fill),
+                    ui::badge("v1.2.0", c.accent),
+                ]
+                .align_items(Alignment::Center),
+                ui::muted(env, "✔  Logo e identidade visual oficial Axolote Suite"),
+                ui::muted(env, "✔  Menu lateral com animação suave e indicador Neon"),
+                ui::muted(env, "✔  Editor de Fotos e Editor de Vídeo integrados"),
+                ui::muted(env, "✔  Instalador com download automático do FFmpeg"),
+                ui::btn(
+                    "💿  Abrir Instalador / Desinstalador",
+                    Btn::Secondary,
+                    Some(Message::Navigate(Module::Installer)),
+                ),
+            ]
+            .spacing(8),
+        );
+
+        let right_panel = column![status_card, news_card].spacing(14).width(Length::Fill);
+
+        let body: Element<'a, Message> = if env.wide() {
+            row![
+                container(tools_col).width(Length::FillPortion(7)),
+                container(right_panel).width(Length::FillPortion(3)),
+            ]
+            .spacing(18)
+            .into()
+        } else {
+            column![tools_col, right_panel].spacing(18).into()
+        };
+
+        ui::page(env, vec![top_bar, hero.into(), body])
+    }
+}

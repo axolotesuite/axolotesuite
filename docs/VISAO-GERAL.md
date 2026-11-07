@@ -1,62 +1,79 @@
 # Visão geral do Axolote Suite
 
+<blockquote>
+**Estado:** em desenvolvimento. Este documento descreve a visão e os objetivos do projeto. Não é uma declaração de funcionalidades já implementadas.
+</blockquote>
+
 ## 1. Resumo
 
-O Axolote Suite é a proposta de uma suíte de produtividade para Windows 10 e Windows 11. A ideia é reunir diferentes ferramentas em um ambiente único, organizado por módulos e com prioridade para o processamento local.
+O Axolote Suite é um projeto de aplicativo desktop para Windows 10 e Windows 11. A proposta é reunir ferramentas de produtividade, manipulação de documentos e conversão de arquivos em uma única interface.
 
-Este documento explica o conceito do produto. Não é uma especificação técnica definitiva e não afirma que o aplicativo já existe ou que os recursos descritos estão implementados.
+O projeto está sendo reorganizado em uma versão inicial menor, chamada provisoriamente de Axolote Suite Mini. A intenção é desenvolver e testar ferramentas úteis por etapas, evitando um escopo grande demais antes de existir uma versão funcional.
 
-## 2. Por que criar uma suíte?
+## 2. Problema que pretende resolver
 
-Uma pessoa pode precisar de ferramentas diferentes ao longo do dia: escrever um documento, visualizar uma imagem, converter um arquivo ou organizar materiais. A proposta do Axolote Suite é reduzir a fragmentação dessas tarefas por meio de uma experiência integrada.
+Tarefas simples podem exigir programas diferentes: escrever notas, gerenciar atividades, juntar PDFs, converter imagens ou preparar arquivos de áudio e vídeo. O Axolote Suite pretende reduzir essa fragmentação, reunindo ferramentas locais em um ambiente organizado.
 
-O projeto deverá priorizar utilidade e clareza. Não pretende prometer que substituirá todos os aplicativos especializados do mercado.
+O objetivo não é prometer substituir todos os programas especializados. O foco é oferecer ferramentas práticas para necessidades comuns.
 
-## 3. Experiência imaginada
+## 3. Público pretendido
 
-A experiência poderá ser organizada em torno de uma tela inicial que apresenta os módulos. Ao selecionar uma área, o usuário acessa as ferramentas relacionadas àquela finalidade.
+Pessoas que usam Windows, precisam trabalhar com arquivos locais e valorizam uma experiência simples, organizada e transparente sobre o tratamento dos seus dados.
 
-O fluxo deverá deixar claro:
-- qual ferramenta está sendo usada;
-- quais formatos de arquivo são suportados;
-- onde os arquivos serão abertos e salvos;
-- se alguma operação exige conexão com a internet;
-- como cancelar ou desfazer uma operação, quando aplicável.
+## 4. Áreas planejadas
 
-A interface definitiva deverá ser validada por protótipos e testes.
+- Produtividade: notas, tarefas e calculadora.
+- PDF: juntar, dividir, extrair e organizar páginas.
+- Imagens: converter, comprimir e redimensionar.
+- Vídeo: converter, comprimir, cortar e consultar informações.
+- Áudio: converter e extrair áudio de vídeos.
+- Arquivos: compactar, descompactar e renomear em lote.
 
-## 4. Público pretendido
+Todas essas áreas estão planejadas. A disponibilidade real dependerá da implementação e dos testes.
 
-Pessoas que usam Windows, valorizam ferramentas locais, preferem uma interface organizada e querem compreender como seus arquivos são tratados.
+## 5. Tecnologias escolhidas
 
-## 5. O que o produto pretende ser
+A linguagem principal será TypeScript. A aplicação desktop está planejada com Electron, Vite, HTML e CSS. O empacotamento deverá utilizar electron-builder.
 
-- Uma suíte modular de produtividade.
-- Um conjunto de ferramentas para tarefas cotidianas.
-- Um aplicativo com prioridade para funcionamento offline.
-- Um projeto transparente sobre recursos, limitações e dependências.
+Para áudio e vídeo, o projeto pretende avaliar FFmpeg e ffprobe. Antes de distribuir qualquer dependência, será necessário revisar sua origem, configuração e licença.
 
-## 6. O que o produto não pretende ser
+## 6. Princípios do produto
 
-- Um serviço que exige conta online para o uso local básico.
-- Um produto com IA integrada.
-- Uma plataforma que envia documentos automaticamente para a nuvem.
-- Uma promessa de substituir todos os softwares profissionais especializados.
-- Um aplicativo cujos recursos sejam anunciados como concluídos sem testes.
+- Prioridade para processamento local.
+- Funcionamento offline sempre que tecnicamente possível.
+- Sem login obrigatório para as funções locais.
+- Sem telemetria por padrão.
+- Sem IA integrada.
+- Preservação dos arquivos originais.
+- Transparência sobre formatos, limitações e dependências.
 
-## 7. Requisitos que ainda precisam ser definidos
+Esses pontos são objetivos a implementar e verificar, não garantias já auditadas.
 
-- Linguagem, bibliotecas e ferramentas de interface.
-- Arquitetura do núcleo e dos módulos.
-- Formatos suportados por cada ferramenta.
-- Requisitos mínimos de hardware.
-- Processo de instalação e atualização.
-- Estratégia de testes e distribuição.
+## 7. Experiência imaginada
 
-## 8. Como medir progresso
+1. O usuário abre o aplicativo.
+2. Encontra um painel com categorias de ferramentas.
+3. Escolhe uma operação.
+4. Seleciona arquivos locais.
+5. Configura a operação e o destino.
+6. Acompanha o progresso.
+7. Recebe o resultado e pode abrir a pasta de saída.
 
-O progresso deve ser demonstrado por entregas verificáveis: protótipos executáveis, funcionalidades implementadas, testes realizados, relatórios e documentação atualizada. Percentuais genéricos não substituem evidências.
+## 8. Etapas de desenvolvimento
 
-## 9. Estado atual
+1. Configuração da base TypeScript/Electron.
+2. Interface e navegação.
+3. Notas, tarefas e calculadora.
+4. Ferramentas de PDF e imagens.
+5. Ferramentas de áudio e vídeo.
+6. Utilitários para arquivos.
+7. Testes, correções e revisão de dependências.
+8. Empacotamento e validação do instalador.
 
-O repositório está apresentando o conceito, os princípios e a identidade visual. O aplicativo e os módulos ainda não devem ser considerados prontos para uso.
+## 9. Como medir progresso
+
+O progresso deve ser demonstrado por código publicado, funcionalidades que possam ser executadas, testes, relatórios e builds verificáveis. Uma funcionalidade só deve ser apresentada como concluída quando houver evidência.
+
+## 10. Estado atual do repositório
+
+O repositório publica a apresentação, a identidade visual e a documentação do projeto. O código-fonte do aplicativo e os instaladores ainda não estão publicados aqui. A implementação está em desenvolvimento e será documentada conforme as entregas forem verificadas.

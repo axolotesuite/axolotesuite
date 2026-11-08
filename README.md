@@ -23,12 +23,13 @@
   <img alt="Versão v1.3.0" src="https://img.shields.io/badge/vers%C3%A3o-v1.3.0-7c3aed?style=flat-square">
   <br>
   <a href="https://github.com/axolotesuite/axolotesuite/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/axolotesuite/axolotesuite/ci.yml?branch=main&style=flat-square&label=CI&logo=githubactions&logoColor=white"></a>
-  <a href="https://www.virustotal.com/gui/search/3abc6ab3cd54cc8eb479ef34dbc49c0b2619e9f114d38e57b26e4c9fea000398"><img alt="Verificado no VirusTotal" src="https://img.shields.io/badge/VirusTotal-verificado-10b981?style=flat-square&logo=virustotal&logoColor=white"></a>
+  <a href="https://www.virustotal.com/gui/search/86dfba6f0aa76a07ecc77604fb540fa7cfab0b969851bdac9403293dc5277a68"><img alt="Verificado no VirusTotal" src="https://img.shields.io/badge/VirusTotal-verificado-10b981?style=flat-square&logo=virustotal&logoColor=white"></a>
   <a href="https://github.com/axolotesuite/axolotesuite/stargazers"><img alt="Estrelas" src="https://img.shields.io/github/stars/axolotesuite/axolotesuite?style=flat-square&color=f5c518"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/axolotesuite/axolotesuite/releases/download/v1.3.0/axolote_suite.exe"><img alt="Baixar para Windows" src="https://img.shields.io/badge/Baixar%20para%20Windows-v1.3.0-7c3aed?style=for-the-badge&logo=windows&logoColor=white" height="40"></a>
+  <a href="https://github.com/axolotesuite/axolotesuite/releases/download/v1.3.0/axolote_suite-portable.zip"><img alt="Baixar Pacote Portátil ZIP" src="https://img.shields.io/badge/⬇_Baixar_Pacote_Portátil_(ZIP)-v1.3.0-10b981?style=for-the-badge&logo=windows&logoColor=white" height="40"></a>
+  <a href="https://github.com/axolotesuite/axolotesuite/releases/download/v1.3.0/axolote_suite.exe"><img alt="Baixar Executável Direto" src="https://img.shields.io/badge/Baixar_Executável_(.exe)-v1.3.0-7c3aed?style=for-the-badge&logo=windows&logoColor=white" height="40"></a>
 </p>
 
 <p align="center">
@@ -193,34 +194,40 @@ Novos contribuidores e agentes de IA: comecem por [`AGENTS.md`](AGENTS.md) e [`C
 
 ## Downloads
 
-**Primeira vez?** Baixe direto pelo [site oficial](https://axolotesuite.github.io/axolotesuite/) ou pelo botão abaixo.
+**Primeira vez?** Baixe direto pelo [site oficial](https://axolotesuite.github.io/axolotesuite/) ou pelos botões abaixo.
 
-| Sistema | Arquivo | Observações |
-|---|---|---|
-| Windows 10 / 11 (x64) | [`axolote_suite.exe`](https://github.com/axolotesuite/axolotesuite/releases/download/v1.3.0/axolote_suite.exe) | Instalador e app num arquivo só; baixa o FFmpeg sozinho |
+| Sistema | Pacote | Formato | Observações |
+|---|---|---|---|
+| Windows 10 / 11 (x64) | [**`axolote_suite-portable.zip`**](https://github.com/axolotesuite/axolotesuite/releases/download/v1.3.0/axolote_suite-portable.zip) | ZIP portátil | **Recomendado**: baixa direto sem alertas do navegador |
+| Windows 10 / 11 (x64) | [**`axolote_suite.exe`**](https://github.com/axolotesuite/axolotesuite/releases/download/v1.3.0/axolote_suite.exe) | Executável | Instalador e app num arquivo só |
+| Todos | [**`SHA256SUMS.txt`**](https://github.com/axolotesuite/axolotesuite/releases/download/v1.3.0/SHA256SUMS.txt) | Assinaturas | Hashes criptográficos oficiais para conferência |
 
 Versões anteriores e notas de cada lançamento ficam em [Releases](https://github.com/axolotesuite/axolotesuite/releases).
 
 ## Segurança
 
-**Por que o Windows ou o navegador avisa ao baixar?** Certificados de assinatura de código (*EV Code Signing*) custam mais de US$ 400 por ano. Como o Axolote Suite é gratuito e independente, o executável ainda não é assinado, e o Windows mostra o aviso padrão de "editor desconhecido".
+**Por que o Windows ou o navegador avisa ao baixar o `.exe` direto?** Certificados corporativos de assinatura de código (*EV Code Signing*) da Microsoft custam mais de US$ 400 por ano. Como o Axolote Suite é 100% gratuito e de código aberto, navegadores emitem um alerta preventivo de "arquivo pouco baixado".
 
-| Onde aparece | O que fazer |
+> [!TIP]
+> Baixar o arquivo **`axolote_suite-portable.zip`** evita o aviso na grande maioria dos navegadores, bastando extrair e rodar.
+
+| Onde aparece (no .exe) | O que fazer |
 |---|---|
 | **Navegador** (Chrome / Edge) | Clique nos três pontinhos `⋯` do download → **Manter** → **Manter assim mesmo** |
 | **Windows SmartScreen** | Clique em **Mais informações** → **Executar assim mesmo** |
 
-Confira você mesmo se o arquivo é o oficial:
+Confira você mesmo se os arquivos são os oficiais usando o hash SHA-256:
 
-| Arquivo | SHA-256 |
-|---|---|
-| `axolote_suite.exe` v1.3.0 (13.55 MB) | `3abc6ab3cd54cc8eb479ef34dbc49c0b2619e9f114d38e57b26e4c9fea000398` |
+| Arquivo | Tamanho | SHA-256 Oficial |
+|---|---|---|
+| `axolote_suite.exe` | 13.6 MB | `86dfba6f0aa76a07ecc77604fb540fa7cfab0b969851bdac9403293dc5277a68` |
+| `axolote_suite-portable.zip` | 5.5 MB | `657b019690f58f08ed4e47da47d7fcd1487de9e370fddf7dd5acc26760c77fd9` |
 
 ```powershell
 Get-FileHash .\axolote_suite.exe -Algorithm SHA256
 ```
 
-Relatório público: **[ver no VirusTotal](https://www.virustotal.com/gui/search/3abc6ab3cd54cc8eb479ef34dbc49c0b2619e9f114d38e57b26e4c9fea000398)**. Para relatar uma vulnerabilidade, veja a [política de segurança](SECURITY.md).
+Relatório público: **[ver no VirusTotal](https://www.virustotal.com/gui/search/86dfba6f0aa76a07ecc77604fb540fa7cfab0b969851bdac9403293dc5277a68)**. Para relatar uma vulnerabilidade, veja a [política de segurança](SECURITY.md).
 
 <br>
 

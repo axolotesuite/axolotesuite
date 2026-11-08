@@ -1,0 +1,61 @@
+name: 🐛 Relatar um bug
+description: Algo não funcionou como deveria
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Obrigado por ajudar a melhorar o Axolote Suite! Quanto mais detalhes, mais rápido a gente corrige.
+  - type: input
+    id: version
+    attributes:
+      label: Versão do Axolote Suite
+      placeholder: "v1.3.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: windows
+    attributes:
+      label: Windows
+      options: [Windows 11, Windows 10, Outro]
+    validations:
+      required: true
+  - type: dropdown
+    id: module
+    attributes:
+      label: Ferramenta
+      options:
+        - Conversor Fácil
+        - Fotos
+        - Vídeo
+        - Áudio
+        - PDF
+        - ZIP
+        - Cores & Senhas
+        - Produtividade
+        - Renomeação em lote
+        - Instalador
+        - Outra / interface geral
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Como reproduzir
+      placeholder: |
+        1. Abri o Conversor Fácil
+        2. Escolhi um arquivo .webp
+        3. Cliquei em PDF
+        4. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: O que você esperava e o que aconteceu
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Prints ou arquivo de exemplo
+      description: Arraste imagens aqui. Se puder, anexe o arquivo que causou o problema.

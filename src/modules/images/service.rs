@@ -14,7 +14,7 @@ use std::path::{Path, PathBuf};
 use iced::widget::image::Handle;
 use image::codecs::jpeg::JpegEncoder;
 use image::imageops::FilterType;
-use image::{DynamicImage, GenericImageView, ImageFormat, RgbaImage};
+use image::{DynamicImage, GenericImageView, ImageFormat};
 
 use crate::shared::types::OperationResult;
 use crate::shared::ui::human_size;
@@ -71,8 +71,9 @@ impl fmt::Display for OutFormat {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize)]
 pub enum PhotoFilter {
+    #[default]
     None,
     Grayscale,
     Sepia,
@@ -106,8 +107,9 @@ impl PhotoFilter {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize)]
 pub enum AspectCrop {
+    #[default]
     Original,
     Square1x1,
     Wide16x9,
@@ -135,31 +137,38 @@ impl AspectCrop {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// Todos os ajustes do Editor de Fotos. É salvo em JSON nos presets do usuário,
+/// por isso campos novos precisam de `#[serde(default)]`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize)]
+#[serde(default)]
 pub struct PhotoEdits {
-    pub brightness: i32, // -100..=100
-    pub contrast: i32,   // -100..=100
-    pub saturation: i32, // -100..=100
-    pub rotation: u16,   // 0, 90, 180, 270
+    // Geometria
+    pub rotation: u16, // 0, 90, 180, 270
     pub flip_h: bool,
     pub flip_v: bool,
-    pub filter: PhotoFilter,
     pub crop: AspectCrop,
-}
-
-impl Default for PhotoEdits {
-    fn default() -> Self {
-        Self {
-            brightness: 0,
-            contrast: 0,
-            saturation: 0,
-            rotation: 0,
-            flip_h: false,
-            flip_v: false,
-            filter: PhotoFilter::None,
-            crop: AspectCrop::Original,
-        }
-    }
+    pub filter: PhotoFilter,
+    // Luz (-100..=100)
+    pub exposure: i32,
+    pub brightness: i32,
+    pub contrast: i32,
+    pub highlights: i32,
+    pub shadows: i32,
+    pub whites: i32,
+    pub blacks: i32,
+    // Cor
+    pub temperature: i32, // -100..=100
+    pub tint: i32,        // -100..=100
+    pub vibrance: i32,    // -100..=100
+    pub saturation: i32,  // -100..=100
+    pub hue: i32,         // -180..=180
+    // Efeitos
+    pub clarity: i32,  // -100..=100
+    pub sharpen: i32,  // 0..=100
+    pub blur: i32,     // 0..=100
+    pub vignette: i32, // -100..=100
+    pub grain: i32,    // 0..=100
+    pub pixelate: i32, // 0..=100
 }
 
 #[derive(Debug, Clone)]
@@ -198,104 +207,12 @@ pub fn build_preview_handle(base: &DynamicImage, edits: &PhotoEdits) -> Handle {
     Handle::from_pixels(w, h, rgba.into_raw())
 }
 
-/// Aplica recorte, rotação, espelhamento, brilho, contraste, saturação e filtro.
-pub fn apply_edits(mut img: DynamicImage, edits: &PhotoEdits) -> DynamicImage {
-    // 1. Rotação
-    img = match edits.rotation % 360 {
-        90 => img.rotate90(),
-        180 => img.rotate180(),
-        270 => img.rotate270(),
-        _ => img,
-    };
-    // 2. Espelhamento
-    if edits.flip_h {
-        img = img.fliph();
-    }
-    if edits.flip_v {
-        img = img.flipv();
-    }
-    // 3. Recorte central por proporção
-    img = crop_to_aspect(img, edits.crop);
-
-    // 4. Ajustes de cor por pixel (rápido e determinístico)
-    if edits.brightness != 0 || edits.contrast != 0 || edits.saturation != 0 || edits.filter != PhotoFilter::None {
-        let mut rgba: RgbaImage = img.to_rgba8();
-        let b_offset = (edits.brightness as f32) * 2.0;
-        let c_factor = ((100.0 + edits.contrast as f32) / 100.0).powi(2);
-        let s_factor = (100.0 + edits.saturation as f32) / 100.0;
-
-        for px in rgba.pixels_mut() {
-            let mut r = px[0] as f32;
-            let mut g = px[1] as f32;
-            let mut b = px[2] as f32;
-
-            // Brilho
-            r += b_offset;
-            g += b_offset;
-            b += b_offset;
-
-            // Contraste
-            r = (r - 128.0) * c_factor + 128.0;
-            g = (g - 128.0) * c_factor + 128.0;
-            b = (b - 128.0) * c_factor + 128.0;
-
-            // Saturação
-            let luma = 0.299 * r + 0.587 * g + 0.114 * b;
-            r = luma + (r - luma) * s_factor;
-            g = luma + (g - luma) * s_factor;
-            b = luma + (b - luma) * s_factor;
-
-            // Filtro criativo
-            match edits.filter {
-                PhotoFilter::None => {}
-                PhotoFilter::Grayscale => {
-                    let gray = 0.299 * r + 0.587 * g + 0.114 * b;
-                    r = gray;
-                    g = gray;
-                    b = gray;
-                }
-                PhotoFilter::Sepia => {
-                    let sr = 0.393 * r + 0.769 * g + 0.189 * b;
-                    let sg = 0.349 * r + 0.686 * g + 0.168 * b;
-                    let sb = 0.272 * r + 0.534 * g + 0.131 * b;
-                    r = sr;
-                    g = sg;
-                    b = sb;
-                }
-                PhotoFilter::Warm => {
-                    r += 22.0;
-                    g += 8.0;
-                    b -= 18.0;
-                }
-                PhotoFilter::Cool => {
-                    r -= 16.0;
-                    g += 4.0;
-                    b += 24.0;
-                }
-                PhotoFilter::Cyberpunk => {
-                    // Realça roxo/magenta e azul neon (identidade Axolote)
-                    r = r * 1.12 + 12.0;
-                    g *= 0.88;
-                    b = b * 1.25 + 20.0;
-                }
-                PhotoFilter::Invert => {
-                    r = 255.0 - r;
-                    g = 255.0 - g;
-                    b = 255.0 - b;
-                }
-            }
-
-            px[0] = r.clamp(0.0, 255.0) as u8;
-            px[1] = g.clamp(0.0, 255.0) as u8;
-            px[2] = b.clamp(0.0, 255.0) as u8;
-        }
-        img = DynamicImage::ImageRgba8(rgba);
-    }
-
-    img
+/// Aplica todas as edições (geometria, luz, cor e efeitos). Veja develop.rs.
+pub fn apply_edits(img: DynamicImage, edits: &PhotoEdits) -> DynamicImage {
+    super::develop::develop(img, edits)
 }
 
-fn crop_to_aspect(mut img: DynamicImage, crop: AspectCrop) -> DynamicImage {
+pub(super) fn crop_to_aspect(mut img: DynamicImage, crop: AspectCrop) -> DynamicImage {
     let ratio = match crop {
         AspectCrop::Original => return img,
         AspectCrop::Square1x1 => 1.0,
@@ -443,9 +360,98 @@ fn save_auto(img: &DynamicImage, output: &Path) -> Result<(), String> {
         .and_then(|e| e.to_str())
         .unwrap_or("png")
         .to_lowercase();
-    if ext == "jpg" || ext == "jpeg" {
-        DynamicImage::ImageRgb8(img.to_rgb8()).save(output).map_err(|e| e.to_string())
+    // Gravação atômica: escreve em `nome.axolote_tmp.ext` e só renomeia no fim.
+    let stem = output.file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_else(|| "foto".into());
+    let tmp = output.with_file_name(format!("{stem}.axolote_tmp.{ext}"));
+    let res = if ext == "jpg" || ext == "jpeg" {
+        DynamicImage::ImageRgb8(img.to_rgb8()).save(&tmp).map_err(|e| e.to_string())
     } else {
-        img.save(output).map_err(|e| e.to_string())
+        img.save(&tmp).map_err(|e| e.to_string())
+    };
+    if let Err(e) = res {
+        let _ = fs::remove_file(&tmp);
+        return Err(e);
+    }
+    fs::rename(&tmp, output).map_err(|e| {
+        let _ = fs::remove_file(&tmp);
+        e.to_string()
+    })
+}
+
+/// Aplica as mesmas edições em todas as imagens de uma pasta (estilo "sincronizar
+/// ajustes" do LightCraft). Os resultados vão para `pasta/Axolote_Editadas`.
+pub fn batch_apply(folder: PathBuf, edits: PhotoEdits) -> OperationResult {
+    const EXTS: &[&str] = &["png", "jpg", "jpeg", "webp", "bmp", "gif", "tif", "tiff"];
+    let entries = match fs::read_dir(&folder) {
+        Ok(e) => e,
+        Err(e) => return OperationResult::err(format!("Não foi possível abrir a pasta: {e}")),
+    };
+    let mut files: Vec<PathBuf> = entries
+        .filter_map(|e| e.ok().map(|e| e.path()))
+        .filter(|p| {
+            p.is_file()
+                && p.extension()
+                    .and_then(|e| e.to_str())
+                    .map(|e| EXTS.contains(&e.to_lowercase().as_str()))
+                    .unwrap_or(false)
+        })
+        .collect();
+    files.sort();
+    if files.is_empty() {
+        return OperationResult::err("Nenhuma imagem encontrada nessa pasta.");
+    }
+
+    let out_dir = folder.join("Axolote_Editadas");
+    let mut ok = 0usize;
+    let mut errors = Vec::new();
+    for f in &files {
+        let ext = f.extension().and_then(|e| e.to_str()).unwrap_or("png").to_lowercase();
+        let out = crate::core::paths::output_path(f, Some(&out_dir), "", &ext);
+        match image::open(f) {
+            Ok(img) => match save_auto(&apply_edits(img, &edits), &out) {
+                Ok(()) => ok += 1,
+                Err(e) => errors.push(format!("{}: {e}", crate::shared::ui::file_name(f))),
+            },
+            Err(e) => errors.push(format!("{}: {e}", crate::shared::ui::file_name(f))),
+        }
+    }
+
+    let mut details = vec![format!("Salvas em: {}", out_dir.display())];
+    details.extend(errors.iter().take(8).cloned());
+    let title = if errors.is_empty() {
+        format!("{ok} foto(s) editada(s) em lote")
+    } else {
+        format!("{ok} de {} foto(s) editada(s); {} com erro", files.len(), errors.len())
+    };
+    let res = if ok > 0 { OperationResult::ok(title) } else { OperationResult::err(title) };
+    res.with_details(details).with_output(out_dir)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use image::RgbaImage;
+
+    #[test]
+    fn batch_apply_writes_to_subfolder_and_keeps_originals() {
+        let dir = std::env::temp_dir().join(format!("axolote_batch_{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        for name in ["a.png", "b.png"] {
+            RgbaImage::from_pixel(8, 8, image::Rgba([100, 100, 100, 255])).save(dir.join(name)).unwrap();
+        }
+        let edits = PhotoEdits { exposure: 50, ..Default::default() };
+        let res = batch_apply(dir.clone(), edits);
+        assert!(res.success, "{}", res.title);
+        let out = image::open(dir.join("Axolote_Editadas").join("a.png")).unwrap().to_rgba8();
+        assert!(out.get_pixel(0, 0)[0] > 150);
+        let orig = image::open(dir.join("a.png")).unwrap().to_rgba8();
+        assert_eq!(orig.get_pixel(0, 0)[0], 100);
+        let leftovers = fs::read_dir(dir.join("Axolote_Editadas"))
+            .unwrap()
+            .filter(|e| e.as_ref().unwrap().file_name().to_string_lossy().contains("axolote_tmp"))
+            .count();
+        assert_eq!(leftovers, 0);
+        let _ = fs::remove_dir_all(dir);
     }
 }

@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-test:
+    name: Build e testes (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build
+        run: cargo build --locked
+
+      - name: Testes
+        run: cargo test --locked
+
+      - name: Build release
+        run: cargo build --release --locked
+
+      - name: SHA-256 do executável
+        shell: pwsh
+        run: |
+          $h = (Get-FileHash target/release/axolote_suite.exe -Algorithm SHA256).Hash.ToLower()
+          "$h  axolote_suite.exe" | Tee-Object SHA256SUMS.txt
+          "### SHA-256`n``$h``" >> $env:GITHUB_STEP_SUMMARY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: axolote_suite-windows-x64
+          path: |
+            target/release/axolote_suite.exe
+            SHA256SUMS.txt

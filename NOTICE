@@ -1,0 +1,21 @@
+Axolote Suite
+Copyright (c) 2026 Axolote Suite e contribuidores
+
+Este produto é licenciado sob MIT OU Apache-2.0, à sua escolha.
+Veja LICENSE-MIT e LICENSE-APACHE.
+
+Este software usa bibliotecas de terceiros de código aberto, cada uma sob sua
+própria licença, incluindo:
+
+  - iced        (MIT)                https://github.com/iced-rs/iced
+  - image       (MIT OR Apache-2.0)  https://github.com/image-rs/image
+  - lopdf       (MIT)                https://github.com/J-F-Liu/lopdf
+  - zip         (MIT)                https://github.com/zip-rs/zip2
+  - rfd         (MIT)                https://github.com/PolyMeilex/rfd
+  - serde       (MIT OR Apache-2.0)  https://github.com/serde-rs/serde
+  - walkdir     (MIT OR Unlicense)   https://github.com/BurntSushi/walkdir
+  - chrono      (MIT OR Apache-2.0)  https://github.com/chronotope/chrono
+
+O FFmpeg não é distribuído junto com o Axolote Suite. Ele é baixado
+separadamente no primeiro uso, a partir de builds oficiais, e é
+licenciado sob LGPL/GPL pelos seus autores (https://ffmpeg.org).

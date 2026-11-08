@@ -1,0 +1,21 @@
+name: 💡 Sugerir uma ideia
+description: Uma ferramenta nova ou uma melhoria
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: O que você quer fazer?
+      description: Conte o problema do dia a dia que isso resolveria.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Como você imagina que funcionaria?
+  - type: checkboxes
+    id: offline
+    attributes:
+      label: Confirmação
+      options:
+        - label: A ideia funciona 100% offline (sem enviar arquivos para a internet)

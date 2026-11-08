@@ -1,11 +1,12 @@
-//! Interface do módulo de Imagens: Editor de Fotos com Preview ao Vivo +
-//! Conversor, Redimensionador e Compressor.
+//! Interface do módulo de Imagens: Revelador de Fotos ao Vivo
+//! (Luz, Cor, Efeitos, Histogramas, Presets, Lote e Redimensionar/Converter).
 
 use iced::widget::{button, checkbox, column, container, image as iced_image, pick_list, row, slider, text};
 use iced::{Alignment, ContentFit, Element, Length};
 
+use crate::modules::images::develop::Adj;
 use crate::modules::images::service::{AspectCrop, OutFormat, PhotoFilter};
-use crate::modules::images::{Mode, Msg, State};
+use crate::modules::images::{EditorTab, Mode, Msg, State};
 use crate::shared::theme::{self, BannerKind, Btn};
 use crate::shared::types::Env;
 use crate::shared::ui::{self, act, human_size, SEMIBOLD};
@@ -14,19 +15,24 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     let header = ui::page_header(
         env,
         "🖼",
-        "Estúdio & Editor de Fotos",
-        "Edite fotos com pré-visualização ao vivo (filtros, luz, cor, rotação e corte), redimensione, converta formato e comprima.",
+        "Estúdio & Revelador de Fotos",
+        "Edição não destrutiva com pré-visualização ao vivo, histograma RGB, controles profissionais de Luz, Cor e Efeitos, sincronização em lote e presets de cinema.",
         None,
     );
 
     let tabs = row![
         ui::btn(
-            "🎨  Editor de Fotos (Preview ao Vivo)",
+            "🎨  Revelador Profissional (Ao Vivo)",
             Btn::Tab(state.mode == Mode::Editor),
             Some(Msg::ModeChanged(Mode::Editor)),
         ),
         ui::btn(
-            "📐  Redimensionar, Converter & Comprimir",
+            "⚡  Sincronizar em Lote (Pasta)",
+            Btn::Tab(state.mode == Mode::Batch),
+            Some(Msg::ModeChanged(Mode::Batch)),
+        ),
+        ui::btn(
+            "📐  Redimensionar & Formatos",
             Btn::Tab(state.mode == Mode::ConvertResize),
             Some(Msg::ModeChanged(Mode::ConvertResize)),
         ),
@@ -38,6 +44,7 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
 
     let body = match state.mode {
         Mode::Editor => photo_editor_view(state, env),
+        Mode::Batch => batch_view(state, env),
         Mode::ConvertResize => convert_resize_view(state, env),
     };
 
@@ -63,7 +70,7 @@ fn io_section<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     let out_field = ui::field(
         env,
         "Arquivo ou pasta de saída (opcional)",
-        "Se deixar em branco, a foto editada é salva ao lado da original com sufixo automático (nunca apaga sua original).",
+        "Se deixar em branco, a foto editada é salva ao lado da original sem sobrescrever (gravação atômica).",
         ui::path_field(
             env,
             "Automático (mesma pasta da foto original)",
@@ -104,14 +111,14 @@ fn io_section<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
 }
 
 // ---------------------------------------------------------------------------
-// Aba 1: Editor de Fotos com Preview ao Vivo
+// Revelador de Fotos ao Vivo
 // ---------------------------------------------------------------------------
 
 fn photo_editor_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     let c = env.c();
     let has_img = state.preview_handle.is_some() && !state.busy;
 
-    // Painel do Canvas (Pré-visualização ao vivo)
+    // Canvas de visualização
     let canvas_box: Element<'a, Msg> = match &state.preview_handle {
         Some(handle) => container(
             iced_image::Image::new(handle.clone())
@@ -119,7 +126,7 @@ fn photo_editor_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
                 .height(Length::Fixed(310.0))
                 .content_fit(ContentFit::Contain),
         )
-        .padding(12)
+        .padding(10)
         .width(Length::Fill)
         .center_x()
         .center_y()
@@ -128,8 +135,8 @@ fn photo_editor_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         None => container(ui::empty_state(
             env,
             "🖼",
-            "Selecione uma foto acima para abrir no Editor",
-            "Você verá a imagem aqui e todas as mudanças de brilho, contraste, filtros e cortes acontecerão ao vivo.",
+            "Selecione uma foto acima para abrir no Revelador",
+            "Histograma, luz, cor, nitidez, granulação e presets serão aplicados e vistos em tempo real.",
         ))
         .height(Length::Fixed(280.0))
         .width(Length::Fill)
@@ -139,7 +146,6 @@ fn photo_editor_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         .into(),
     };
 
-    // Botões de rotação e espelhamento abaixo do preview
     let transform_bar = ui::actions(
         env,
         vec![
@@ -159,22 +165,31 @@ fn photo_editor_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         ],
     );
 
-    // Filtros rápidos em pílulas
-    let filter_btns: Vec<Element<'a, Msg>> = PhotoFilter::ALL
-        .iter()
-        .map(|&f| {
-            let active = state.edits.filter == f;
-            button(container(text(f.label()).size(13).font(SEMIBOLD)).center_x().width(Length::Fill))
-                .padding([9, 12])
-                .width(Length::Fill)
-                .style(theme::btn(Btn::Tab(active)))
-                .on_press_maybe(has_img.then_some(Msg::FilterSelected(f)))
-                .into()
-        })
-        .collect();
-    let filters_grid = ui::grid(filter_btns, env.columns(145.0, 4), 8);
+    // Histograma ao vivo
+    let hist_box: Element<'a, Msg> = if let Some(h) = &state.hist_handle {
+        container(
+            column![
+                row![
+                    ui::strong("📊  Histograma RGB + Luminância", 12).width(Length::Fill),
+                    ui::badge("Ao vivo", c.accent),
+                ]
+                .align_items(Alignment::Center),
+                container(iced_image::Image::new(h.clone()).width(Length::Fill).height(Length::Fixed(60.0)))
+                    .width(Length::Fill)
+                    .style(theme::list_row),
+            ]
+            .spacing(4),
+        )
+        .padding(8)
+        .style(theme::list_row)
+        .into()
+    } else {
+        container(text("Carregue uma imagem para ver o histograma.").size(12).style(c.muted))
+            .padding(8)
+            .into()
+    };
 
-    // Recorte por proporção
+    // Recortes
     let crop_btns: Vec<Element<'a, Msg>> = AspectCrop::ALL
         .iter()
         .map(|&cr| {
@@ -189,43 +204,8 @@ fn photo_editor_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         .collect();
     let crops_grid = ui::grid(crop_btns, env.columns(170.0, 3), 8);
 
-    // Sliders de luz e cor
-    let sliders_col = column![
-        ui::list_row(
-            column![
-                row![
-                    ui::strong("☀  Brilho (Exposição)", 13).width(Length::Fill),
-                    ui::badge(format!("{:+}", state.edits.brightness), c.accent),
-                ],
-                slider(-100..=100, state.edits.brightness, Msg::BrightnessChanged),
-            ]
-            .spacing(6),
-        ),
-        ui::list_row(
-            column![
-                row![
-                    ui::strong("◐  Contraste", 13).width(Length::Fill),
-                    ui::badge(format!("{:+}", state.edits.contrast), c.primary),
-                ],
-                slider(-100..=100, state.edits.contrast, Msg::ContrastChanged),
-            ]
-            .spacing(6),
-        ),
-        ui::list_row(
-            column![
-                row![
-                    ui::strong("🌈  Saturação (Intensidade das Cores)", 13).width(Length::Fill),
-                    ui::badge(format!("{:+}", state.edits.saturation), c.success),
-                ],
-                slider(-100..=100, state.edits.saturation, Msg::SaturationChanged),
-            ]
-            .spacing(6),
-        ),
-    ]
-    .spacing(10);
-
     let save_btn = button(
-        container(text("💾   Exportar Foto Editada em Resolução Máxima").size(15).font(ui::BOLD))
+        container(text("💾   Exportar Foto Revelada em Resolução Máxima").size(15).font(ui::BOLD))
             .center_x()
             .width(Length::Fill),
     )
@@ -238,51 +218,225 @@ fn photo_editor_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         ui::section(
             env,
             "👁",
-            "Monitor de Pré-visualização ao Vivo",
-            "Tudo o que você ajusta ao lado aparece imediatamente aqui.",
-            column![canvas_box, transform_bar].spacing(12),
+            "Monitor de Pré-visualização",
+            "Renderização com iluminação, cor e filtros atualizados em tempo real.",
+            column![canvas_box, transform_bar, hist_box].spacing(10),
         ),
         ui::section(
             env,
             "✂",
-            "Enquadramento & Recorte Automático",
-            "Corte no formato exato para Instagram (1:1), YouTube (16:9), Reels/TikTok (9:16) ou Foto 4:3.",
+            "Enquadramento & Proporção",
+            "Corte no formato exato para Instagram (1:1), YouTube (16:9), Reels/TikTok (9:16) ou 4:3.",
             crops_grid,
         ),
     ]
-    .spacing(16);
+    .spacing(14);
 
     if state.busy {
-        left_col = left_col.push(ui::busy(env, "Renderizando foto em alta resolução"));
+        left_col = left_col.push(ui::busy(env, "Processando imagem em alta resolução"));
     }
     if let Some(res) = &state.result {
         let open = res.output.clone().map(Msg::OpenPath);
         left_col = left_col.push(ui::result_banner(env, res, open));
     }
 
+    // Abas de ajustes: Luz / Cor / Efeitos / Presets
+    let subtabs = row![
+        ui::btn("☀ Luz", Btn::Tab(state.editor_tab == EditorTab::Light), Some(Msg::EditorTabChanged(EditorTab::Light))),
+        ui::btn("🌈 Cor", Btn::Tab(state.editor_tab == EditorTab::Color), Some(Msg::EditorTabChanged(EditorTab::Color))),
+        ui::btn("✨ Efeitos", Btn::Tab(state.editor_tab == EditorTab::Effects), Some(Msg::EditorTabChanged(EditorTab::Effects))),
+        ui::btn("🎬 Presets", Btn::Tab(state.editor_tab == EditorTab::Presets), Some(Msg::EditorTabChanged(EditorTab::Presets))),
+    ]
+    .spacing(6);
+
+    let adjustments_panel: Element<'a, Msg> = match state.editor_tab {
+        EditorTab::Light => render_sliders_block(Adj::LIGHT, state, env),
+        EditorTab::Color => {
+            let filter_btns: Vec<Element<'a, Msg>> = PhotoFilter::ALL
+                .iter()
+                .map(|&f| {
+                    let active = state.edits.filter == f;
+                    button(container(text(f.label()).size(12).font(SEMIBOLD)).center_x().width(Length::Fill))
+                        .padding([7, 10])
+                        .width(Length::Fill)
+                        .style(theme::btn(Btn::Tab(active)))
+                        .on_press_maybe(has_img.then_some(Msg::FilterSelected(f)))
+                        .into()
+                })
+                .collect();
+            let fgrid = ui::grid(filter_btns, env.columns(130.0, 4), 6);
+            column![
+                render_sliders_block(Adj::COLOR, state, env),
+                ui::strong("Filtros de Estilo Rápido", 13),
+                fgrid,
+            ]
+            .spacing(10)
+            .into()
+        }
+        EditorTab::Effects => render_sliders_block(Adj::EFFECTS, state, env),
+        EditorTab::Presets => {
+            let preset_btns: Vec<Element<'a, Msg>> = state
+                .presets
+                .iter()
+                .map(|p| {
+                    let edits = p.edits;
+                    button(
+                        container(
+                            column![
+                                ui::strong(&p.name, 13),
+                                text("Clique para carregar").size(11).style(c.muted),
+                            ]
+                            .spacing(2)
+                            .align_items(Alignment::Center),
+                        )
+                        .center_x()
+                        .width(Length::Fill),
+                    )
+                    .padding([10, 12])
+                    .width(Length::Fill)
+                    .style(theme::btn(Btn::Secondary))
+                    .on_press_maybe(has_img.then_some(Msg::PresetApplied(edits)))
+                    .into()
+                })
+                .collect();
+            column![
+                ui::strong("Looks Fotográficos Prontos (Estilo Lightroom / PhotoCraft)", 13),
+                ui::grid(preset_btns, env.columns(150.0, 2), 8),
+            ]
+            .spacing(10)
+            .into()
+        }
+    };
+
     let right_col = column![
         ui::section(
             env,
-            "🎨",
-            "Filtros Instantâneos",
-            "Aplique estilos fotográficos com um clique.",
-            filters_grid,
-        ),
-        ui::section(
-            env,
             "🎚",
-            "Luz e Cor",
-            "Ajuste brilho, contraste e saturação com precisão.",
-            column![sliders_col, save_btn].spacing(14),
+            "Ajustes Não Destrutivos",
+            "Mude as abas para ajustar parâmetros finos ou escolher estilos.",
+            column![subtabs, adjustments_panel, save_btn].spacing(14),
         ),
     ]
-    .spacing(16);
+    .spacing(14);
 
     ui::two_col(env, left_col.into(), right_col.into())
 }
 
+fn render_sliders_block<'a>(adjs: &[Adj], state: &'a State, env: &Env) -> Element<'a, Msg> {
+    let c = env.c();
+    let has_img = state.preview_handle.is_some() && !state.busy;
+    let mut col = column![].spacing(8);
+
+    for &adj in adjs {
+        let val = adj.get(&state.edits);
+        let (lo, hi) = adj.range();
+        let row_item = ui::list_row(
+            column![
+                row![
+                    ui::strong(adj.label(), 12).width(Length::Fill),
+                    ui::badge(format!("{:+}", val), if val == 0 { c.muted } else { c.accent }),
+                ]
+                .align_items(Alignment::Center),
+                slider(lo..=hi, val, move |v| Msg::AdjChanged(adj, v)),
+            ]
+            .spacing(4),
+        );
+        col = col.push(row_item);
+    }
+
+    if !has_img {
+        col = col.push(text("Selecione uma foto para habilitar os controles.").size(12).style(c.muted));
+    }
+
+    col.into()
+}
+
 // ---------------------------------------------------------------------------
-// Aba 2: Redimensionar, Converter e Comprimir
+// Sincronizar em Lote (Estilo LightCraft / Lightroom)
+// ---------------------------------------------------------------------------
+
+fn batch_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
+    let has_folder = !state.batch_folder.trim().is_empty() && !state.busy;
+
+    let folder_picker = ui::field(
+        env,
+        "Pasta com as imagens que você quer sincronizar",
+        "Todas as fotos da pasta (PNG, JPG, WEBP, GIF, TIFF, BMP) receberão os ajustes ativos agora no Revelador.",
+        ui::path_field(
+            env,
+            "Escolha uma pasta do computador…",
+            &state.batch_folder,
+            Msg::BatchFolderChanged,
+            "📂  Escolher pasta…",
+            Msg::BrowseBatchFolder,
+        ),
+    );
+
+    let summary = ui::list_row(
+        column![
+            ui::strong("Ajustes ativos que serão aplicados nas fotos:", 13),
+            text(format!(
+                "Exposição: {:+} | Contraste: {:+} | Realces: {:+} | Sombras: {:+} | Temp: {:+} | Vibração: {:+} | Nitidez: {} | Vinheta: {:+}",
+                state.edits.exposure,
+                state.edits.contrast,
+                state.edits.highlights,
+                state.edits.shadows,
+                state.edits.temperature,
+                state.edits.vibrance,
+                state.edits.sharpen,
+                state.edits.vignette
+            ))
+            .size(12)
+            .style(env.c().muted),
+        ]
+        .spacing(4),
+    );
+
+    let run_btn = button(
+        container(text("⚡   Aplicar Edições em Todas as Fotos da Pasta").size(15).font(ui::BOLD))
+            .center_x()
+            .width(Length::Fill),
+    )
+    .padding([14, 22])
+    .width(Length::Fill)
+    .style(theme::btn(Btn::Primary))
+    .on_press_maybe(has_folder.then_some(Msg::RunBatch));
+
+    let mut main_col = column![
+        ui::section(
+            env,
+            "⚡",
+            "Processador em Lote (Estilo LightCraft)",
+            "Ajuste uma foto no Revelador para achar o tom perfeito, venha aqui e sincronize centenas de imagens de uma só vez para uma subpasta sem tocar nas originais.",
+            column![folder_picker, summary, run_btn].spacing(14),
+        )
+    ]
+    .spacing(14);
+
+    if state.busy {
+        main_col = main_col.push(ui::busy(env, "Processando fotos da pasta em lote"));
+    }
+    if let Some(res) = &state.result {
+        let open = res.output.clone().map(Msg::OpenPath);
+        main_col = main_col.push(ui::result_banner(env, res, open));
+    }
+
+    let side = ui::help(
+        env,
+        &[
+            "Primeiro abra uma foto na aba Revelador e ajuste a luz e as cores até ficar ideal.",
+            "Venha para esta aba, selecione a pasta inteira onde estão suas fotos.",
+            "Clique no botão de aplicar: uma pasta Axolote_Editadas será criada com tudo salvo em alta qualidade.",
+            "As fotos originais NUNCA são modificadas ou apagadas.",
+        ],
+        Some("Dica: você pode usar presets prontos de Cinema ou Retrô antes de rodar o lote!"),
+    );
+
+    ui::two_col(env, main_col.into(), side)
+}
+
+// ---------------------------------------------------------------------------
+// Redimensionar, Converter e Comprimir
 // ---------------------------------------------------------------------------
 
 fn convert_resize_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
@@ -318,7 +472,7 @@ fn convert_resize_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         env,
         "📐",
         "Redimensionar Imagem",
-        "Altere a largura e a altura em pixels com reamostragem Lanczos3.",
+        "Altere a largura e a altura em pixels com reamostragem Lanczos3 de alta nitidez.",
         column![
             presets,
             dims_row,
@@ -389,10 +543,10 @@ fn convert_resize_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         env,
         &[
             "Escolha a foto no cartão superior.",
-            "Use os botões 25%, 50%, 75% para reduzir fotos grandes de celular em um clique.",
-            "Converta qualquer PNG ou JPG para ícone do Windows (.ico) automaticamente.",
+            "Use os botões 25%, 50%, 75% para reduzir fotos pesadas de celular rapidamente.",
+            "Converta qualquer imagem para ícone (.ico) de até 256x256 com proporção ajustada.",
         ],
-        Some("Para ajustar luz, cor, filtros e recortar para Instagram/Reels, use a aba \"Editor de Fotos\"."),
+        Some("Para revelar exposição, sombras, nitidez e cores, use a aba 'Revelador Profissional'."),
     );
 
     ui::two_col(env, main_col.into(), side)

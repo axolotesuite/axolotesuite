@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Relatar uma falha de segurança
+    url: https://github.com/axolotesuite/axolotesuite/security/advisories/new
+    about: Falhas de segurança são tratadas em privado. Não abra issue pública.
+  - name: 🌐 Site oficial
+    url: https://axolotesuite.github.io/axolotesuite/
+    about: Download, guia de instalação e verificação no VirusTotal.

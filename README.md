@@ -1,132 +1,258 @@
-# 🦎 Axolote Suite v1.3.0
-
 <p align="center">
-  <img src="assets/logo_full.jpg" alt="Logo Axolote Suite" width="320" />
-</p>
-
-<p align="center">
-  <a href="https://github.com/axolotesuite/axolotesuite/releases/download/v1.3.0/axolote_suite.exe">
-    <img src="https://img.shields.io/badge/⬇_BAIXAR_INSTALADOR_OFICIAL-Windows_64--bit_(v1.3.0)-7c3aed?style=for-the-badge&logo=windows&logoColor=white" alt="Baixar Instalador Oficial" />
-  </a>
-  <a href="https://www.virustotal.com/gui/search/3abc6ab3cd54cc8eb479ef34dbc49c0b2619e9f114d38e57b26e4c9fea000398">
-    <img src="https://img.shields.io/badge/🛡_VirusTotal-100%25_Limpo_%26_Código_Seguro-10b981?style=for-the-badge&logo=virustotal&logoColor=white" alt="VirusTotal 100% Limpo" />
-  </a>
   <a href="https://axolotesuite.github.io/axolotesuite/">
-    <img src="https://img.shields.io/badge/🌐_SITE_OFICIAL-Acessar_Página-3b82f6?style=for-the-badge" alt="Site Oficial" />
+    <img src="assets/logo_full.jpg" alt="Axolote Suite" width="220">
   </a>
-  <img src="https://img.shields.io/badge/Rust-100%25_Offline-10b981?style=for-the-badge&logo=rust&logoColor=white" alt="Rust 100% Offline" />
 </p>
 
-Sua central **100% offline, nativa e modular** para Windows 10 e Windows 11, desenvolvida em **Rust** com **Iced**.
+<p align="center">
+  <img src="assets/logo_small.png" width="96" height="96" alt="Ícone do Axolote Suite: o axolote roxo com fones de ouvido">
+</p>
 
-Projetada com a identidade visual oficial do **Axolote Suite** (tema escuro profundo, roxo `#7c3aed` e azul neon `#3b82f6`), **menu lateral animado (60 FPS)**, **design totalmente responsivo** e **guias passo a passo ("💡 Como usar")** em todas as ferramentas.
+<h1 align="center">Axolote Suite</h1>
 
-> 💿 **Download Rápido:** [**Clique aqui para baixar o Instalador Oficial (`axolote_suite.exe`)**](https://github.com/axolotesuite/axolotesuite/releases/download/v1.3.0/axolote_suite.exe) — ao abrir, o instalador configura tudo e **baixa o FFmpeg automaticamente**!
+<p align="center">
+  <b>Sua central de ferramentas offline para Windows, escrita do zero em Rust puro.</b><br>
+  Conversor universal, editor de fotos, editor de vídeo, áudio, PDF, ZIP, cores e produtividade,<br>
+  num app nativo, leve e sem anúncios. Código aberto, 100% offline e seu.
+</p>
 
----
+<p align="center">
+  <img alt="100% Rust" src="https://img.shields.io/badge/100%25-Rust-b7410e?style=flat-square&logo=rust">
+  <img alt="Windows 10 · 11" src="https://img.shields.io/badge/Windows%2010%20%C2%B7%2011-nativo-2f7bf5?style=flat-square&logo=windows">
+  <img alt="Licença: MIT OU Apache-2.0" src="https://img.shields.io/badge/licen%C3%A7a-MIT%20%2F%20Apache--2.0-3a3a3a?style=flat-square">
+  <img alt="Versão v1.3.0" src="https://img.shields.io/badge/vers%C3%A3o-v1.3.0-7c3aed?style=flat-square">
+  <br>
+  <a href="https://github.com/axolotesuite/axolotesuite/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/axolotesuite/axolotesuite/ci.yml?branch=main&style=flat-square&label=CI&logo=githubactions&logoColor=white"></a>
+  <a href="https://www.virustotal.com/gui/search/3abc6ab3cd54cc8eb479ef34dbc49c0b2619e9f114d38e57b26e4c9fea000398"><img alt="Verificado no VirusTotal" src="https://img.shields.io/badge/VirusTotal-verificado-10b981?style=flat-square&logo=virustotal&logoColor=white"></a>
+  <a href="https://github.com/axolotesuite/axolotesuite/stargazers"><img alt="Estrelas" src="https://img.shields.io/github/stars/axolotesuite/axolotesuite?style=flat-square&color=f5c518"></a>
+</p>
 
-## 🛡 Código 100% Seguro, Auditável & Verificação no VirusTotal
+<p align="center">
+  <a href="https://github.com/axolotesuite/axolotesuite/releases/download/v1.3.0/axolote_suite.exe"><img alt="Baixar para Windows" src="https://img.shields.io/badge/Baixar%20para%20Windows-v1.3.0-7c3aed?style=for-the-badge&logo=windows&logoColor=white" height="40"></a>
+</p>
 
-### ❓ Por que o navegador ou o Windows SmartScreen exibe um aviso ao baixar?
-O **Axolote Suite** é um software **100% seguro, gratuito e de código aberto (Open Source)**. Todo o código-fonte em Rust está público neste repositório para qualquer pessoa auditar.
+<p align="center">
+  <a href="https://axolotesuite.github.io/axolotesuite/"><b>Site oficial</b></a> ·
+  <a href="https://github.com/axolotesuite/axolotesuite/releases">Todas as versões</a> ·
+  <a href="CHANGELOG.md">Novidades</a> ·
+  <a href="ROADMAP.md">Roadmap</a>
+</p>
 
-No entanto, a Microsoft e os navegadores cobram **mais de US$ 400 por ano** por um certificado digital corporativo (*EV Code Signing Certificate*). Como o Axolote Suite é um projeto independente e gratuito (sem assinatura paga), o navegador ou o Windows SmartScreen pode exibir o aviso padrão de *"Aplicativo não reconhecido / Arquivo pouco baixado"* na primeira execução.
+<br>
 
-### ✅ Como abrir com segurança em 2 passos rápidos:
-| Onde aparece o aviso | O que fazer |
-| :--- | :--- |
-| **1. No Navegador (Chrome / Edge / Brave)** | Se aparecer *"Download bloqueado"* ou *"Arquivo pouco comum"*, clique nos **três pontinhos (`⋯`)** ao lado do download e selecione **Manter** → **Manter assim mesmo**. |
-| **2. No Windows SmartScreen (Tela Azul)** | Ao abrir o `axolote_suite.exe` pela 1ª vez, se aparecer *"O Windows protegeu o computador"*, clique em **Mais informações** e depois no botão **Executar assim mesmo**. |
+<p align="center">
+  <img src="docs/images/axolote-showcase.jpg" alt="Visão geral do Axolote Suite: instalador, tela de carregamento, painel Início com a Central de Ferramentas, calculadora, ZIP, editor de PDF, processamento de imagens, conversores de vídeo e áudio, fila de operações e configurações" width="100%">
+  <br>
+  <sub>O instalador, o painel Início e algumas das ferramentas: calculadora, ZIP, PDF, imagens, vídeo, áudio, fila e configurações.</sub>
+</p>
 
-### 🔍 Auditoria Oficial e Hash SHA-256 (`v1.3.0`)
-Você mesmo pode comprovar que o executável oficial é 100% limpo conferindo a assinatura criptográfica **SHA-256** no **VirusTotal** ou no próprio terminal do Windows:
-- **Arquivo Oficial**: `axolote_suite.exe` (`13.55 MB` • Windows 64-bit)
-- **Hash SHA-256**: `3abc6ab3cd54cc8eb479ef34dbc49c0b2619e9f114d38e57b26e4c9fea000398`
-- **Verificação no VirusTotal**: [**Clique aqui para consultar o relatório oficial no VirusTotal**](https://www.virustotal.com/gui/search/3abc6ab3cd54cc8eb479ef34dbc49c0b2619e9f114d38e57b26e4c9fea000398)
-- **Como verificar no seu próprio PC (PowerShell)**:
-  ```powershell
-  Get-FileHash .\axolote_suite.exe -Algorithm SHA256
-  ```
+> [!NOTE]
+> **O Axolote Suite é feito por e para a comunidade.** Achou um bug, tem uma ideia ou quer ajudar no código?
+> **[Abra uma issue](https://github.com/axolotesuite/axolotesuite/issues/new/choose)** ou leia o **[guia de contribuição](CONTRIBUTING.md)**.
 
----
+<p align="center">
+  <a href="#funcionalidades">Funcionalidades</a> ·
+  <a href="#tudo-na-caixa">Tudo na caixa</a> ·
+  <a href="#por-dentro">Por dentro</a> ·
+  <a href="#começar">Começar</a> ·
+  <a href="#downloads">Downloads</a> ·
+  <a href="#segurança">Segurança</a> ·
+  <a href="#licença-e-créditos">Licença</a>
+</p>
 
-## ✨ Principais Funcionalidades
+<br>
 
-### 🔄 1. Conversor Fácil Universal (1-Clique & Drag and Drop)
-- **Destinos Inteligentes por Arquivo**: exibe apenas as conversões reais suportadas para o formato do arquivo selecionado (sem repetir o formato original e sempre oferecendo **`ZIP`**):
-  - **Imagens** (`PNG`, `JPG`, `WEBP`, `GIF`, `BMP`, `TIFF`, `ICO`) → demais formatos de imagem + **PDF multi-página** + **ZIP**.
-  - **Texto & Documentos** (`TXT`, `MD`, `HTML`, `DOCX`, `PDF`) → conversão entre **TXT, Markdown, HTML, DOCX e PDF** + **ZIP**.
-  - **Vídeos** (`MP4`, `MKV`, `WEBM`, `AVI`, `MOV`...) → **MP4, WEBM, MKV, GIF animado, MP3** + **ZIP**.
-  - **Áudios** (`MP3`, `WAV`, `FLAC`, `OGG`, `AAC`, `M4A`) → demais formatos de áudio + **ZIP**.
-  - **ZIP** (`.zip`) → **EXTRAIR** pasta com proteção contra *Zip-Slip*.
-- **Preservação do Original & Escrita Atômica**:
-  - O arquivo original é aberto somente para leitura e nunca é alterado ou apagado.
-  - Salva ao lado do original com sufixos automáticos `(1)`, `(2)` para nunca sobrescrever silenciosamente.
-  - Grava primeiro em arquivo temporário (`.axolote_tmp`) e renomeia ao concluir.
-- **Atalho Rápido Global**: acesse pelo menu lateral, arrastando arquivos do Windows Explorer ou pelo atalho **`Ctrl + Alt + N`**.
+<table>
+  <tr>
+    <td width="25%" valign="top">
+      <h3>📴 100% offline</h3>
+      Nada vai para a nuvem. Seus arquivos são processados no seu PC, sem conta, sem rastreamento e sem anúncios.
+    </td>
+    <td width="25%" valign="top">
+      <h3>⚡ Nativo e rápido</h3>
+      Escrito em Rust com a interface Iced. Sem Electron, sem navegador embutido: um único <code>.exe</code> de ~13 MB.
+    </td>
+    <td width="25%" valign="top">
+      <h3>🛡️ Seu arquivo é sagrado</h3>
+      O original nunca é alterado. Tudo é salvo ao lado, com <code>(1)</code>, <code>(2)</code>, gravação atômica e nada sobrescrito sem você pedir.
+    </td>
+    <td width="25%" valign="top">
+      <h3>🧭 Fácil de verdade</h3>
+      Cada ferramenta tem um guia "💡 Como usar". Arraste arquivos do Explorer ou use <code>Ctrl + Alt + N</code> de qualquer lugar.
+    </td>
+  </tr>
+</table>
 
-### 🎨 2. Estúdio de Cores, Paleta de Fotos & Gerador de Senhas
-- **Conversor e Harmonia Cromática ao Vivo**: conversão instantânea entre **HEX, RGB, HSL e CMYK** com harmonias Complementar, Análogas e Tríades.
-- **Extrator de Paleta de Imagem**: escolha qualquer foto ou logo do PC para extrair automaticamente as **6 cores dominantes** com porcentagem e cópia rápida de HEX.
-- **Gerador de Senhas Fortes & UUID v4**: geração 100% local com cálculo de **entropia em bits** e identificadores únicos **UUID v4 (RFC 4122)**.
+<br>
 
-### 🖼 3. Estúdio & Editor de Fotos (com Preview ao Vivo)
-- **Monitor de Pré-visualização em Tempo Real**: ajuste controles e veja o resultado imediatamente na foto antes de exportar.
-- **Luz e Cor**: controles deslizantes de **Brilho**, **Contraste** e **Saturação** (`-100` a `+100`).
-- **Filtros Instantâneos**: *Original*, *Preto & Branco*, *Sépia*, *Quente*, *Frio*, *Neon/Axolote* e *Negativo*.
-- **Enquadramento e Recorte Automático**: `Livre`, `1:1 (Instagram)`, `16:9 (YouTube)`, `9:16 (Reels/TikTok/Shorts)` e `4:3`.
-- **Transformações, Redimensionamento e Compressão**: girar `90°`, espelhar, redimensionar com filtro Lanczos3 e comprimir JPEG (`10%–100%`).
+## Funcionalidades
 
-### 🎬 4. Estúdio & Editor de Vídeo
-- **Monitor de Quadro + Linha do Tempo**: defina o ponto de corte inicial (`De`) e final (`Até`) do clipe.
-- **Controle de Velocidade**: `0.5× (Câmera Lenta)`, `1.0×`, `1.25×`, `1.5×` e `2.0× (Time-lapse)` com ajuste automático de áudio (`atempo`).
-- **Formato de Tela (Canvas)**: `Original`, `16:9 YouTube (1920×1080)`, `9:16 TikTok/Reels (1080×1920)` e `1:1 Feed (1080×1080)`.
-- **Filtros de Cinema & Áudio**: estilos *Vibrante*, *P&B*, *Retrô* e *Cinema*, rotação/espelhamento, modo mudo (`Mute`) e amplificação de volume até `200%`.
-- **Conversor & Compressor CRF**: converta entre **MP4, MKV, AVI, MOV e WebM** ou comprima com controle **CRF (`18–36`)**.
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🔄 Conversor Fácil Universal</h3>
+      Escolha o arquivo e clique no formato. O Axolote mostra <b>só as conversões que fazem sentido</b> para aquele arquivo:
+      <br><br>
+      <b>Imagens</b> PNG, JPG, WEBP, GIF, BMP, TIFF e ICO, entre si, para PDF ou ZIP.<br>
+      <b>Documentos</b> TXT, MD, HTML, DOCX e PDF.<br>
+      <b>Vídeos</b> para MP4, WEBM, MKV, GIF animado ou MP3.<br>
+      <b>Áudios</b> MP3, WAV, FLAC, OGG, AAC e M4A.<br>
+      <b>ZIP</b> extraído com proteção contra <i>Zip-Slip</i>.
+    </td>
+    <td width="50%" valign="top">
+      <h3>🖼️ Estúdio de Fotos com preview ao vivo</h3>
+      Brilho, contraste e saturação de <code>-100</code> a <code>+100</code>, vistos na hora no monitor de pré-visualização.
+      <br><br>
+      Filtros <i>P&amp;B</i>, <i>Sépia</i>, <i>Quente</i>, <i>Frio</i>, <i>Neon</i> e <i>Negativo</i>; recortes prontos <code>1:1</code>, <code>16:9</code>, <code>9:16</code> e <code>4:3</code>; girar, espelhar, redimensionar com Lanczos3 e comprimir JPEG de 10% a 100%.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🎬 Editor de Vídeo</h3>
+      Corte na linha do tempo (<code>De</code> → <code>Até</code>), velocidade de <code>0.5×</code> a <code>2.0×</code> com áudio ajustado automaticamente e formatos de tela para YouTube (16:9), Reels/Shorts (9:16) e Feed (1:1).
+      <br><br>
+      Filtros <i>Vibrante</i>, <i>P&amp;B</i>, <i>Retrô</i> e <i>Cinema</i>, modo mudo, volume até 200% e compressão CRF de 18 a 36. O FFmpeg é baixado sozinho no primeiro uso.
+    </td>
+    <td width="50%" valign="top">
+      <h3>🎨 Cores &amp; Senhas</h3>
+      Conversão instantânea entre <b>HEX, RGB, HSL e CMYK</b> com harmonias complementar, análogas e tríade.
+      <br><br>
+      Extraia as <b>6 cores dominantes</b> de qualquer foto ou logo, gere <b>senhas fortes</b> com cálculo de entropia e identificadores <b>UUID v4</b>, tudo localmente.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>📄 Central de PDF</h3>
+      Una vários PDFs na ordem que quiser (<code>↑</code> / <code>↓</code>), divida por páginas ou intervalos e consulte os metadados do documento em segundos.
+    </td>
+    <td width="50%" valign="top">
+      <h3>🗂️ Produtividade &amp; Arquivos</h3>
+      Bloco de notas, lista de tarefas, calculadora científica com histórico, organizador de pastas, renomeação em lote com pré-visualização e compactador ZIP de pastas inteiras.
+    </td>
+  </tr>
+</table>
 
-### 📄 5. Central de Documentos PDF, Produtividade, Arquivos e ZIP
-- **Unir e Dividir PDFs**: combine vários documentos na ordem que quiser (`↑ / ↓`), extraia páginas ou consulte metadados.
-- **Bloco de Notas (`.txt`), Lista de Tarefas e Calculadora Científica Expressa**: com parênteses, potência (`^`), porcentagem (`%`) e histórico clicável.
-- **Organizador Inteligente de Pastas & Renomeação em Lote**: pré-visualização instantânea antes de aplicar.
-- **Compactador e Extrator ZIP**: proteção contra *Zip-Slip* e compactação recursiva de pastas completas.
+<br>
 
-### 💿 6. Instalador Principal (Setup) com Download Automático do FFmpeg & Desinstalador
-- **Tela Principal de Setup no Primeiro Uso**: instala no PC, **baixa e configura automaticamente o FFmpeg**, cria atalhos na **Área de Trabalho** e no **Menu Iniciar** com o ícone oficial e registra no Windows sem exigir Administrador.
+## Tudo na caixa
 
----
+<table>
+  <tr>
+    <td width="33%" valign="top">
+      <h4>🧰 13 módulos</h4>
+      Conversor Fácil · Fotos · Vídeo · Áudio · PDF · ZIP · Cores &amp; Senhas · Produtividade · Renomeação em lote · Fila de operações · Histórico · Configurações · Instalador
+    </td>
+    <td width="33%" valign="top">
+      <h4>🗂️ Formatos</h4>
+      PNG · JPG · WEBP · GIF · BMP · TIFF · ICO · PDF · TXT · MD · HTML · DOCX · MP4 · WEBM · MKV · AVI · MOV · MP3 · WAV · FLAC · OGG · AAC · M4A · ZIP
+    </td>
+    <td width="33%" valign="top">
+      <h4>🪄 O essencial do dia a dia</h4>
+      Tema escuro e claro · menu lateral animado · busca de ferramentas · fila assíncrona · histórico · arrastar e soltar · atalho global <code>Ctrl + Alt + N</code> · instalador sem precisar de administrador
+    </td>
+  </tr>
+</table>
 
-## 📂 Estrutura do Projeto
+<br>
+
+## Por dentro
+
+- **Rust do começo ao fim:** interface nativa com [Iced](https://github.com/iced-rs/iced), imagens com [`image`](https://crates.io/crates/image), PDF com [`lopdf`](https://crates.io/crates/lopdf) e ZIP com [`zip`](https://crates.io/crates/zip).
+- **Modular:** cada ferramenta é um módulo independente em `src/modules/` com `mod.rs` (estado), `view.rs` (interface) e `service.rs` (lógica pura e testável).
+- **Seguro com arquivos:** o original é aberto só para leitura, a saída vai primeiro para um `.axolote_tmp` e só depois é renomeada, e a extração de ZIP é blindada contra *Zip-Slip*.
+- **Leve:** um único executável, sem runtime, com 0% de CPU quando está parado.
 
 ```text
 Axolote_Suite/
-├── assets/                  # Logos e ícones oficiais do Axolote Suite (.ico, .png, .jpg)
+├── assets/          # logos e ícones oficiais
+├── docs/images/     # imagens do README
 ├── src/
-│   ├── main.rs              # Ponto de entrada com ícone nativo da janela
-│   ├── lib.rs               # Biblioteca raiz
-│   ├── app.rs               # Shell principal, barra lateral animada, busca e painel Início
-│   ├── core/                # Configurações, histórico, fila assíncrona, caminhos e download FFmpeg
-│   ├── shared/              # Tema visual (escuro/claro), componentes responsivos e logos
-│   └── modules/             # Módulos (quick_convert, devtools, productivity, images, video,
-│                            #          audio, pdf, zip, batch_rename, installer, queue, history, settings)
-├── Cargo.toml
-├── LICENSE
-└── README.md
+│   ├── main.rs      # ponto de entrada
+│   ├── app.rs       # janela principal, menu lateral, busca e Início
+│   ├── core/        # configurações, histórico, fila, caminhos e FFmpeg
+│   ├── shared/      # tema, componentes e marca
+│   └── modules/     # uma pasta por ferramenta
+└── .github/         # CI, templates de issue e PR, Dependabot
 ```
+
+## Começar
+
+```powershell
+git clone https://github.com/axolotesuite/axolotesuite
+cd axolotesuite
+cargo run --release      # abre o app
+cargo test               # roda os testes
+```
+
+O executável final fica em `target\release\axolote_suite.exe`.
+
+Novos contribuidores e agentes de IA: comecem por [`AGENTS.md`](AGENTS.md) e [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+> [!IMPORTANT]
+> **Status:** o Axolote Suite está em desenvolvimento ativo. As ferramentas principais funcionam, mas ainda há arestas para aparar. Se algo quebrar, [abra uma issue](https://github.com/axolotesuite/axolotesuite/issues/new/choose) com sua versão do Windows, o arquivo que usou (se puder) e um print. O que vem por aí está no [roadmap](ROADMAP.md).
+
+## Downloads
+
+**Primeira vez?** Baixe direto pelo [site oficial](https://axolotesuite.github.io/axolotesuite/) ou pelo botão abaixo.
+
+| Sistema | Arquivo | Observações |
+|---|---|---|
+| Windows 10 / 11 (x64) | [`axolote_suite.exe`](https://github.com/axolotesuite/axolotesuite/releases/download/v1.3.0/axolote_suite.exe) | Instalador e app num arquivo só; baixa o FFmpeg sozinho |
+
+Versões anteriores e notas de cada lançamento ficam em [Releases](https://github.com/axolotesuite/axolotesuite/releases).
+
+## Segurança
+
+**Por que o Windows ou o navegador avisa ao baixar?** Certificados de assinatura de código (*EV Code Signing*) custam mais de US$ 400 por ano. Como o Axolote Suite é gratuito e independente, o executável ainda não é assinado, e o Windows mostra o aviso padrão de "editor desconhecido".
+
+| Onde aparece | O que fazer |
+|---|---|
+| **Navegador** (Chrome / Edge) | Clique nos três pontinhos `⋯` do download → **Manter** → **Manter assim mesmo** |
+| **Windows SmartScreen** | Clique em **Mais informações** → **Executar assim mesmo** |
+
+Confira você mesmo se o arquivo é o oficial:
+
+| Arquivo | SHA-256 |
+|---|---|
+| `axolote_suite.exe` v1.3.0 (13.55 MB) | `3abc6ab3cd54cc8eb479ef34dbc49c0b2619e9f114d38e57b26e4c9fea000398` |
+
+```powershell
+Get-FileHash .\axolote_suite.exe -Algorithm SHA256
+```
+
+Relatório público: **[ver no VirusTotal](https://www.virustotal.com/gui/search/3abc6ab3cd54cc8eb479ef34dbc49c0b2619e9f114d38e57b26e4c9fea000398)**. Para relatar uma vulnerabilidade, veja a [política de segurança](SECURITY.md).
+
+<br>
+
+<h3 align="center">Vamos construir junto</h3>
+
+<p align="center">
+  Usa o Axolote no dia a dia? Conta pra gente o que funciona, o que quebrou e o que você queria que ele fizesse.<br>
+  Toda issue, ideia e Pull Request é bem-vinda, não importa o seu nível.
+</p>
+
+<p align="center">
+  <a href="https://github.com/axolotesuite/axolotesuite/issues/new/choose"><b>Abrir uma issue</b></a> ·
+  <a href="CONTRIBUTING.md">Contribuir</a> ·
+  <a href="https://axolotesuite.github.io/axolotesuite/">Site oficial</a>
+</p>
 
 ---
 
-## 🚀 Como Compilar
+## Licença e créditos
 
-```powershell
-# Gerar o executável final de produção (otimizado e portátil)
-cargo build --release
-```
+O Axolote Suite é licenciado sob [MIT](LICENSE-MIT) ou [Apache-2.0](LICENSE-APACHE), à sua escolha.
+Copyright (c) 2026 Axolote Suite e contribuidores. Os avisos obrigatórios estão em [NOTICE](NOTICE).
 
-O executável final pronto para distribuição fica em:
-```text
-target\release\axolote_suite.exe
-```
+O nome Axolote Suite, os logos e o mascote em [`assets/`](assets/) pertencem ao projeto. Forks e versões modificadas devem usar outro nome e outros logos.
 
-## 📄 Licença
+<sub>A organização deste README e do repositório foi inspirada nos <a href="https://github.com/storytold/photocraft">Crafting Apps</a> do time ArtCraft. O Axolote Suite é um projeto independente, sem afiliação com eles, e não usa código deles.</sub>
 
-Distribuído sob licença **MIT OR Apache-2.0** (veja [LICENSE](LICENSE)).
+<p align="center">
+  <img alt="Axolote" src="assets/logo_small.png" width="28"><br>
+  <sub>Feito pela comunidade do Axolote Suite.</sub>
+</p>
+
+## Histórico de estrelas
+
+[![Gráfico de estrelas](https://api.star-history.com/svg?repos=axolotesuite/axolotesuite&type=Date)](https://www.star-history.com/#axolotesuite/axolotesuite&Date)

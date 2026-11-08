@@ -7,6 +7,9 @@ authors = ["Axolote"]
 license = "MIT OR Apache-2.0"
 keywords = ["desktop", "productivity", "utility", "windows", "iced"]
 categories = ["gui"]
+repository = "https://github.com/axolotesuite/axolotesuite"
+homepage = "https://axolotesuite.github.io/axolotesuite/"
+readme = "README.md"
 
 [dependencies]
 # Interface gráfica nativa com suporte a renderização de imagens (logos + preview de fotos)

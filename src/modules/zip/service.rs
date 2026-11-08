@@ -209,20 +209,23 @@ mod tests {
 
     #[test]
     fn cria_e_extrai_zip() {
-        let dir = tempfile::tempdir().unwrap();
-        let src_file = dir.path().join("ola.txt");
+        let dir = std::env::temp_dir().join(format!("axolote_zip_test_{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        let src_file = dir.join("ola.txt");
         fs::write(&src_file, "conteudo de teste").unwrap();
 
-        let zip_path = dir.path().join("saida.zip");
+        let zip_path = dir.join("saida.zip");
         let res = create(zip_path.clone(), vec![src_file]);
         assert!(res.success);
 
         let items = list_contents(&zip_path).unwrap();
         assert_eq!(items.len(), 1);
 
-        let out_dir = dir.path().join("extraido");
+        let out_dir = dir.join("extraido");
         let ext = extract(zip_path, out_dir.clone());
         assert!(ext.success);
         assert_eq!(fs::read_to_string(out_dir.join("ola.txt")).unwrap(), "conteudo de teste");
+        let _ = fs::remove_dir_all(&dir);
     }
 }

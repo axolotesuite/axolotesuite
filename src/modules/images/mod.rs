@@ -1,6 +1,7 @@
 //! Módulo de Imagens: Editor de Fotos com pré-visualização ao vivo,
 //! redimensionamento, conversão de formato e compressão.
 
+pub mod develop;
 pub mod service;
 pub mod view;
 
@@ -13,6 +14,7 @@ use image::DynamicImage;
 use crate::core::{paths, system, Ctx};
 use crate::shared::types::OperationResult;
 use service::{AspectCrop, ImageMeta, OutFormat, PhotoEdits, PhotoFilter};
+use develop::{Adj, Preset};
 
 const MODULE: &str = "Imagens";
 const IMG_EXTS: &[&str] = &["png", "jpg", "jpeg", "webp", "bmp", "gif", "ico", "tif", "tiff"];
@@ -21,17 +23,31 @@ const IMG_EXTS: &[&str] = &["png", "jpg", "jpeg", "webp", "bmp", "gif", "ico", "
 pub enum Mode {
     Editor,
     ConvertResize,
+    Batch,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EditorTab {
+    Light,
+    Color,
+    Effects,
+    Presets,
 }
 
 pub struct State {
     pub mode: Mode,
+    pub editor_tab: EditorTab,
     pub input: String,
     pub output: String,
     pub meta: Option<Result<ImageMeta, String>>,
     // Editor de Fotos ao vivo
     pub preview_base: Option<DynamicImage>,
     pub preview_handle: Option<Handle>,
+    pub hist_handle: Option<Handle>,
     pub edits: PhotoEdits,
+    pub presets: Vec<Preset>,
+    // Lote (LightCraft style)
+    pub batch_folder: String,
     // Redimensionar / Converter / Comprimir
     pub width: String,
     pub height: String,
@@ -46,11 +62,13 @@ pub struct State {
 #[derive(Debug, Clone)]
 pub enum Msg {
     ModeChanged(Mode),
+    EditorTabChanged(EditorTab),
     InputChanged(String),
     BrowseInput,
     OutputChanged(String),
     BrowseOutput,
-    // Editor de Fotos
+    // Editor de Fotos avançado
+    AdjChanged(Adj, i32),
     BrightnessChanged(i32),
     ContrastChanged(i32),
     SaturationChanged(i32),
@@ -60,8 +78,13 @@ pub enum Msg {
     FlipV,
     FilterSelected(PhotoFilter),
     CropSelected(AspectCrop),
+    PresetApplied(PhotoEdits),
     ResetEdits,
     SaveEditedPhoto,
+    // Lote
+    BatchFolderChanged(String),
+    BrowseBatchFolder,
+    RunBatch,
     // Redimensionar / Converter / Comprimir
     WidthChanged(String),
     HeightChanged(String),
@@ -78,14 +101,20 @@ pub enum Msg {
 
 impl State {
     pub fn new() -> Self {
+        let mut presets = develop::builtin_looks();
+        presets.extend(develop::load_user_presets());
         Self {
             mode: Mode::Editor,
+            editor_tab: EditorTab::Light,
             input: String::new(),
             output: String::new(),
             meta: None,
             preview_base: None,
             preview_handle: None,
+            hist_handle: None,
             edits: PhotoEdits::default(),
+            presets,
+            batch_folder: String::new(),
             width: "1280".into(),
             height: "720".into(),
             keep_aspect: true,
@@ -102,6 +131,9 @@ impl State {
                 self.mode = m;
                 self.result = None;
             }
+            Msg::EditorTabChanged(t) => {
+                self.editor_tab = t;
+            }
             Msg::InputChanged(s) => {
                 let p = PathBuf::from(s.trim());
                 if p.is_file() {
@@ -110,6 +142,7 @@ impl State {
                     self.meta = None;
                     self.preview_base = None;
                     self.preview_handle = None;
+                    self.hist_handle = None;
                 }
                 self.input = s;
             }
@@ -127,7 +160,11 @@ impl State {
                 }
             }
 
-            // -------------------- Editor de Fotos ao vivo --------------------
+            // -------------------- Editor de Fotos avançado --------------------
+            Msg::AdjChanged(adj, v) => {
+                adj.set(&mut self.edits, v);
+                self.refresh_preview();
+            }
             Msg::BrightnessChanged(v) => {
                 self.edits.brightness = v;
                 self.refresh_preview();
@@ -164,6 +201,10 @@ impl State {
                 self.edits.crop = c;
                 self.refresh_preview();
             }
+            Msg::PresetApplied(p) => {
+                self.edits = p;
+                self.refresh_preview();
+            }
             Msg::ResetEdits => {
                 self.edits = PhotoEdits::default();
                 self.refresh_preview();
@@ -178,6 +219,25 @@ impl State {
                 self.result = None;
                 return Command::perform(
                     system::run_blocking(move || service::save_edited_photo(input, out, edits)),
+                    move |r| Msg::Done(id, r),
+                );
+            }
+
+            // -------------------- Processamento em Lote --------------------
+            Msg::BatchFolderChanged(f) => self.batch_folder = f,
+            Msg::BrowseBatchFolder => {
+                if let Some(p) = system::pick_folder("Escolha a pasta com fotos para aplicar os ajustes") {
+                    self.batch_folder = p.display().to_string();
+                }
+            }
+            Msg::RunBatch => {
+                let folder = PathBuf::from(self.batch_folder.trim());
+                let edits = self.edits;
+                let id = ctx.start_job(MODULE, &format!("Aplicar ajustes em lote na pasta {}", crate::shared::ui::file_name(&folder)));
+                self.busy = true;
+                self.result = None;
+                return Command::perform(
+                    system::run_blocking(move || service::batch_apply(folder, edits)),
                     move |r| Msg::Done(id, r),
                 );
             }
@@ -276,7 +336,11 @@ impl State {
 
     fn refresh_preview(&mut self) {
         if let Some(base) = &self.preview_base {
-            self.preview_handle = Some(service::build_preview_handle(base, &self.edits));
+            let processed = service::apply_edits(base.clone(), &self.edits);
+            self.hist_handle = Some(develop::histogram_handle(&processed));
+            let rgba = processed.to_rgba8();
+            let (w, h) = rgba.dimensions();
+            self.preview_handle = Some(Handle::from_pixels(w, h, rgba.into_raw()));
         }
     }
 

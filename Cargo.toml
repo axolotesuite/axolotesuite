@@ -15,7 +15,7 @@ readme = "README.md"
 # Interface gráfica nativa com suporte a renderização de imagens (logos + preview de fotos)
 iced = { version = "0.12", features = ["image"] }
 # Diálogos nativos do Windows para escolher arquivos/pastas
-rfd = "0.15"
+rfd = "0.17"
 # Processamento e edição de imagens
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "bmp", "gif", "ico", "tiff", "webp"] }
 # Arquivos ZIP

@@ -2,6 +2,7 @@
 
 use std::path::PathBuf;
 
+use crate::shared::i18n::Lang;
 use crate::shared::theme::{self, Colors};
 
 /// Resultado de uma operação executada por um serviço.
@@ -48,9 +49,15 @@ pub struct Env {
     pub width: f32,
     /// Tema escuro ativo?
     pub dark: bool,
+    /// Idioma ativo resolvido (Pt ou En).
+    pub lang: Lang,
 }
 
 impl Env {
+    pub fn t(&self, key: crate::shared::i18n::TextKey) -> &'static str {
+        self.lang.get(key)
+    }
+
     pub fn c(&self) -> Colors {
         if self.dark {
             theme::dark()

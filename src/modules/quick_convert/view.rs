@@ -10,19 +10,24 @@ use crate::shared::ui::{self, act};
 
 pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     let c = env.c();
+    let is_en = env.lang.is_en();
     let header = ui::page_header(
         env,
         "🔄",
-        "Conversor Fácil — Tudo em 1 Lugar",
-        "Escolha seus arquivos (ou arraste do Windows Explorer), clique no botão do formato desejado e converta na hora preservando o original!",
+        if is_en { "Universal Quick Convert" } else { "Conversor Fácil — Tudo em 1 Lugar" },
+        if is_en {
+            "Select files (or drag & drop from File Explorer), click the target format button, and convert instantly without overwriting original files!"
+        } else {
+            "Escolha seus arquivos (ou arraste do Windows Explorer), clique no botão do formato desejado e converta na hora preservando o original!"
+        },
         Some(
             row![
                 ui::badge(
-                    format!("Origem: {}", if state.source_ext.is_empty() { "AUTO" } else { &state.source_ext }),
+                    format!("{}: {}", if is_en { "Source" } else { "Origem" }, if state.source_ext.is_empty() { "AUTO" } else { &state.source_ext }),
                     c.primary
                 ),
                 ui::badge(
-                    format!("{} arquivo(s)", state.files.len()),
+                    format!("{} {}", state.files.len(), if is_en { "file(s)" } else { "arquivo(s)" }),
                     if state.files.is_empty() { c.muted } else { c.success },
                 ),
             ]
@@ -95,19 +100,19 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     let mut left_col = column![
         ui::list_row(
             row![
-                ui::badge("ORIGEM", c.primary),
+                ui::badge(if is_en { "SOURCE" } else { "ORIGEM" }, c.primary),
                 ui::strong(
                     if state.source_ext.is_empty() { "AUTO" } else { &state.source_ext },
                     16
                 ),
                 ui::muted(env, "   ───►   "),
-                ui::badge("DESTINO SELECIONADO", c.accent),
+                ui::badge(if is_en { "TARGET" } else { "DESTINO SELECIONADO" }, c.accent),
                 ui::strong(target_fmt, 16),
             ]
             .spacing(8)
             .align_items(Alignment::Center),
         ),
-        ui::strong("Aperte no formato de destino desejado:", 14),
+        ui::strong(if is_en { "Click your desired target format:" } else { "Aperte no formato de destino desejado:" }, 14),
         formats_grid,
         ui::list_row(chk_instant),
     ]
@@ -115,7 +120,11 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
 
     if state.category == WheelCategory::Image {
         let chk_strip = checkbox(
-            "🛡 Privacidade: Limpar metadados ocultos (EXIF / GPS / Câmera) ao converter imagens",
+            if is_en {
+                "🛡 Privacy: Strip hidden metadata (EXIF / GPS / Camera) when converting photos"
+            } else {
+                "🛡 Privacidade: Limpar metadados ocultos (EXIF / GPS / Câmera) ao converter imagens"
+            },
             state.strip_metadata,
         )
         .on_toggle(Msg::ToggleStripMetadata)
@@ -128,13 +137,13 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         env,
         vec![
             act(
-                format!("🚀  Converter para {target_fmt} Agora"),
+                if is_en { format!("🚀  Convert to {target_fmt} Now") } else { format!("🚀  Converter para {target_fmt} Agora") },
                 Btn::Primary,
                 (!state.busy && !state.files.is_empty()).then_some(Msg::ConvertNow),
             ),
-            act("➕  Escolher Arquivo(s)…", Btn::Secondary, (!state.busy).then_some(Msg::AddFiles)),
+            act(if is_en { "➕  Choose File(s)…" } else { "➕  Escolher Arquivo(s)…" }, Btn::Secondary, (!state.busy).then_some(Msg::AddFiles)),
             act(
-                "🗑  Limpar Lista",
+                if is_en { "🗑  Clear List" } else { "🗑  Limpar Lista" },
                 Btn::Ghost,
                 (!state.busy && !state.files.is_empty()).then_some(Msg::ClearFiles),
             ),

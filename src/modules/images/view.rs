@@ -12,27 +12,32 @@ use crate::shared::types::Env;
 use crate::shared::ui::{self, act, human_size, SEMIBOLD};
 
 pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
+    let is_en = env.lang.is_en();
     let header = ui::page_header(
         env,
         "🖼",
-        "Estúdio & Revelador de Fotos",
-        "Edição não destrutiva com pré-visualização ao vivo, histograma RGB, controles profissionais de Luz, Cor e Efeitos, sincronização em lote e presets de cinema.",
+        if is_en { "Photo Studio & Developer" } else { "Estúdio & Revelador de Fotos" },
+        if is_en {
+            "Non-destructive photo editing with live real-time preview, RGB histogram, professional Light, Color, and Effects controls, batch folder sync, and cinema looks."
+        } else {
+            "Edição não destrutiva com pré-visualização ao vivo, histograma RGB, controles profissionais de Luz, Cor e Efeitos, sincronização em lote e presets de cinema."
+        },
         None,
     );
 
     let tabs = row![
         ui::btn(
-            "🎨  Revelador Profissional (Ao Vivo)",
+            if is_en { "🎨  Pro Developer (Live)" } else { "🎨  Revelador Profissional (Ao Vivo)" },
             Btn::Tab(state.mode == Mode::Editor),
             Some(Msg::ModeChanged(Mode::Editor)),
         ),
         ui::btn(
-            "⚡  Sincronizar em Lote (Pasta)",
+            if is_en { "⚡  Batch Sync (Folder)" } else { "⚡  Sincronizar em Lote (Pasta)" },
             Btn::Tab(state.mode == Mode::Batch),
             Some(Msg::ModeChanged(Mode::Batch)),
         ),
         ui::btn(
-            "📐  Redimensionar & Formatos",
+            if is_en { "📐  Resize & Formats" } else { "📐  Redimensionar & Formatos" },
             Btn::Tab(state.mode == Mode::ConvertResize),
             Some(Msg::ModeChanged(Mode::ConvertResize)),
         ),

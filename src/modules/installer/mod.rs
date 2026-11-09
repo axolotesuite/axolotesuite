@@ -33,6 +33,7 @@ pub struct State {
     pub progress: f32,
     pub status_text: String,
     pub ffmpeg_busy: bool,
+    pub purge_busy: bool,
     pub result: Option<OperationResult>,
 }
 
@@ -52,6 +53,8 @@ pub enum Msg {
     DownloadFfmpegFinished(OperationResult),
     StartUninstall,
     UninstallFinished(OperationResult),
+    PurgeEverything,
+    PurgeFinished(OperationResult),
     FinishAndGoHome,
     OpenInstalledFolder,
 }
@@ -75,6 +78,7 @@ impl State {
             progress: 0.0,
             status_text: String::new(),
             ffmpeg_busy: false,
+            purge_busy: false,
             result: None,
         }
     }
@@ -158,6 +162,23 @@ impl State {
             }
             Msg::UninstallFinished(res) => {
                 ctx.log("Instalador", "Desinstalar Axolote Suite", &res);
+                self.step = WizardStep::Uninstalled;
+                self.result = Some(res);
+            }
+            Msg::PurgeEverything => {
+                self.purge_busy = true;
+                self.result = None;
+                let target_dir = PathBuf::from(self.install_dir.trim());
+                return Command::perform(
+                    system::run_blocking(move || perform_purge_everything(target_dir)),
+                    Msg::PurgeFinished,
+                );
+            }
+            Msg::PurgeFinished(res) => {
+                self.purge_busy = false;
+                ctx.settings = crate::core::config::Settings::default();
+                ctx.settings.setup_completed = false;
+                ctx.settings.save();
                 self.step = WizardStep::Uninstalled;
                 self.result = Some(res);
             }
@@ -297,6 +318,58 @@ fn perform_uninstall(target_dir: PathBuf, remove_user_data: bool) -> OperationRe
     }
 
     OperationResult::ok("O Axolote Suite foi desinstalado do seu computador.").with_details(details)
+}
+
+/// Apaga absolutamente tudo do Axolote Suite do computador:
+/// atalhos da Área de Trabalho, Menu Iniciar, registro do Windows,
+/// pasta de instalação e pasta de dados/configurações em %APPDATA%.
+pub fn perform_purge_everything(install_dir: PathBuf) -> OperationResult {
+    let mut details = Vec::new();
+
+    // 1. Atalhos
+    if let Some(desktop) = user_desktop_dir() {
+        let lnk = desktop.join("Axolote Suite.lnk");
+        if lnk.exists() && fs::remove_file(&lnk).is_ok() {
+            details.push("✓ Atalho da Área de Trabalho apagado".into());
+        }
+    }
+    if let Some(start) = user_start_menu_dir() {
+        let lnk = start.join("Axolote Suite.lnk");
+        if lnk.exists() && fs::remove_file(&lnk).is_ok() {
+            details.push("✓ Atalho do Menu Iniciar apagado".into());
+        }
+    }
+
+    // 2. Registro do Windows
+    unregister_hkcu();
+    details.push("✓ Registro do Windows limpo".into());
+
+    // 3. Pasta de dados completos em %APPDATA%\AxoloteSuite (notas, tarefas, histórico, configs, bin/ffmpeg)
+    let data = paths::data_dir();
+    if data.exists() {
+        let _ = fs::remove_dir_all(&data);
+        details.push("✓ Todos os dados, configurações, histórico e notas em %APPDATA% apagados".into());
+    }
+
+    // 4. Pasta de instalação
+    if install_dir.exists() {
+        let running_exe = env::current_exe().ok();
+        let is_running_from_install = running_exe
+            .as_ref()
+            .map(|p| p.starts_with(&install_dir))
+            .unwrap_or(false);
+
+        if is_running_from_install {
+            schedule_self_delete(&install_dir);
+            details.push(format!("✓ Pasta de instalação ({}) agendada para exclusão completa", install_dir.display()));
+        } else {
+            let _ = fs::remove_dir_all(&install_dir);
+            details.push(format!("✓ Pasta de instalação ({}) apagada", install_dir.display()));
+        }
+    }
+
+    OperationResult::ok("Limpeza Completa Realizada: Tudo do Axolote Suite foi apagado do computador.")
+        .with_details(details)
 }
 
 fn user_desktop_dir() -> Option<PathBuf> {

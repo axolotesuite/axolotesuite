@@ -64,6 +64,33 @@ impl Module {
         }
     }
 
+    pub fn title_in(&self, lang: crate::shared::i18n::Lang, is_installed: bool) -> &'static str {
+        if lang.is_en() {
+            match self {
+                Module::Home => "Home",
+                Module::QuickConvert => "Quick Convert",
+                Module::Productivity => "Productivity",
+                Module::Calculator => "Calculator",
+                Module::Pdf => "PDF",
+                Module::Images => "Photos & Images",
+                Module::Video => "Videos",
+                Module::Audio => "Audio",
+                Module::BatchRename => "Batch Files",
+                Module::Zip => "ZIP Archiver",
+                Module::DevTools => "Colors & Passwords",
+                Module::Queue => "Tasks Queue",
+                Module::History => "History",
+                Module::Settings => "Settings",
+                Module::Installer => if is_installed { "Apagar Tudo / Cleanup" } else { "Install / Setup" },
+            }
+        } else {
+            match self {
+                Module::Installer => if is_installed { "Apagar Tudo / Limpar" } else { "Instalar / Setup" },
+                _ => self.title(),
+            }
+        }
+    }
+
     pub fn title(&self) -> &'static str {
         match self {
             Module::Home => "Início",
@@ -81,6 +108,30 @@ impl Module {
             Module::History => "Histórico",
             Module::Settings => "Configurações",
             Module::Installer => "Instalar / Setup",
+        }
+    }
+
+    pub fn summary_in(&self, lang: crate::shared::i18n::Lang) -> &'static str {
+        if lang.is_en() {
+            match self {
+                Module::Home => "Tools dashboard, fast search, and system overview.",
+                Module::QuickConvert => "Convert images, text, documents (DOCX/PDF), videos, audio, and ZIP.",
+                Module::Productivity => "Quick notepad, tasks checklist, and scientific calculator.",
+                Module::Calculator => "Scientific expression calculator with parentheses and history.",
+                Module::Pdf => "Merge multiple PDFs, split pages and intervals, and inspect metadata.",
+                Module::Images => "Live photo developer with RGB histogram, effects, and batch folder sync.",
+                Module::Video => "Trim timeline clips, change speed, apply cinema looks, and CRF compression.",
+                Module::Audio => "Convert audio formats, extract soundtracks from video, and adjust bitrate.",
+                Module::BatchRename => "Bulk rename files with prefix, suffix, replace, and live preview.",
+                Module::Zip => "Compress directories or extract archives safely with anti Zip-Slip shield.",
+                Module::DevTools => "HEX/RGB/HSL/CMYK converter, photo palette picker, and strong password/UUID.",
+                Module::Queue => "Monitor active background tasks without freezing the UI.",
+                Module::History => "Complete audit log of operations performed on your PC.",
+                Module::Settings => "Dark/light theme, auto-open output, language detection, and privacy.",
+                Module::Installer => "Install essentials on PC + auto FFmpeg setup or uninstall cleanly.",
+            }
+        } else {
+            self.summary()
         }
     }
 
@@ -424,6 +475,7 @@ impl Application for AxoloteSuite {
             let env = Env {
                 width: self.window_width.max(320.0),
                 dark: self.ctx.settings.dark_mode,
+                lang: self.ctx.settings.resolved_lang(),
             };
             let content = installer::view::view(&self.installer, true, &env).map(Message::Installer);
             return container(content)
@@ -439,6 +491,7 @@ impl Application for AxoloteSuite {
         let env = Env {
             width: (self.window_width - sidebar_w).max(320.0),
             dark: self.ctx.settings.dark_mode,
+            lang: self.ctx.settings.resolved_lang(),
         };
 
         let sidebar = self.sidebar_view(!show_labels, sidebar_w, &env);
@@ -549,28 +602,103 @@ impl AxoloteSuite {
             .into()
         };
 
-        let groups: &[(&str, &[Module])] = &[
-            (
-                "CENTRAL DE FERRAMENTAS",
+        let groups: &[(&str, &[Module])] = if env.lang.is_en() {
+            if self.installer.is_installed() {
                 &[
-                    Module::Home,
-                    Module::QuickConvert,
-                    Module::Productivity,
-                    Module::Calculator,
-                    Module::Pdf,
-                    Module::Images,
-                    Module::Video,
-                    Module::Audio,
-                    Module::BatchRename,
-                    Module::Zip,
-                    Module::DevTools,
-                ],
-            ),
-            (
-                "SISTEMA & SETUP",
-                &[Module::Queue, Module::History, Module::Settings, Module::Installer],
-            ),
-        ];
+                    (
+                        "TOOLS WORKSTATION",
+                        &[
+                            Module::Home,
+                            Module::QuickConvert,
+                            Module::Productivity,
+                            Module::Calculator,
+                            Module::Pdf,
+                            Module::Images,
+                            Module::Video,
+                            Module::Audio,
+                            Module::BatchRename,
+                            Module::Zip,
+                            Module::DevTools,
+                        ],
+                    ),
+                    (
+                        "SYSTEM & CLEANUP",
+                        &[Module::Queue, Module::History, Module::Settings, Module::Installer],
+                    ),
+                ]
+            } else {
+                &[
+                    (
+                        "TOOLS WORKSTATION",
+                        &[
+                            Module::Home,
+                            Module::QuickConvert,
+                            Module::Productivity,
+                            Module::Calculator,
+                            Module::Pdf,
+                            Module::Images,
+                            Module::Video,
+                            Module::Audio,
+                            Module::BatchRename,
+                            Module::Zip,
+                            Module::DevTools,
+                        ],
+                    ),
+                    (
+                        "SYSTEM & SETUP",
+                        &[Module::Queue, Module::History, Module::Settings, Module::Installer],
+                    ),
+                ]
+            }
+        } else {
+            if self.installer.is_installed() {
+                &[
+                    (
+                        "CENTRAL DE FERRAMENTAS",
+                        &[
+                            Module::Home,
+                            Module::QuickConvert,
+                            Module::Productivity,
+                            Module::Calculator,
+                            Module::Pdf,
+                            Module::Images,
+                            Module::Video,
+                            Module::Audio,
+                            Module::BatchRename,
+                            Module::Zip,
+                            Module::DevTools,
+                        ],
+                    ),
+                    (
+                        "SISTEMA & LIMPEZA",
+                        &[Module::Queue, Module::History, Module::Settings, Module::Installer],
+                    ),
+                ]
+            } else {
+                &[
+                    (
+                        "CENTRAL DE FERRAMENTAS",
+                        &[
+                            Module::Home,
+                            Module::QuickConvert,
+                            Module::Productivity,
+                            Module::Calculator,
+                            Module::Pdf,
+                            Module::Images,
+                            Module::Video,
+                            Module::Audio,
+                            Module::BatchRename,
+                            Module::Zip,
+                            Module::DevTools,
+                        ],
+                    ),
+                    (
+                        "SISTEMA & SETUP",
+                        &[Module::Queue, Module::History, Module::Settings, Module::Installer],
+                    ),
+                ]
+            }
+        };
 
         let mut nav = column![].spacing(5).width(Length::Fill);
 
@@ -611,7 +739,7 @@ impl AxoloteSuite {
                         pill_ind,
                         Space::with_width(Length::Fixed(indent)),
                         text(m.icon()).size(if is_active { 18 } else { 16 }),
-                        text(m.title())
+                        text(m.title_in(env.lang, self.installer.is_installed()))
                             .size(13)
                             .font(if is_active { BOLD } else { SEMIBOLD })
                             .width(Length::Fill),
@@ -678,22 +806,26 @@ impl AxoloteSuite {
     fn home_view<'a>(&'a self, env: &Env) -> Element<'a, Message> {
         let c = env.c();
 
-        // 1. Barra superior: Título "Início" + Barra de pesquisa "🔍 Pesquisar ferramenta..."
+        // 1. Barra superior: Título "Início" / "Home" + Barra de pesquisa
         let top_bar: Element<'a, Message> = {
-            let search = ui::input(
-                "🔍  Pesquisar ferramenta (ex.: PDF, vídeo, foto, nota, calculadora, ZIP, instalar)...",
-                &self.home_search,
-                Message::SearchChanged,
-            )
-            .width(if env.narrow() { Length::Fill } else { Length::Fixed(420.0) });
+            let search_ph = if env.lang.is_en() {
+                "🔍  Search tool (e.g. PDF, video, photo, notes, calculator, ZIP, setup)..."
+            } else {
+                "🔍  Pesquisar ferramenta (ex.: PDF, vídeo, foto, nota, calculadora, ZIP, instalar)..."
+            };
+            let search = ui::input(search_ph, &self.home_search, Message::SearchChanged)
+                .width(if env.narrow() { Length::Fill } else { Length::Fixed(420.0) });
+
+            let setup_label = if env.lang.is_en() { "💿  Installer / Setup" } else { "💿  Instalador / Setup" };
+            let home_title = if env.lang.is_en() { "Home" } else { "Início" };
 
             if env.narrow() {
-                column![ui::strong("Início", 24), search].spacing(10).into()
+                column![ui::strong(home_title, 24), search].spacing(10).into()
             } else {
                 row![
-                    ui::strong("Início", 26).width(Length::Fill),
+                    ui::strong(home_title, 26).width(Length::Fill),
                     search,
-                    ui::btn("💿  Instalador / Setup", Btn::Secondary, Some(Message::Navigate(Module::Installer))),
+                    ui::btn(setup_label, Btn::Secondary, Some(Message::Navigate(Module::Installer))),
                 ]
                 .spacing(12)
                 .align_items(Alignment::Center)
@@ -703,20 +835,24 @@ impl AxoloteSuite {
 
         // 2. Banner de Boas-vindas com a Logo do Axolote à direita
         let hero_title_size = if env.narrow() { 22 } else { 28 };
+        let badge_text = if env.lang.is_en() { "✨ v1.3.0 • 100% Offline & Native" } else { "✨ v1.3.0 • 100% Offline & Nativo" };
+        let welcome_prefix = if env.lang.is_en() { "Hello! 👋  Welcome to Axolote " } else { "Olá! 👋  Bem-vindo ao Axolote " };
+        let hero_desc = if env.lang.is_en() {
+            "A complete local workstation with Universal Quick Convert, Colors & Passwords, Productivity, Calculator, Live Photo Developer, Video Studio, PDF, and file tools."
+        } else {
+            "Uma central completa com Conversor Fácil universal, Cores & Senhas, produtividade, calculadora, edição de fotos ao vivo, editor de vídeo, PDF e arquivos."
+        };
+
         let hero = container(
             row![
                 column![
-                    ui::badge("✨ v1.3.0 • 100% Offline & Nativo", c.primary),
+                    ui::badge(badge_text, c.primary),
                     row![
-                        ui::strong("Olá! 👋  Bem-vindo ao Axolote ", hero_title_size),
+                        ui::strong(welcome_prefix, hero_title_size),
                         ui::colored("Suite", hero_title_size, c.accent).font(BOLD),
                     ]
                     .align_items(Alignment::Center),
-                    ui::muted(
-                        env,
-                        "Uma central completa com Conversor Fácil universal, Cores & Senhas, produtividade, calculadora, edição de fotos ao vivo, editor de vídeo, PDF e arquivos."
-                    )
-                    .size(14),
+                    ui::muted(env, hero_desc).size(14),
                 ]
                 .spacing(8)
                 .width(Length::Fill),
@@ -732,74 +868,145 @@ impl AxoloteSuite {
         .style(theme::hero);
 
         // 3. Central de Ferramentas
-        let cards_data: Vec<(&str, &str, &str, Message)> = vec![
-            (
-                "🔄",
-                "Conversor Fácil",
-                "Converta imagens, textos, documentos (DOCX/PDF), vídeos, áudios e ZIP.",
-                Message::Navigate(Module::QuickConvert),
-            ),
-            (
-                "🎨",
-                "Cores & Senhas",
-                "Estúdio de cores, paleta de fotos, senhas fortes e UUID.",
-                Message::Navigate(Module::DevTools),
-            ),
-            (
-                "📝",
-                "Bloco de Notas",
-                "Crie, edite e salve suas notas .txt localmente.",
-                Message::QuickLaunchProductivity(productivity::Tab::Notes),
-            ),
-            (
-                "✅",
-                "Tarefas",
-                "Gerencie suas atividades diárias com filtros.",
-                Message::QuickLaunchProductivity(productivity::Tab::Tasks),
-            ),
-            (
-                "🖩",
-                "Calculadora",
-                "Realize cálculos rápidos e expressões avançadas.",
-                Message::Navigate(Module::Calculator),
-            ),
-            (
-                "📄",
-                "PDF",
-                "Junte, divida em páginas e consulte PDFs.",
-                Message::Navigate(Module::Pdf),
-            ),
-            (
-                "🖼",
-                "Imagens",
-                "Editor de fotos ao vivo, filtros, converter e comprimir.",
-                Message::Navigate(Module::Images),
-            ),
-            (
-                "🎬",
-                "Vídeos",
-                "Corte na linha do tempo, velocidade, formatos e compressão.",
-                Message::Navigate(Module::Video),
-            ),
-            (
-                "🎵",
-                "Áudio",
-                "Converta, extraia de vídeos e comprima áudios.",
-                Message::Navigate(Module::Audio),
-            ),
-            (
-                "🗜",
-                "ZIP (Compactador)",
-                "Compacte, descompacte e gerencie arquivos ZIP.",
-                Message::Navigate(Module::Zip),
-            ),
-            (
-                "📁",
-                "Arquivos",
-                "Renomeie em lote com prévia e organize pastas.",
-                Message::Navigate(Module::BatchRename),
-            ),
-        ];
+        let cards_data: Vec<(&str, &str, &str, Message)> = if env.lang.is_en() {
+            vec![
+                (
+                    "🔄",
+                    "Quick Convert",
+                    "Convert images, text, documents (DOCX/PDF), videos, audio, and ZIP.",
+                    Message::Navigate(Module::QuickConvert),
+                ),
+                (
+                    "🎨",
+                    "Colors & Passwords",
+                    "Color studio, photo palette extractor, strong passwords, and UUID.",
+                    Message::Navigate(Module::DevTools),
+                ),
+                (
+                    "📝",
+                    "Notepad",
+                    "Create, edit, and save plain text .txt notes locally.",
+                    Message::QuickLaunchProductivity(productivity::Tab::Notes),
+                ),
+                (
+                    "✅",
+                    "Tasks",
+                    "Manage your daily tasks and checklist with filters.",
+                    Message::QuickLaunchProductivity(productivity::Tab::Tasks),
+                ),
+                (
+                    "🖩",
+                    "Calculator",
+                    "Perform fast arithmetic and advanced scientific expressions.",
+                    Message::Navigate(Module::Calculator),
+                ),
+                (
+                    "📄",
+                    "PDF",
+                    "Merge multiple PDFs, split pages, and inspect document metadata.",
+                    Message::Navigate(Module::Pdf),
+                ),
+                (
+                    "🖼",
+                    "Photos & Developer",
+                    "Live photo developer, RGB histogram, presets, and batch folder sync.",
+                    Message::Navigate(Module::Images),
+                ),
+                (
+                    "🎬",
+                    "Videos",
+                    "Timeline clip trimming, speed control, format convert, and CRF compress.",
+                    Message::Navigate(Module::Video),
+                ),
+                (
+                    "🎵",
+                    "Audio",
+                    "Convert between audio formats, extract soundtracks, and compress.",
+                    Message::Navigate(Module::Audio),
+                ),
+                (
+                    "🗜",
+                    "ZIP Archiver",
+                    "Safely compress files/folders or extract archives with anti Zip-Slip.",
+                    Message::Navigate(Module::Zip),
+                ),
+                (
+                    "📁",
+                    "Batch Files",
+                    "Bulk rename files with instant preview and folder organizer.",
+                    Message::Navigate(Module::BatchRename),
+                ),
+            ]
+        } else {
+            vec![
+                (
+                    "🔄",
+                    "Conversor Fácil",
+                    "Converta imagens, textos, documentos (DOCX/PDF), vídeos, áudios e ZIP.",
+                    Message::Navigate(Module::QuickConvert),
+                ),
+                (
+                    "🎨",
+                    "Cores & Senhas",
+                    "Estúdio de cores, paleta de fotos, senhas fortes e UUID.",
+                    Message::Navigate(Module::DevTools),
+                ),
+                (
+                    "📝",
+                    "Bloco de Notas",
+                    "Crie, edite e salve suas notas .txt localmente.",
+                    Message::QuickLaunchProductivity(productivity::Tab::Notes),
+                ),
+                (
+                    "✅",
+                    "Tarefas",
+                    "Gerencie suas atividades diárias com filtros.",
+                    Message::QuickLaunchProductivity(productivity::Tab::Tasks),
+                ),
+                (
+                    "🖩",
+                    "Calculadora",
+                    "Realize cálculos rápidos e expressões avançadas.",
+                    Message::Navigate(Module::Calculator),
+                ),
+                (
+                    "📄",
+                    "PDF",
+                    "Junte, divida em páginas e consulte PDFs.",
+                    Message::Navigate(Module::Pdf),
+                ),
+                (
+                    "🖼",
+                    "Imagens & Revelador",
+                    "Revelador de fotos ao vivo, histograma RGB, presets e lote.",
+                    Message::Navigate(Module::Images),
+                ),
+                (
+                    "🎬",
+                    "Vídeos",
+                    "Corte na linha do tempo, velocidade, formatos e compressão.",
+                    Message::Navigate(Module::Video),
+                ),
+                (
+                    "🎵",
+                    "Áudio",
+                    "Converta, extraia de vídeos e comprima áudios.",
+                    Message::Navigate(Module::Audio),
+                ),
+                (
+                    "🗜",
+                    "ZIP (Compactador)",
+                    "Compacte, descompacte e gerencie arquivos ZIP.",
+                    Message::Navigate(Module::Zip),
+                ),
+                (
+                    "📁",
+                    "Arquivos",
+                    "Renomeie em lote com prévia e organize pastas.",
+                    Message::Navigate(Module::BatchRename),
+                ),
+            ]
+        };
 
         let q = self.home_search.trim().to_lowercase();
         let filtered_cards: Vec<Element<'a, Message>> = cards_data
@@ -829,54 +1036,72 @@ impl AxoloteSuite {
             })
             .collect();
 
+        let tools_title = if env.lang.is_en() { "Tools Dashboard" } else { "Central de Ferramentas" };
         let tools_col = column![
-            ui::strong("Central de Ferramentas", 18),
+            ui::strong(tools_title, 18),
             ui::grid(filtered_cards, env.columns(250.0, 3), 12),
         ]
         .spacing(12)
         .width(Length::Fill);
 
         // 4. Painel lateral direito do Início (Status do Sistema + Últimas Novidades)
+        let status_title = if env.lang.is_en() { "System Status" } else { "Status do Sistema" };
+        let ready_badge = if env.lang.is_en() { "100% Ready" } else { "100% Pronto" };
+        let notes_tasks_text = if env.lang.is_en() {
+            format!("✔  {} note(s) saved • {} pending task(s)", self.productivity.notes.len(), self.productivity.pending_tasks())
+        } else {
+            format!("✔  {} nota(s) salva(s) • {} tarefa(s) pendente(s)", self.productivity.notes.len(), self.productivity.pending_tasks())
+        };
+        let p1 = if env.lang.is_en() { "✔  Live Photo Developer with RGB histogram active" } else { "✔  Revelador de Fotos com Histograma ao Vivo ativo" };
+        let p2 = if env.lang.is_en() { "✔  Video Studio with timeline clip trimming" } else { "✔  Editor de Vídeo com Linha do Tempo integrado" };
+        let p3 = if env.lang.is_en() { "✔  Complete PDF Tools (Merge & Split)" } else { "✔  Ferramentas de PDF completas (Unir & Dividir)" };
+        let p4 = if env.lang.is_en() { "✔  ZIP Archiver with anti Zip-Slip protection" } else { "✔  Compactador ZIP com proteção anti Zip-Slip" };
+        let ffmpeg_text = if self.video.ffmpeg_ok {
+            if env.lang.is_en() { "✔  FFmpeg engine ready" } else { "✔  Motor FFmpeg detectado e pronto" }
+        } else {
+            if env.lang.is_en() { "⬇  Auto FFmpeg setup ready in installer" } else { "⬇  FFmpeg automático disponível no Instalador" }
+        };
+
         let status_card = ui::card(
             env,
             column![
                 row![
-                    ui::strong("Status do Sistema", 16).width(Length::Fill),
-                    ui::badge("100% Pronto", c.success),
+                    ui::strong(status_title, 16).width(Length::Fill),
+                    ui::badge(ready_badge, c.success),
                 ]
                 .align_items(Alignment::Center),
                 progress_bar(0.0..=100.0, 100.0).height(Length::Fixed(8.0)),
-                ui::muted(env, format!("✔  {} nota(s) salva(s) • {} tarefa(s) pendente(s)", self.productivity.notes.len(), self.productivity.pending_tasks())),
-                ui::muted(env, "✔  Editor de Fotos com Preview ao Vivo ativo"),
-                ui::muted(env, "✔  Editor de Vídeo com Linha do Tempo integrado"),
-                ui::muted(env, "✔  Ferramentas de PDF completas (Unir & Dividir)"),
-                ui::muted(env, "✔  Compactador ZIP com proteção anti Zip-Slip"),
-                ui::muted(
-                    env,
-                    if self.video.ffmpeg_ok {
-                        "✔  Motor FFmpeg detectado e pronto"
-                    } else {
-                        "⬇  FFmpeg automático disponível no Instalador"
-                    }
-                ),
+                ui::muted(env, notes_tasks_text),
+                ui::muted(env, p1),
+                ui::muted(env, p2),
+                ui::muted(env, p3),
+                ui::muted(env, p4),
+                ui::muted(env, ffmpeg_text),
             ]
             .spacing(8),
         );
+
+        let news_title = if env.lang.is_en() { "Latest Updates" } else { "Últimas Novidades" };
+        let n1 = if env.lang.is_en() { "✔  Universal Quick Convert with atomic safe writes" } else { "✔  Conversor Fácil universal (Imagens, Docs, Vídeo, Áudio e ZIP)" };
+        let n2 = if env.lang.is_en() { "✔  LightCraft-inspired Photo Developer & Batch Sync" } else { "✔  Revelador de Fotos com Histograma e Lote estilo LightCraft" };
+        let n3 = if env.lang.is_en() { "✔  Multi-language support with automatic OS detection" } else { "✔  Suporte multi-idioma com detecção automática do sistema" };
+        let n4 = if env.lang.is_en() { "✔  Colors studio, photo palette, passwords & UUID" } else { "✔  Estúdio de Cores, Paleta de Fotos, Senhas Fortes e UUID" };
+        let setup_btn_label = if env.lang.is_en() { "💿  Open Installer / Uninstaller" } else { "💿  Abrir Instalador / Desinstalador" };
 
         let news_card = ui::card(
             env,
             column![
                 row![
-                    ui::strong("Últimas Novidades", 16).width(Length::Fill),
+                    ui::strong(news_title, 16).width(Length::Fill),
                     ui::badge("v1.3.0", c.accent),
                 ]
                 .align_items(Alignment::Center),
-                ui::muted(env, "✔  Conversor Fácil universal (Imagens, Docs, Vídeo, Áudio e ZIP)"),
-                ui::muted(env, "✔  Estúdio de Cores, Paleta de Fotos, Senhas Fortes e UUID"),
-                ui::muted(env, "✔  Preservação automática com sufixos (1), (2) sem sobrescrever"),
-                ui::muted(env, "✔  Instalador com download automático do FFmpeg"),
+                ui::muted(env, n1),
+                ui::muted(env, n2),
+                ui::muted(env, n3),
+                ui::muted(env, n4),
                 ui::btn(
-                    "💿  Abrir Instalador / Desinstalador",
+                    setup_btn_label,
                     Btn::Secondary,
                     Some(Message::Navigate(Module::Installer)),
                 ),

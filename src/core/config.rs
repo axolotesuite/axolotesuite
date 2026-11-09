@@ -3,12 +3,15 @@
 use serde::{Deserialize, Serialize};
 
 use crate::core::paths;
+use crate::shared::i18n::{Lang, LanguageMode};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Settings {
     /// Tema escuro (true) ou claro (false).
     pub dark_mode: bool,
+    /// Idioma da interface: Auto (detectar do sistema), PtBr ou EnUs.
+    pub language: LanguageMode,
     /// Quantidade máxima de itens guardados no histórico.
     pub max_history: usize,
     /// Abrir a pasta do resultado automaticamente ao terminar uma operação.
@@ -21,6 +24,7 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             dark_mode: true,
+            language: LanguageMode::Auto,
             max_history: 200,
             open_folder_after: false,
             setup_completed: false,
@@ -29,6 +33,11 @@ impl Default for Settings {
 }
 
 impl Settings {
+    /// Retorna o idioma ativo resolvido (se Auto, consulta a localidade do sistema operacional).
+    pub fn resolved_lang(&self) -> Lang {
+        Lang::resolve(self.language)
+    }
+
     pub fn load() -> Self {
         std::fs::read_to_string(paths::config_file())
             .ok()

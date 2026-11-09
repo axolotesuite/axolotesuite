@@ -19,7 +19,7 @@ rfd = "0.15"
 # Processamento e edição de imagens
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "bmp", "gif", "ico", "tiff", "webp"] }
 # Arquivos ZIP
-zip = "0.6"
+zip = "9.4"
 walkdir = "2.4"
 # PDF (unir / dividir / informações)
 lopdf = "0.34"

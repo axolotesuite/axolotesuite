@@ -68,7 +68,17 @@ impl Env {
 
     /// Tela estreita (celular / janela pequena): tudo em uma coluna.
     pub fn narrow(&self) -> bool {
-        self.width < 620.0
+        self.width < 680.0
+    }
+
+    /// Tela média (organizada em 2 colunas equilibradas).
+    pub fn is_medium(&self) -> bool {
+        self.width >= 680.0 && self.width < 1180.0
+    }
+
+    /// Tela ampla (desktop completo com 4 colunas de Bento Grid).
+    pub fn is_desktop_wide(&self) -> bool {
+        self.width >= 1180.0
     }
 
     /// Tela larga o bastante para duas colunas lado a lado.

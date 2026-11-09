@@ -36,18 +36,18 @@ pub fn with_alpha(c: Color, a: f32) -> Color {
 
 pub fn dark() -> Colors {
     Colors {
-        bg: rgb(0x0d0d14),
-        sidebar: rgb(0x11111b),
-        surface: rgb(0x171723),
-        surface2: rgb(0x1f1f2e),
-        border: rgb(0x2b2b40),
-        text: rgb(0xececf4),
-        muted: rgb(0x9a9ab3),
+        bg: rgb(0x13131a),
+        sidebar: rgb(0x13131f),
+        surface: rgb(0x13131f),
+        surface2: rgb(0x1f1f26),
+        border: rgb(0x242438),
+        text: rgb(0xf8fafc),
+        muted: rgb(0x8b93a1),
         primary: rgb(0x7c3aed),
         primary_hover: rgb(0x8b5cf6),
-        primary_soft: with_alpha(rgb(0x7c3aed), 0.18),
-        accent: rgb(0x3b82f6),
-        success: rgb(0x22c55e),
+        primary_soft: with_alpha(rgb(0x7c3aed), 0.16),
+        accent: rgb(0x4cd7f6),
+        success: rgb(0x10b981),
         danger: rgb(0xef4444),
         warning: rgb(0xf59e0b),
     }
@@ -115,9 +115,104 @@ pub fn card(theme: &Theme) -> container::Appearance {
     container::Appearance {
         text_color: None,
         background: Some(Background::Color(c.surface)),
-        border: Border { color: c.border, width: 1.0, radius: radius(14.0) },
+        border: Border { color: c.border, width: 1.0, radius: radius(12.0) },
         shadow: Shadow {
-            color: Color { a: if is_dark(theme) { 0.35 } else { 0.06 }, ..Color::BLACK },
+            color: Color { a: if is_dark(theme) { 0.40 } else { 0.06 }, ..Color::BLACK },
+            offset: Vector::new(0.0, 3.0),
+            blur_radius: 12.0,
+        },
+    }
+}
+
+/// Cartão de destaque estilo Bento Grid (superfície Cyber-Fluent).
+pub fn bento_card(theme: &Theme) -> container::Appearance {
+    let c = colors(theme);
+    container::Appearance {
+        text_color: None,
+        background: Some(Background::Color(c.surface)),
+        border: Border {
+            color: c.border,
+            width: 1.0,
+            radius: radius(12.0),
+        },
+        shadow: Shadow {
+            color: Color { a: if is_dark(theme) { 0.45 } else { 0.08 }, ..Color::BLACK },
+            offset: Vector::new(0.0, 4.0),
+            blur_radius: 16.0,
+        },
+    }
+}
+
+/// Caixa interna para cards (fundo ultra escuro `#0E0E15` do Stitch).
+pub fn inner_box(theme: &Theme) -> container::Appearance {
+    let c = colors(theme);
+    container::Appearance {
+        text_color: None,
+        background: Some(Background::Color(if is_dark(theme) { rgb(0x0e0e15) } else { rgb(0xf1f1f8) })),
+        border: Border {
+            color: with_alpha(c.border, 0.70),
+            width: 1.0,
+            radius: radius(8.0),
+        },
+        shadow: Shadow::default(),
+    }
+}
+
+/// Área interativa de Drag & Drop do Stitch (fundo `#0E0E15` com borda sutil).
+pub fn dropzone_box(theme: &Theme) -> container::Appearance {
+    let c = colors(theme);
+    container::Appearance {
+        text_color: None,
+        background: Some(Background::Color(if is_dark(theme) { rgb(0x0e0e15) } else { rgb(0xf5f5fb) })),
+        border: Border {
+            color: with_alpha(c.primary, if is_dark(theme) { 0.35 } else { 0.20 }),
+            width: 1.0,
+            radius: radius(12.0),
+        },
+        shadow: Shadow {
+            color: with_alpha(c.primary, if is_dark(theme) { 0.15 } else { 0.05 }),
+            offset: Vector::new(0.0, 2.0),
+            blur_radius: 8.0,
+        },
+    }
+}
+
+/// Cartão Bento Hero com gradiente/realce cibernético roxo e ciano.
+pub fn bento_hero(theme: &Theme) -> container::Appearance {
+    let c = colors(theme);
+    container::Appearance {
+        text_color: None,
+        background: Some(Background::Color(if is_dark(theme) {
+            with_alpha(c.surface, 0.95)
+        } else {
+            c.surface
+        })),
+        border: Border {
+            color: with_alpha(c.primary, if is_dark(theme) { 0.60 } else { 0.40 }),
+            width: 1.5,
+            radius: radius(14.0),
+        },
+        shadow: Shadow {
+            color: with_alpha(c.primary, if is_dark(theme) { 0.35 } else { 0.12 }),
+            offset: Vector::new(0.0, 4.0),
+            blur_radius: 20.0,
+        },
+    }
+}
+
+/// Container com brilho sutil para acomodar o Logo Oficial do Axolote.
+pub fn logo_container(theme: &Theme) -> container::Appearance {
+    let c = colors(theme);
+    container::Appearance {
+        text_color: None,
+        background: Some(Background::Color(with_alpha(c.primary_soft, 0.40))),
+        border: Border {
+            color: with_alpha(c.primary, 0.35),
+            width: 1.0,
+            radius: radius(12.0),
+        },
+        shadow: Shadow {
+            color: with_alpha(c.primary, if is_dark(theme) { 0.30 } else { 0.10 }),
             offset: Vector::new(0.0, 2.0),
             blur_radius: 10.0,
         },
@@ -130,7 +225,7 @@ pub fn hero(theme: &Theme) -> container::Appearance {
     container::Appearance {
         text_color: None,
         background: Some(Background::Color(c.primary_soft)),
-        border: Border { color: with_alpha(c.primary, 0.45), width: 1.0, radius: radius(18.0) },
+        border: Border { color: with_alpha(c.primary, 0.45), width: 1.0, radius: radius(16.0) },
         shadow: Shadow::default(),
     }
 }
@@ -211,6 +306,16 @@ pub fn icon_tile(color: Color) -> impl Fn(&Theme) -> container::Appearance {
         text_color: None,
         background: Some(Background::Color(with_alpha(color, 0.16))),
         border: Border { color: Color::TRANSPARENT, width: 0.0, radius: radius(12.0) },
+        shadow: Shadow::default(),
+    }
+}
+
+/// Bloco com cor sólida e raio de borda suave.
+pub fn solid_box(color: Color, radius_px: f32) -> impl Fn(&Theme) -> container::Appearance {
+    move |_theme: &Theme| container::Appearance {
+        text_color: None,
+        background: Some(Background::Color(color)),
+        border: Border { color: Color::TRANSPARENT, width: 0.0, radius: radius(radius_px) },
         shadow: Shadow::default(),
     }
 }
@@ -306,20 +411,20 @@ impl button::StyleSheet for ButtonStyle {
             },
             Btn::Nav(active) => button::Appearance {
                 background: if active {
-                    Some(Background::Color(with_alpha(c.primary, 0.28)))
+                    Some(Background::Color(c.primary))
                 } else {
                     None
                 },
                 text_color: if active { Color::WHITE } else { c.muted },
                 border: Border {
-                    color: if active { with_alpha(c.primary_hover, 0.85) } else { Color::TRANSPARENT },
-                    width: if active { 1.5 } else { 1.0 },
-                    radius: r,
+                    color: if active { c.primary } else { Color::TRANSPARENT },
+                    width: 1.0,
+                    radius: radius(6.0),
                 },
                 shadow: if active {
                     Shadow {
-                        color: with_alpha(c.primary, 0.40),
-                        offset: Vector::new(0.0, 3.0),
+                        color: with_alpha(c.primary, 0.45),
+                        offset: Vector::new(0.0, 2.0),
                         blur_radius: 12.0,
                     }
                 } else {

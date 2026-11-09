@@ -121,6 +121,24 @@ pub fn card<'a, M: 'a>(env: &Env, body: impl Into<Element<'a, M>>) -> Element<'a
         .into()
 }
 
+/// Cartão estilo Bento Grid (superfície Cyber-Fluent com borda refinada).
+pub fn bento_card<'a, M: 'a>(env: &Env, body: impl Into<Element<'a, M>>) -> Element<'a, M> {
+    container(body)
+        .padding(if env.narrow() { 16 } else { 20 })
+        .width(Length::Fill)
+        .style(theme::bento_card)
+        .into()
+}
+
+/// Cartão Bento Hero com realce cibernético roxo e ciano.
+pub fn bento_hero<'a, M: 'a>(env: &Env, body: impl Into<Element<'a, M>>) -> Element<'a, M> {
+    container(body)
+        .padding(if env.narrow() { 18 } else { 24 })
+        .width(Length::Fill)
+        .style(theme::bento_hero)
+        .into()
+}
+
 /// Caixa explicativa "Como usar" com passos numerados e uma dica opcional.
 pub fn help<'a, M: 'a>(env: &Env, steps: &[&str], tip: Option<&str>) -> Element<'a, M> {
     let c = env.c();

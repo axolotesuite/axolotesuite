@@ -1,11 +1,7 @@
 <p align="center">
   <a href="https://axolotesuite.github.io/axolotesuite/">
-    <img src="assets/logo_full.jpg" alt="Axolote Suite" width="220">
+    <img src="assets/logo_small.png" alt="Axolote Suite" width="110">
   </a>
-</p>
-
-<p align="center">
-  <img src="assets/logo_small.png" width="96" height="96" alt="Ícone do Axolote Suite: o axolote roxo com fones de ouvido">
 </p>
 
 <h1 align="center">Axolote Suite</h1>
@@ -42,9 +38,9 @@
 <br>
 
 <p align="center">
-  <img src="docs/images/axolote-showcase.jpg" alt="Visão geral do Axolote Suite: instalador, tela de carregamento, painel Início com a Central de Ferramentas, calculadora, ZIP, editor de PDF, processamento de imagens, conversores de vídeo e áudio, fila de operações e configurações" width="100%">
+  <img src="assets/app_screenshot.jpg" alt="Visão geral do Axolote Suite em execução no Windows: Painel Início com a Central de Ferramentas" width="100%">
   <br>
-  <sub>O instalador, o painel Início e algumas das ferramentas: calculadora, ZIP, PDF, imagens, vídeo, áudio, fila e configurações.</sub>
+  <sub>Tela inicial real do Axolote Suite rodando nativamente no Windows com detecção automática de idioma e Central de 12 Ferramentas.</sub>
 </p>
 
 > [!NOTE]

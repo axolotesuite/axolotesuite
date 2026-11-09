@@ -128,13 +128,23 @@ fmtBtns.forEach((btn) => {
     btn.classList.add('selected');
     const fmt = btn.dataset.fmt;
     const ext = fmt.toLowerCase();
+    const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
     if (demoOutputLog) {
-      demoOutputLog.innerHTML = `
-        <div>✔ <strong>Origem (Somente Leitura):</strong> relatorio_anual.png</div>
-        <div>⚡ <strong>Escrita Atômica:</strong> .relatorio_anual.${ext}.axolote_tmp</div>
-        <div>🛡 <strong>Sem Sobrescrita:</strong> relatorio_anual (1).${ext}</div>
-        <div style="color:#10b981;margin-top:6px;font-weight:700;">🚀 Convertido para ${fmt} com sucesso (100% offline)!</div>
-      `;
+      if (isEn) {
+        demoOutputLog.innerHTML = `
+          <div>✔ <strong>Source (Read-Only):</strong> annual_report.png</div>
+          <div>⚡ <strong>Atomic Write:</strong> .annual_report.${ext}.axolote_tmp</div>
+          <div>🛡 <strong>Zero Overwrite:</strong> annual_report (1).${ext}</div>
+          <div style="color:#10b981;margin-top:6px;font-weight:700;">🚀 Converted to ${fmt} successfully (100% offline)!</div>
+        `;
+      } else {
+        demoOutputLog.innerHTML = `
+          <div>✔ <strong>Origem (Somente Leitura):</strong> relatorio_anual.png</div>
+          <div>⚡ <strong>Escrita Atômica:</strong> .relatorio_anual.${ext}.axolote_tmp</div>
+          <div>🛡 <strong>Sem Sobrescrita:</strong> relatorio_anual (1).${ext}</div>
+          <div style="color:#10b981;margin-top:6px;font-weight:700;">🚀 Convertido para ${fmt} com sucesso (100% offline)!</div>
+        `;
+      }
     }
   });
 });

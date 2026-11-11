@@ -805,7 +805,7 @@ impl AxoloteSuite {
                 .padding(2)
                 .style(theme::logo_container),
                 ui::strong("Axolote", 18),
-                container(text("v1.3.0").size(10).font(BOLD).style(c.primary))
+                container(text("v1.4.0").size(10).font(BOLD).style(c.primary))
                     .padding([2, 6])
                     .style(theme::solid_box(Color::from_rgb8(42, 41, 49), 4.0)),
                 ui::btn("🛡️ LGPD Local", Btn::Secondary, None),

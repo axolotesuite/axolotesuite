@@ -1,143 +1,232 @@
-// Dicionário bilíngue para o site oficial (Português e Inglês)
+// ==========================================================================
+// Axolote Suite v1.3.0 — Dicionário Bilíngue Completo (Português / Inglês)
+// ==========================================================================
+
 const i18nData = {
   pt: {
-    pageTitle: "Axolote Suite v1.3.0 — Central 100% Offline & Nativa para Windows",
+    pageTitle: "Axolote Suite v1.3.0 — Sua central criativa e utilitária em Rust Nativo",
     navConvert: "Conversor Fácil",
     navTools: "12 Ferramentas",
     navInstall: "Instalação",
     navSecurity: "Segurança",
     navDownload: "Baixar v1.3.0",
-    heroBadge: "Versão 1.3.0 Oficial • Windows 10 & 11 (64-bit) • 100% Offline",
-    heroH1: "Sua central completa de ferramentas em <span class=\"gradient-text\">Rust Nativo</span>.",
-    heroP: "Converta imagens, documentos (<strong>DOCX, PDF, HTML, MD, TXT</strong>), vídeos, áudios e <strong>ZIP</strong> em 1 clique. Inclui Revelador de Fotos ao vivo com histograma RGB, sincronização em lote, Editor de Vídeo, Estúdio de Cores & Senhas, Calculadora e instalador com <strong>FFmpeg automático</strong>.",
-    btnDownloadZip: "Baixar Pacote Portátil (.zip) — Sem Avisos",
-    btnDownloadExe: "Baixar Instalador Direto (.exe)",
-    btnSource: "Código Aberto no GitHub",
-    featurePill1: "100% Offline & Sem Telemetria",
-    featurePill2: "Nativo em Rust + Iced (Zero Electron)",
-    featurePill3: "Preservação Total do Original (1) (2)",
-    simTag: "Simulador Interativo",
-    simTitle: "Teste a velocidade do <span class=\"gradient-text\">Conversor Fácil</span>",
-    simDesc: "Escolha qualquer formato abaixo para ver como o Axolote Suite processa localmente sem sobrescrever nada:",
-    simTabImg: "🖼 Imagens (PNG, JPG, WebP…)",
-    simTabDoc: "📄 Documentos (PDF, DOCX, TXT…)",
-    simTabVid: "🎬 Vídeo & Áudio (MP4, MP3…)",
-    simPrompt: "Aperte no formato que você quer gerar:",
-    toolsTag: "Suite Completa",
-    toolsTitle: "Tudo o que você precisa num <span class=\"gradient-text\">único executável leve</span>",
-    toolsDesc: "Chega de sites cheios de propagandas, limites diários e uploads para a nuvem. O Axolote Suite roda 100% no seu computador.",
-    cardQuickTitle: "Conversor Fácil Universal",
-    cardQuickDesc: "Botões diretos para converter imagens, textos, DOCX, PDF, HTML, Markdown, vídeos, GIF, áudios e pacotes ZIP preservando o original.",
-    cardDevTitle: "Estúdio de Cores & Senhas",
-    cardDevDesc: "Conversor HEX/RGB/HSL/CMYK, extrator de paleta dominante de imagens e gerador de senhas fortes com medidor de entropia e UUID.",
-    cardPhotoTitle: "Revelador & Estúdio de Fotos",
-    cardPhotoDesc: "Exposição, realces, sombras, temperatura, vibração, nitidez, vinheta, histograma RGB ao vivo, presets cinematográficos e sincronização em lote de pastas.",
-    cardVideoTitle: "Editor & Compressor de Vídeo",
-    cardVideoDesc: "Corte na linha do tempo, controle de velocidade (0.5× a 2.0×), formatos 9:16 / 16:9 / 1:1, filtros de cinema e compressão CRF.",
-    cardPdfTitle: "Central Completa de PDF",
-    cardPdfDesc: "Junte múltiplos arquivos PDF na ordem que desejar, divida páginas ou intervalos e inspecione metadados técnicos em segundos.",
-    cardAudioTitle: "Estúdio de Áudio",
-    cardAudioDesc: "Converta entre MP3, WAV, FLAC, OGG, AAC e M4A, extraia a trilha sonora de vídeos e comprima áudios com controle de bitrate.",
-    cardZipTitle: "Compactador ZIP Seguro",
-    cardZipDesc: "Compacte arquivos e pastas completas ou extraia pacotes ZIP com blindagem automática contra ataques Zip-Slip.",
-    cardCalcTitle: "Calculadora & Produtividade",
-    cardCalcDesc: "Calculadora científica expressa, bloco de notas (.txt), lista de tarefas com filtros, organizador de pastas e renomeação em lote.",
-    installTag: "Setup Automático",
-    installTitle: "Pronto para usar em <span class=\"gradient-text\">3 passos simples</span>",
-    installDesc: "O instalador integrado configura tudo no seu perfil de usuário sem exigir permissões complicadas.",
-    step1Title: "Baixe o Pacote Oficial",
-    step1Desc: "Baixe o executável direto ou o arquivo .zip portátil do GitHub Releases oficial.",
-    step2Title: "Setup + FFmpeg Automático",
-    step2Desc: "Ao abrir pela primeira vez, o assistente cria os atalhos e baixa o motor do FFmpeg sozinho.",
-    step3Title: "Use 100% Offline",
-    step3Desc: "Pronto! Use todas as 12 ferramentas localmente com velocidade máxima, tema escuro/claro e privacidade total.",
-    secTag: "Código 100% Seguro & Auditado",
-    secTitle: "Por que aparece aviso ao baixar? <span class=\"gradient-text\">Explicação Transparente</span>",
-    secDesc: "O Axolote Suite é 100% gratuito, sem anúncios, 100% offline e de Código Aberto (Open Source) em Rust. Entenda por que o Windows ou o navegador exibe um alerta no primeiro download e como abrir com tranquilidade:",
-    secWhyTitle: "Por que o aviso aparece?",
-    secWhyDesc: "A Microsoft cobra mais de US$ 400 por ano por um certificado corporativo (EV Code Signing). Como o Axolote Suite é um projeto independente e gratuito, o Windows mostra o aviso padrão de \"Editor desconhecido / Arquivo pouco baixado\".",
-    secNavTitle: "No Navegador (Chrome / Edge)",
-    secNavDesc: "Se o navegador avisar que o arquivo axolote_suite.exe não é baixado com frequência, clique nos três pontinhos (⋯) ao lado do download e escolha Manter → Manter assim mesmo. (Dica: o arquivo .zip não tem esse aviso!)",
-    secWinTitle: "No Windows SmartScreen",
-    secWinDesc: "Ao abrir o instalador pela 1ª vez, se aparecer a janela \"O Windows protegeu o computador\", clique em Mais informações e em seguida no botão Executar assim mesmo.",
-    secAuditTitle: "🔍 Verifique Você Mesmo no VirusTotal (Hash SHA-256 Oficial)",
-    secAuditDesc: "Qualquer pessoa pode auditar o código-fonte completo em Rust no GitHub ou conferir a assinatura criptográfica SHA-256 do executável oficial diretamente no VirusTotal:",
-    ctaTitle: "Baixe o <span class=\"gradient-text\">Axolote Suite v1.3.0</span> agora mesmo",
-    ctaDesc: "Gratuito, código aberto (MIT / Apache-2.0), leve e construído nativamente em Rust para Windows 10 e 11.",
-    footerText: "<strong>Axolote Suite v1.3.0</strong> • Desenvolvido em Rust + Iced • <a href=\"https://github.com/axolotesuite/axolotesuite\" target=\"_blank\" rel=\"noopener\">Repositório Oficial no GitHub</a>"
+
+    heroBadge: "Versão Oficial v1.3.0 • Windows 10 & 11 (64-bit) • 100% Offline",
+    heroH1: "Sua central completa <br><span class=\"gradient-cyan-blue\">criativa e utilitária</span> <br>em <span class=\"gradient-blue-indigo\">Rust Nativo.</span>",
+    heroSubtitle: "Menos uploads. Mais produtividade.",
+    heroP: "Converta imagens, DOCX, PDF, HTML, Markdown, vídeos, áudios e ZIP em um clique. Tudo fica no seu PC. Zero nuvem. Sem telemetria. Apenas seus arquivos, do seu jeito.",
+    btnDownloadExe: "Baixar Instalador (.exe)",
+    btnDownloadZip: "Baixar Pacote Portátil (.zip)",
+    heroMetaNote: "Windows 10 / 11 · 64-bit · Sem necessidade de conta",
+
+    winWorkspace: "PAINEL",
+    winQuickConvert: "Conversor Fácil",
+    winAllTools: "Todas as Ferramentas",
+    winRecentFiles: "Arquivos Recentes",
+    winOfflineTitle: "100% Offline",
+    winOfflineSub: "Seus arquivos ficam aqui.",
+    winTitle: "Conversor Fácil",
+    winSubtitle: "Um novo formato. Sem novos uploads.",
+    winDropTitle: "Solte seus arquivos aqui",
+    winDropSub: "ou clique para escolher · 100% processamento local",
+    winRecentLabel: "CONVERSÃO RECENTE",
+    winConvertBtn: "Converter arquivos →",
+    winRustTitle: "Rust Nativo. Naturalmente rápido.",
+    winRustSub: "Construído para o seu desktop, não para a nuvem.",
+
+    pillar1: "100% Privado por Design",
+    pillar2: "Movido a Rust Nativo",
+    pillar3: "Instalador ou Portátil",
+    pillar4: "Sem Assinaturas ou Nuvem",
+
+    simTag: "CONVERSOR FÁCIL",
+    simTitle: "Um arrasto. Um formato totalmente novo.",
+    simSubtitle: "Um fluxo de trabalho mais simples, sem ida e volta para a nuvem.",
+    simStep1Num: "01",
+    simStep1Title: "Seus arquivos",
+    simStep1Sub: "Imagem · Pronta para converter",
+    simAddFiles: "+ Adicionar mais arquivos",
+    simStep2Num: "02",
+    simPrompt: "Escolha o formato de saída",
+    simConvertLocally: "Converter localmente",
+    simLocalLock: "No seu computador. Sempre.",
+
+    toolsTag: "12 FERRAMENTAS. ZERO NUVEM.",
+    toolsTitle: "Uma suíte compacta. Um mar de possibilidades.",
+    toolsSubtitle: "Essenciais do dia a dia, cuidadosamente reunidos. Escolha uma ferramenta e produza.",
+    allLocalPill: "100% LOCAL. TUDO EM UM SÓ LUGAR.",
+    filterAll: "Todas as ferramentas",
+    filterImages: "Imagens",
+    filterDocuments: "Documentos",
+    filterMedia: "Mídia & ZIP",
+
+    tool1Title: "Conversor de imagens",
+    tool1Desc: "Converta entre PNG, JPG, WebP, AVIF e outros formatos com facilidade.",
+    tool2Title: "Compressor de imagens",
+    tool2Desc: "Arquivos mais leves e otimizados mantendo fidelidade visual.",
+    tool3Title: "Redimensionador de imagens",
+    tool3Desc: "As dimensões e escalas exatas para suas fotos em segundos.",
+    tool4Title: "DOCX para PDF",
+    tool4Desc: "De rascunho de texto para PDF pronto para compartilhar.",
+    tool5Title: "PDF para imagens",
+    tool5Desc: "Extraia páginas de PDF em imagens de alta resolução.",
+    tool6Title: "HTML para PDF",
+    tool6Desc: "Guarde relatórios e páginas web diretamente em PDF.",
+    tool7Title: "Markdown para HTML",
+    tool7Desc: "Texto simples e documentação traduzidos em HTML limpo.",
+    tool8Title: "Conversor de vídeo",
+    tool8Desc: "Corte, comprima e adapte seus vídeos para o formato ideal.",
+    tool9Title: "Conversor de áudio",
+    tool9Desc: "Converta músicas e gravações entre MP3, WAV, FLAC e mais.",
+    tool10Title: "Extrator de áudio",
+    tool10Desc: "Isole a trilha sonora e os vocais de vídeos em um clique.",
+    tool11Title: "Criador de ZIP",
+    tool11Desc: "Reúna múltiplos arquivos e pastas em um pacote seguro.",
+    tool12Title: "Extrator de ZIP",
+    tool12Desc: "Descompacte arquivos protegidos com blindagem anti Zip-Slip.",
+
+    installTag: "PRONTO PARA RODAR",
+    installTitle: "Sua instalação.<br>Sua escolha.",
+    installSubtitle: "Instale para o uso diário ou mantenha portátil em um pendrive. O mesmo poder nativo.",
+    installChoice1Title: "Instalador Windows",
+    installChoice1Desc: "Instalação padrão no Menu Iniciar e Desktop, com desinstalador nativo.",
+    installChoice1Tag: "RECOMENDADO",
+    installChoice2Title: "Pacote Portátil ZIP",
+    installChoice2Desc: "Descompacte, clique e use diretamente sem modificar o sistema.",
+    installChoice2Tag: "SEM INSTALAÇÃO",
+    step1Title: "Escolha o download",
+    step2Title: "Instale ou descompacte",
+    step3Title: "Solte um arquivo e produza",
+
+    secTag: "PRIVACIDADE É O PADRÃO",
+    promiseTitle: "Seus arquivos. Sua máquina. De mais ninguém.",
+    secDesc: "Sem dependência de nuvem. Sem telemetria em segundo plano. Seu trabalho criativo e documentos confidenciais permanecem 100% sob seu controle.",
+    offlinePill: "100% offline por design",
+    point1Heading: "Seus arquivos nunca saem do seu PC",
+    point1Text: "A conversão acontece localmente via CPU. Nenhum upload, nunca.",
+    point2Heading: "Zero telemetria. Zero contas.",
+    point2Text: "Sem rastreamento. Sem cadastro. Sem dependência de nuvem.",
+    point3Heading: "Rust nativo do começo ao fim",
+    point3Text: "Uma suíte de desktop de alta performance feita para durar.",
+
+    footerSubtext: "v1.3.0 · Construído em Rust. Feito para você usar 100% offline.",
+    footerTagline: "Projetado para Windows. Construído em torno da sua privacidade."
   },
   en: {
-    pageTitle: "Axolote Suite v1.3.0 — 100% Offline & Native Workstation for Windows",
+    pageTitle: "Axolote Suite v1.3.0 — Your complete local creative & utility suite in Native Rust",
     navConvert: "Quick Convert",
     navTools: "12 Tools",
     navInstall: "Installation",
     navSecurity: "Security",
     navDownload: "Download v1.3.0",
+
     heroBadge: "Official v1.3.0 Release • Windows 10 & 11 (64-bit) • 100% Offline",
-    heroH1: "Your complete local creative & utility suite in <span class=\"gradient-text\">Native Rust</span>.",
-    heroP: "Convert images, documents (<strong>DOCX, PDF, HTML, MD, TXT</strong>), videos, audio, and <strong>ZIP</strong> in 1 click. Includes Lightroom-style live Photo Developer with RGB histogram, batch sync, timeline Video Editor, Colors & Passwords, Calculator, and <strong>auto FFmpeg setup</strong>.",
-    btnDownloadZip: "Download Portable ZIP (.zip) — No Warnings",
-    btnDownloadExe: "Download Direct Executable (.exe)",
-    btnSource: "Open Source on GitHub",
-    featurePill1: "100% Offline & Zero Telemetry",
-    featurePill2: "Native Rust + Iced (Zero Electron)",
-    featurePill3: "Preserves Original Files (1) (2)",
-    simTag: "Interactive Simulator",
-    simTitle: "Experience the speed of <span class=\"gradient-text\">Quick Convert</span>",
-    simDesc: "Click any target format below to see how Axolote Suite safely processes files locally with zero overwriting:",
-    simTabImg: "🖼 Images (PNG, JPG, WebP…)",
-    simTabDoc: "📄 Documents (PDF, DOCX, TXT…)",
-    simTabVid: "🎬 Video & Audio (MP4, MP3…)",
-    simPrompt: "Click your desired target format:",
-    toolsTag: "Complete Suite",
-    toolsTitle: "Everything you need in a <span class=\"gradient-text\">single lightweight app</span>",
-    toolsDesc: "Say goodbye to ad-filled web converters, upload limits, and cloud privacy issues. Axolote Suite runs 100% locally on your machine.",
-    cardQuickTitle: "Universal Quick Convert",
-    cardQuickDesc: "One-click conversion for photos, text, DOCX, PDF, HTML, Markdown, video, GIF, audio, and ZIP without touching the original.",
-    cardDevTitle: "Colors & Passwords Studio",
-    cardDevDesc: "HEX/RGB/HSL/CMYK converter, photo dominant palette extractor, and cryptographically secure password & UUID v4 generator.",
-    cardPhotoTitle: "Photo Developer & Studio",
-    cardPhotoDesc: "Exposure stops, highlights, shadows, white balance, vibrance, sharpness, film grain, live RGB histogram, cinema presets, and batch folder sync.",
-    cardVideoTitle: "Video Editor & Compressor",
-    cardVideoDesc: "Timeline trimming, 0.5× to 2.0× speed control, 9:16 / 16:9 / 1:1 canvas formats, cinema filters, and CRF compression.",
-    cardPdfTitle: "Complete PDF Hub",
-    cardPdfDesc: "Merge multiple PDF files in any order, split pages or custom ranges, and inspect technical metadata in seconds.",
-    cardAudioTitle: "Audio Studio",
-    cardAudioDesc: "Convert between MP3, WAV, FLAC, OGG, AAC, and M4A, extract audio tracks from video, and compress with bitrate control.",
-    cardZipTitle: "Secure ZIP Archiver",
-    cardZipDesc: "Compress files and entire folders, or extract archives with built-in defense against Zip-Slip traversal attacks.",
-    cardCalcTitle: "Calculator & Productivity",
-    cardCalcDesc: "Scientific expression calculator, plain text notepad (.txt), filtered task checklist, folder organizer, and batch renamer.",
-    installTag: "Automatic Setup",
-    installTitle: "Ready to use in <span class=\"gradient-text\">3 simple steps</span>",
-    installDesc: "The integrated setup helper configures everything inside your user profile without administrative hassles.",
-    step1Title: "Download the Official Package",
-    step1Desc: "Download the direct executable or the portable .zip package from the official GitHub Releases page.",
-    step2Title: "Setup + Auto FFmpeg",
-    step2Desc: "On first launch, the wizard creates Desktop/Start Menu shortcuts and downloads the FFmpeg engine automatically.",
-    step3Title: "Enjoy 100% Offline",
-    step3Desc: "You're all set! Use all 12 tools locally with maximum native speed, dark/light theme, and total privacy.",
-    secTag: "100% Safe & Audited Code",
-    secTitle: "Why does a browser warning appear? <span class=\"gradient-text\">Clear Explanation</span>",
-    secDesc: "Axolote Suite is 100% free, ad-free, 100% offline, and open-source in Rust. Here is why Windows or web browsers show a temporary caution dialog on first download and how to proceed:",
-    secWhyTitle: "Why does the warning appear?",
-    secWhyDesc: "Microsoft charges over $400/year for an enterprise EV Code Signing certificate. Because Axolote Suite is a free, community-driven project, Windows defaults to an 'Unknown Publisher / Low Download Count' dialog.",
-    secNavTitle: "In your Browser (Chrome / Edge)",
-    secNavDesc: "If your browser flags axolote_suite.exe as uncommon, click the three dots (⋯) next to the download and select Keep → Keep anyway. (Pro Tip: Downloading the .zip file skips this warning completely!)",
-    secWinTitle: "In Windows SmartScreen",
-    secWinDesc: "When opening the executable for the first time, if you see 'Windows protected your PC', click 'More info' and then 'Run anyway'.",
-    secAuditTitle: "🔍 Verify It Yourself on VirusTotal (Official SHA-256)",
-    secAuditDesc: "Anyone can audit the entire Rust source code on GitHub or verify the official cryptographic SHA-256 hash directly on VirusTotal:",
-    ctaTitle: "Download <span class=\"gradient-text\">Axolote Suite v1.3.0</span> right now",
-    ctaDesc: "Free, open-source (MIT / Apache-2.0), lightweight, and natively built in Rust for Windows 10 and 11.",
-    footerText: "<strong>Axolote Suite v1.3.0</strong> • Built in Rust + Iced • <a href=\"https://github.com/axolotesuite/axolotesuite\" target=\"_blank\" rel=\"noopener\">Official GitHub Repository</a>"
+    heroH1: "Your complete <br><span class=\"gradient-cyan-blue\">local creative &amp;</span> <br>utility suite in <br><span class=\"gradient-blue-indigo\">Native Rust.</span>",
+    heroSubtitle: "Less uploading. More doing.",
+    heroP: "Convert images, DOCX, PDF, HTML, Markdown, video, audio and ZIP in one click. Everything stays on your PC. No cloud. No telemetry. Just your files, your way.",
+    btnDownloadExe: "Download Installer (.exe)",
+    btnDownloadZip: "Download Portable ZIP (.zip)",
+    heroMetaNote: "Windows 10 / 11 · 64-bit · No account required",
+
+    winWorkspace: "WORKSPACE",
+    winQuickConvert: "Quick Convert",
+    winAllTools: "All tools",
+    winRecentFiles: "Recent files",
+    winOfflineTitle: "100% Offline",
+    winOfflineSub: "Your files stay here.",
+    winTitle: "Quick Convert",
+    winSubtitle: "A new format. Not a new upload.",
+    winDropTitle: "Drop your files here",
+    winDropSub: "or browse files · 100% local processing",
+    winRecentLabel: "RECENT CONVERSION",
+    winConvertBtn: "Convert files →",
+    winRustTitle: "Native Rust. Naturally fast.",
+    winRustSub: "Built for your desktop, not the cloud.",
+
+    pillar1: "Private by design",
+    pillar2: "Powered by Rust",
+    pillar3: "Installer or portable",
+    pillar4: "No subscriptions",
+
+    simTag: "QUICK CONVERT",
+    simTitle: "One drop. A whole new format.",
+    simSubtitle: "A simpler workflow, without a round trip to the cloud.",
+    simStep1Num: "01",
+    simStep1Title: "Your files",
+    simStep1Sub: "Image · Ready to convert",
+    simAddFiles: "+ Add more files",
+    simStep2Num: "02",
+    simPrompt: "Choose your format",
+    simConvertLocally: "Convert locally",
+    simLocalLock: "On your device. Always.",
+
+    toolsTag: "12 TOOLS. ZERO CLOUD.",
+    toolsTitle: "A little suite. A lot of possibility.",
+    toolsSubtitle: "Everyday essentials, thoughtfully together. Pick a tool and go.",
+    allLocalPill: "ALL LOCAL. ALL IN ONE PLACE.",
+    filterAll: "All tools",
+    filterImages: "Images",
+    filterDocuments: "Documents",
+    filterMedia: "Media & ZIP",
+
+    tool1Title: "Image converter",
+    tool1Desc: "A fresh format for every image, with lossless options.",
+    tool2Title: "Image compressor",
+    tool2Desc: "Lighter files. More breathing room.",
+    tool3Title: "Image resizer",
+    tool3Desc: "The right dimensions, in seconds.",
+    tool4Title: "DOCX to PDF",
+    tool4Desc: "From working draft to ready to share.",
+    tool5Title: "PDF to images",
+    tool5Desc: "Take your pages beyond the PDF.",
+    tool6Title: "HTML to PDF",
+    tool6Desc: "Keep a page. Leave the browser.",
+    tool7Title: "Markdown to HTML",
+    tool7Desc: "Simple text, beautifully translated.",
+    tool8Title: "Video converter",
+    tool8Desc: "Make your video fit the moment.",
+    tool9Title: "Audio converter",
+    tool9Desc: "Your sound, in the format you need.",
+    tool10Title: "Audio extractor",
+    tool10Desc: "Let the soundtrack stand on its own.",
+    tool11Title: "ZIP creator",
+    tool11Desc: "Bring your files together in one place.",
+    tool12Title: "ZIP extractor",
+    tool12Desc: "Unpack it. Get straight to work.",
+
+    installTag: "UP AND RUNNING",
+    installTitle: "Your setup.<br>Your choice.",
+    installSubtitle: "Install it for every day. Or keep it portable. The same local power either way.",
+    installChoice1Title: "Windows Installer",
+    installChoice1Desc: "A familiar setup with Start Menu & Desktop shortcuts, plus native uninstaller.",
+    installChoice1Tag: "RECOMMENDED",
+    installChoice2Title: "Portable ZIP",
+    installChoice2Desc: "Unzip, open, and make yourself at home with zero installation.",
+    installChoice2Tag: "NO INSTALL NEEDED",
+    step1Title: "Choose your download",
+    step2Title: "Install or unzip",
+    step3Title: "Drop a file. Get things done.",
+
+    secTag: "PRIVACY IS THE DEFAULT",
+    promiseTitle: "Your files. Your machine. Nobody else’s.",
+    secDesc: "No cloud dependency. No background telemetry. Your creative work and confidential documents stay entirely within your control.",
+    offlinePill: "100% offline by design",
+    point1Heading: "Your files never leave your PC",
+    point1Text: "Conversion happens locally. No uploads, ever.",
+    point2Heading: "Zero telemetry. Zero accounts.",
+    point2Text: "No tracking. No sign-in. No cloud to depend on.",
+    point3Heading: "Native Rust, all the way",
+    point3Text: "A desktop suite built to feel right at home.",
+
+    footerSubtext: "v1.3.0 · Built in Rust. Yours to keep local.",
+    footerTagline: "Designed for Windows. Built around your privacy."
   }
 };
 
-// Detecção automática de idioma do navegador/computador
+// Detecção automática de idioma
 function detectInitialLanguage() {
   const saved = localStorage.getItem('axolote_lang');
-  if (saved && (saved === 'pt' || saved === 'en')) {
+  if (saved === 'pt' || saved === 'en') {
     return saved;
   }
   const browserLang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
@@ -166,30 +255,26 @@ function applyLanguage(lang) {
     document.title = data.pageTitle;
   }
 
-  // Atualizar botões de idioma
-  document.querySelectorAll('.lang-btn').forEach((btn) => {
+  // Atualizar botões seletores de idioma (.lang-pill e .lang-btn)
+  document.querySelectorAll('.lang-pill, .lang-btn').forEach((btn) => {
     if (btn.dataset.lang === lang) {
       btn.classList.add('active');
     } else {
       btn.classList.remove('active');
     }
   });
-
-  // Atualiza simulador ativo se houver botão selecionado
-  const activeFmt = document.querySelector('.fmt-btn.selected');
-  if (activeFmt) {
-    activeFmt.click();
-  }
 }
 
 // Inicializa no carregamento do DOM
 document.addEventListener('DOMContentLoaded', () => {
   applyLanguage(currentLang);
 
-  document.querySelectorAll('.lang-btn').forEach((btn) => {
+  document.querySelectorAll('.lang-pill, .lang-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       const targetLang = btn.dataset.lang;
-      applyLanguage(targetLang);
+      if (targetLang) {
+        applyLanguage(targetLang);
+      }
     });
   });
 });

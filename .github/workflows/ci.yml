@@ -31,17 +31,19 @@ jobs:
         run: |
           if (-not (Get-Command iscc -ErrorAction SilentlyContinue)) {
             choco install innosetup -y
-            $env:Path = "C:\Program Files (x86)\Inno Setup 6;$env:Path"
+            $env:Path = "C:\Program Files (x86)\Inno Setup 6;C:\Program Files\Inno Setup 6;$env:Path"
           }
-          iscc installer.iss
+          & iscc installer.iss
 
       - name: SHA-256 Checksums
         shell: pwsh
         run: |
           $h1 = (Get-FileHash target/release/axolote_suite.exe -Algorithm SHA256).Hash.ToLower()
           $h2 = (Get-FileHash dist/Axolote_Setup.exe -Algorithm SHA256).Hash.ToLower()
-          "$h1  axolote_suite.exe`n$h2  Axolote_Setup.exe" | Tee-Object SHA256SUMS.txt
-          "### Release Artifacts SHA-256`n- **axolote_suite.exe**: ``$h1```n- **Axolote_Setup.exe**: ``$h2```" >> $env:GITHUB_STEP_SUMMARY
+          "$h1  axolote_suite.exe`n$h2  Axolote_Setup.exe" | Out-File -Encoding utf8 SHA256SUMS.txt
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### Release Artifacts SHA-256"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- axolote_suite.exe: $h1"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Axolote_Setup.exe: $h2"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4

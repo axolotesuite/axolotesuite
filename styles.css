@@ -83,7 +83,9 @@ body {
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
-  filter: blur(120px);
+  filter: blur(80px);
+  will-change: transform;
+  transform: translateZ(0);
   z-index: 0;
 }
 
@@ -1416,12 +1418,24 @@ body {
   100% { transform: translate(-24px, 20px) scale(0.94); }
 }
 
+/* 1. Ambient Meshes Floating Motion (CPU/GPU-friendly) */
+.ambient-glow {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(50px);
+  transform: translateZ(0);
+  z-index: 0;
+}
+
 .glow-blue {
-  animation: float-ambient-blue 18s ease-in-out infinite alternate;
+  animation: float-ambient-blue 28s ease-in-out infinite alternate;
+  transform: translateZ(0);
 }
 
 .glow-purple {
-  animation: float-ambient-purple 22s ease-in-out infinite alternate;
+  animation: float-ambient-purple 34s ease-in-out infinite alternate;
+  transform: translateZ(0);
 }
 
 /* 2. Pulsing Online/Offline Green Beacon */
@@ -1592,9 +1606,8 @@ body {
 /* 9. Scroll Reveal Cascading Animation */
 .reveal-item {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
+  transform: translateY(18px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
 }
 
 .reveal-item.is-visible {

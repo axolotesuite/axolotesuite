@@ -3,4 +3,5 @@ target/
 *.log
 axolote_config.json
 axolote_history.json
-AxoloteSuite-Setup-*.exe
+dist/
+*.exe

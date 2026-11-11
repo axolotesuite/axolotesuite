@@ -163,6 +163,7 @@ pub enum Message {
     GlobalGestureTriggered(bool),
     QuickLaunchProductivity(productivity::Tab),
     SearchChanged(String),
+    SearchSubmitted,
     ToggleSidebar,
     ToggleTheme,
     WindowResized(u32, u32),
@@ -223,7 +224,7 @@ impl Application for AxoloteSuite {
         let args: Vec<String> = std::env::args().collect();
 
         let installer_state = installer::State::new(installer::WizardStep::Welcome);
-        let running_outside_installed_dir = std::env::current_exe()
+        let _running_outside_installed_dir = std::env::current_exe()
             .ok()
             .and_then(|p| p.parent().map(|d| d.to_path_buf()))
             .map(|exe_dir| {
@@ -232,17 +233,10 @@ impl Application for AxoloteSuite {
             })
             .unwrap_or(true);
 
-        // Sempre que abrir o .exe fora da pasta instalada, ou se faltar instalar o app/FFmpeg,
-        // entra direto na Tela Obrigatória do Instalador para baixar tudo!
-        let needs_mandatory_setup = !ctx.settings.setup_completed
-            || !installer_state.is_installed()
-            || !installer_state.is_ffmpeg_ready()
-            || running_outside_installed_dir;
-
         let (mut initial_module, installer_step, mandatory_setup) = if args.iter().any(|a| a == "--uninstall") {
             (Module::Installer, installer::WizardStep::UninstallConfirm, false)
-        } else if args.iter().any(|a| a == "--install" || a == "--setup") || needs_mandatory_setup {
-            (Module::Installer, installer::WizardStep::Welcome, true)
+        } else if args.iter().any(|a| a == "--install" || a == "--setup") {
+            (Module::Installer, installer::WizardStep::Welcome, false)
         } else {
             (Module::Home, installer::WizardStep::Welcome, false)
         };
@@ -337,6 +331,7 @@ impl Application for AxoloteSuite {
                     self.productivity.tab = productivity::Tab::Calc;
                 }
                 self.active = m;
+                self.home_search.clear();
                 self.nav_pulse = 1.0;
                 self.last_tick = Some(Instant::now());
                 Command::none()
@@ -382,6 +377,23 @@ impl Application for AxoloteSuite {
             }
             Message::SearchChanged(q) => {
                 self.home_search = q;
+                Command::none()
+            }
+            Message::SearchSubmitted => {
+                let q = self.home_search.trim();
+                if !q.is_empty() {
+                    let matches = self.search_matches(q);
+                    if let Some((first_mod, _, _)) = matches.first() {
+                        let m = *first_mod;
+                        if m == Module::Calculator {
+                            self.productivity.tab = productivity::Tab::Calc;
+                        }
+                        self.active = m;
+                        self.home_search.clear();
+                        self.nav_pulse = 1.0;
+                        self.last_tick = Some(Instant::now());
+                    }
+                }
                 Command::none()
             }
             Message::ToggleSidebar => {
@@ -608,101 +620,51 @@ impl AxoloteSuite {
         };
 
         let groups: &[(&str, &[Module])] = if env.lang.is_en() {
-            if self.installer.is_installed() {
-                &[
-                    (
-                        "TOOLS WORKSTATION",
-                        &[
-                            Module::Home,
-                            Module::QuickConvert,
-                            Module::Productivity,
-                            Module::Calculator,
-                            Module::Pdf,
-                            Module::Images,
-                            Module::Video,
-                            Module::Audio,
-                            Module::BatchRename,
-                            Module::Zip,
-                            Module::DevTools,
-                        ],
-                    ),
-                    (
-                        "SYSTEM & CLEANUP",
-                        &[Module::Queue, Module::History, Module::Settings, Module::Installer],
-                    ),
-                ]
-            } else {
-                &[
-                    (
-                        "TOOLS WORKSTATION",
-                        &[
-                            Module::Home,
-                            Module::QuickConvert,
-                            Module::Productivity,
-                            Module::Calculator,
-                            Module::Pdf,
-                            Module::Images,
-                            Module::Video,
-                            Module::Audio,
-                            Module::BatchRename,
-                            Module::Zip,
-                            Module::DevTools,
-                        ],
-                    ),
-                    (
-                        "SYSTEM & SETUP",
-                        &[Module::Queue, Module::History, Module::Settings, Module::Installer],
-                    ),
-                ]
-            }
+            &[
+                (
+                    "TOOLS WORKSTATION",
+                    &[
+                        Module::Home,
+                        Module::QuickConvert,
+                        Module::Productivity,
+                        Module::Calculator,
+                        Module::Pdf,
+                        Module::Images,
+                        Module::Video,
+                        Module::Audio,
+                        Module::BatchRename,
+                        Module::Zip,
+                        Module::DevTools,
+                    ],
+                ),
+                (
+                    "SYSTEM",
+                    &[Module::Queue, Module::History, Module::Settings],
+                ),
+            ]
         } else {
-            if self.installer.is_installed() {
-                &[
-                    (
-                        "CENTRAL DE FERRAMENTAS",
-                        &[
-                            Module::Home,
-                            Module::QuickConvert,
-                            Module::Productivity,
-                            Module::Calculator,
-                            Module::Pdf,
-                            Module::Images,
-                            Module::Video,
-                            Module::Audio,
-                            Module::BatchRename,
-                            Module::Zip,
-                            Module::DevTools,
-                        ],
-                    ),
-                    (
-                        "SISTEMA & LIMPEZA",
-                        &[Module::Queue, Module::History, Module::Settings, Module::Installer],
-                    ),
-                ]
-            } else {
-                &[
-                    (
-                        "CENTRAL DE FERRAMENTAS",
-                        &[
-                            Module::Home,
-                            Module::QuickConvert,
-                            Module::Productivity,
-                            Module::Calculator,
-                            Module::Pdf,
-                            Module::Images,
-                            Module::Video,
-                            Module::Audio,
-                            Module::BatchRename,
-                            Module::Zip,
-                            Module::DevTools,
-                        ],
-                    ),
-                    (
-                        "SISTEMA & SETUP",
-                        &[Module::Queue, Module::History, Module::Settings, Module::Installer],
-                    ),
-                ]
-            }
+            &[
+                (
+                    "CENTRAL DE FERRAMENTAS",
+                    &[
+                        Module::Home,
+                        Module::QuickConvert,
+                        Module::Productivity,
+                        Module::Calculator,
+                        Module::Pdf,
+                        Module::Images,
+                        Module::Video,
+                        Module::Audio,
+                        Module::BatchRename,
+                        Module::Zip,
+                        Module::DevTools,
+                    ],
+                ),
+                (
+                    "SISTEMA",
+                    &[Module::Queue, Module::History, Module::Settings],
+                ),
+            ]
         };
 
         let mut nav = column![].spacing(5).width(Length::Fill);
@@ -813,9 +775,26 @@ impl AxoloteSuite {
 
         // 1. Barra Superior Cyber-Fluent (Idêntica ao Header do Stitch, 100% Responsiva)
         let top_bar: Element<'a, Message> = {
-            let search_ph = "Buscar ferramenta, arquivo ou ação... (Ctrl + K)";
-            let search = ui::input(search_ph, &self.home_search, Message::SearchChanged)
-                .width(if env.width < 960.0 { Length::Fill } else { Length::Fixed(440.0) });
+            let search_ph = if env.lang.is_en() {
+                "Search tools, files or actions... (Enter to open)"
+            } else {
+                "Buscar ferramenta, arquivo ou ação... (Enter para abrir)"
+            };
+            let search_input = ui::input(search_ph, &self.home_search, Message::SearchChanged)
+                .on_submit(Message::SearchSubmitted)
+                .width(if env.width < 960.0 { Length::Fill } else { Length::Fixed(400.0) });
+
+            let search: Element<'a, Message> = if !self.home_search.is_empty() {
+                row![
+                    search_input,
+                    ui::btn("✕", Btn::Ghost, Some(Message::SearchChanged(String::new()))),
+                ]
+                .spacing(4)
+                .align_items(Alignment::Center)
+                .into()
+            } else {
+                search_input.into()
+            };
 
             let brand_tag = row![
                 container(
@@ -850,11 +829,9 @@ impl AxoloteSuite {
             .padding([5, 12])
             .style(theme::inner_box);
 
-            let setup_btn = ui::btn("💿 Setup", Btn::Secondary, Some(Message::Navigate(Module::Installer)));
-
             if env.width < 960.0 {
                 column![
-                    row![brand_tag, ui::fill(), telemetry_pill, setup_btn]
+                    row![brand_tag, ui::fill(), telemetry_pill]
                         .spacing(8)
                         .align_items(Alignment::Center),
                     search,
@@ -868,7 +845,6 @@ impl AxoloteSuite {
                     search,
                     ui::fill(),
                     telemetry_pill,
-                    setup_btn,
                 ]
                 .spacing(12)
                 .align_items(Alignment::Center)
@@ -876,87 +852,7 @@ impl AxoloteSuite {
             }
         };
 
-        // 2. Banner de Telemetria do Engine (Responsivo com quebra inteligente)
-        let engine_banner = {
-            let header_info = row![
-                container(text(">_").size(18).font(BOLD).style(Color::WHITE))
-                    .padding([8, 12])
-                    .style(theme::solid_box(c.primary, 8.0)),
-                column![
-                    row![
-                        ui::strong("Axolote Suite Engine", 19),
-                        container(text("RUST 1.77 + ICED 0.12").size(10).font(BOLD).style(c.primary))
-                            .padding([2, 6])
-                            .style(theme::solid_box(Color::from_rgb8(42, 41, 49), 4.0)),
-                        container(text("NATIVE SANDBOX").size(10).font(BOLD).style(c.success))
-                            .padding([2, 6])
-                            .style(theme::solid_box(Color::from_rgb8(16, 50, 35), 4.0)),
-                    ]
-                    .spacing(8)
-                    .align_items(Alignment::Center),
-                    ui::muted(env, "Estação de trabalho local ultrarrápida. Desempenho zero-latency com aceleração de hardware nativa.").size(12),
-                ]
-                .spacing(3),
-            ]
-            .spacing(12)
-            .align_items(Alignment::Center);
-
-            let telemetry_metrics = row![
-                container(
-                    column![
-                        text("RAM Heap").size(10).style(c.muted),
-                        ui::strong("38.4 MB", 12),
-                    ]
-                    .spacing(2),
-                )
-                .padding([6, 10])
-                .style(theme::inner_box),
-                container(
-                    column![
-                        text("Pipeline Vulkan").size(10).style(c.muted),
-                        ui::strong("0.82 ms", 12),
-                    ]
-                    .spacing(2),
-                )
-                .padding([6, 10])
-                .style(theme::inner_box),
-                container(
-                    column![
-                        text("Segurança").size(10).style(c.muted),
-                        ui::colored("100% Offline", 12, c.success).font(BOLD),
-                    ]
-                    .spacing(2),
-                )
-                .padding([6, 10])
-                .style(theme::inner_box),
-                ui::btn("⚡ Turbo CPU", Btn::Primary, Some(Message::Navigate(Module::Settings))),
-            ]
-            .spacing(8)
-            .align_items(Alignment::Center);
-
-            if env.width < 1080.0 {
-                ui::bento_hero(
-                    env,
-                    column![
-                        header_info,
-                        telemetry_metrics,
-                    ]
-                    .spacing(12),
-                )
-            } else {
-                ui::bento_hero(
-                    env,
-                    row![
-                        container(header_info).width(Length::Fill),
-                        telemetry_metrics,
-                    ]
-                    .spacing(16)
-                    .align_items(Alignment::Center),
-                )
-            }
-        };
-
-        // 3. Bento Card Principal (Col Span 2): Conversão & Despacho Rápido com Drag & Drop
+        // Bento Card Principal (Col Span 2): Conversão & Despacho Rápido com Drag & Drop
         let hero_card = ui::bento_card(
             env,
             column![
@@ -1590,6 +1486,227 @@ impl AxoloteSuite {
             .into()
         };
 
-        ui::page(env, vec![top_bar, engine_banner.into(), bento_grid])
+        if !self.home_search.trim().is_empty() {
+            let search_results = self.search_results_view(env, self.home_search.trim());
+            return ui::page(env, vec![top_bar, search_results]);
+        }
+
+        ui::page(env, vec![top_bar, bento_grid])
     }
+
+    fn search_matches(&self, query: &str) -> Vec<(Module, &'static str, &'static str)> {
+        let q = normalize_search(query);
+        let all_tools: &[(Module, &[&str], &str, &str)] = &[
+            (
+                Module::QuickConvert,
+                &["converter", "conversor", "webp", "png", "jpg", "jpeg", "avif", "mp4", "mkv", "mp3", "wav", "flac", "pdf", "docx", "txt", "csv", "quick convert", "transcode", "formato", "formatos", "drag", "drop"],
+                "Conversão e transcodificação rápida de imagem, vídeo, áudio e texto.",
+                "Quick file conversion for images, videos, audio, and documents.",
+            ),
+            (
+                Module::Images,
+                &["imagem", "imagens", "foto", "fotos", "raw", "editor", "exposicao", "brilho", "contraste", "crop", "cortar", "filtro", "temperatura", "vinheta", "develop", "revelador", "presets", "fotografia"],
+                "Ajuste fino de exposição, contraste, balanço de branco, crop e presets fotográficos.",
+                "RAW developer, photo adjustments, cropping, color grading, and presets.",
+            ),
+            (
+                Module::Video,
+                &["video", "vídeo", "cortar", "trim", "comprimir", "compressao", "nvenc", "h264", "h265", "hevc", "av1", "gif", "fps", "resolucao", "transcoder", "render", "hardware"],
+                "Corte preciso sem perda (smart streamcopy) e render com aceleração GPU.",
+                "Fast video trimming, lossy/lossless streamcopy, and GPU encoding.",
+            ),
+            (
+                Module::Audio,
+                &["audio", "áudio", "som", "musica", "música", "mp3", "flac", "wav", "volume", "normalizar", "chiado", "ruido", "fade", "equalizador", "ebu r128", "estudio"],
+                "Normalização de volume (EBU R128), remoção de ruídos e conversão de áudio.",
+                "Audio normalization, noise reduction, and bitrate conversion.",
+            ),
+            (
+                Module::Pdf,
+                &["pdf", "documento", "juntar", "mesclar", "merge", "comprimir", "compressao", "dividir", "split", "proteger", "senha", "desbloquear", "lopdf", "extrair", "docs"],
+                "Mesclar múltiplos PDFs, compactação atômica nativa e proteção por senha.",
+                "Merge PDFs, compress documents offline, and manage encryption.",
+            ),
+            (
+                Module::BatchRename,
+                &["renomear", "rename", "lote", "batch", "arquivos", "prefixo", "sufixo", "numeracao", "substituir", "regex", "maiusculas", "minusculas", "pastas"],
+                "Renomeie coleções inteiras com regras automáticas, numeração e substituição.",
+                "Bulk file renamer with prefixes, suffixes, numbering, and patterns.",
+            ),
+            (
+                Module::Zip,
+                &["zip", "compactar", "descompactar", "extrair", "extract", "compressao", "arquivo", "backup", "zstandard", "deflate", "zip-slip", "tar", "descompactador"],
+                "Compactação segura com Zstandard e extração protegida contra zip-slip.",
+                "Fast ZIP compression with Zstandard and safe extraction sandbox.",
+            ),
+            (
+                Module::Productivity,
+                &["produtividade", "notas", "bloco", "anotacoes", "anotações", "tarefas", "checklist", "todo", "to-do", "lembretes", "notepad", "texto", "markdown"],
+                "Bloco de anotações persistente e lista de tarefas rápidas.",
+                "Quick persistent notepad and actionable task checklist.",
+            ),
+            (
+                Module::Calculator,
+                &["calculadora", "calc", "calcular", "conta", "matematica", "cientifica", "científica", "hex", "binario", "programador", "historico", "pi", "seno", "cosseno", "porcentagem"],
+                "Cálculos científicos, funções trigonométricas, conversão de bases e histórico.",
+                "Scientific calculator with unit base conversions and evaluation history.",
+            ),
+            (
+                Module::DevTools,
+                &["devtools", "dev", "desenvolvedor", "hash", "sha256", "md5", "sha1", "base64", "json", "formatar", "uuid", "senha", "gerador", "pipeta", "cores", "hex", "rgb", "seguranca", "criptografia"],
+                "Gerador de senhas seguras, gerador de UUID, hash de arquivos, base64 e pipeta de cores.",
+                "Hash generator (SHA/MD5), UUIDs, password entropy, Base64, and color picker.",
+            ),
+            (
+                Module::Queue,
+                &["fila", "queue", "tarefas", "processos", "background", "progresso", "pausar", "cancelar", "jobs", "concluidos", "ativos"],
+                "Monitoramento e fila de processamento assíncrono em segundo plano.",
+                "Background task processing monitor and priority queue.",
+            ),
+            (
+                Module::History,
+                &["historico", "histórico", "history", "auditoria", "atividades", "logs", "registro", "operacoes", "exportar"],
+                "Registro detalhado de operações executadas para conformidade e conferência.",
+                "Complete audit log of file transformations and operations.",
+            ),
+            (
+                Module::Settings,
+                &["configuracoes", "configurações", "settings", "tema", "escuro", "claro", "dark", "light", "idioma", "linguagem", "pasta", "destino", "privacidade", "hardware", "preferencias"],
+                "Tema visual, idioma do sistema, preferências de pasta de saída e hardware.",
+                "Theme toggling, interface language, output directories, and hardware flags.",
+            ),
+        ];
+
+        let mut matches = Vec::new();
+        for &(m, tags, pt, en) in all_tools {
+            let title = normalize_search(m.title());
+            let title_en = normalize_search(m.title_in(crate::shared::i18n::Lang::En, false));
+            let matches_tags = tags.iter().any(|t| {
+                let nt = normalize_search(t);
+                nt.contains(&q) || q.contains(&nt)
+            });
+            if title.contains(&q) || title_en.contains(&q) || matches_tags || normalize_search(pt).contains(&q) || normalize_search(en).contains(&q) {
+                matches.push((m, pt, en));
+            }
+        }
+        matches
+    }
+
+    fn search_results_view<'a>(&'a self, env: &Env, query: &str) -> Element<'a, Message> {
+        let c = env.c();
+        let matches = self.search_matches(query);
+
+        let header = row![
+            column![
+                row![
+                    ui::strong(if env.lang.is_en() { "Search Results" } else { "Resultados da Busca" }, 18),
+                    container(text(format!("{} {}", matches.len(), if env.lang.is_en() { "found" } else { "ferramenta(s)" })).size(11).font(BOLD).style(c.primary))
+                        .padding([2, 8])
+                        .style(theme::solid_box(Color::from_rgb8(31, 25, 48), 6.0)),
+                ]
+                .spacing(10)
+                .align_items(Alignment::Center),
+                ui::muted(env, if env.lang.is_en() {
+                    format!("Showing tools matching \"{}\"", query)
+                } else {
+                    format!("Exibindo ferramentas correspondentes ao termo \"{}\"", query)
+                }).size(12),
+            ]
+            .spacing(4),
+            ui::fill(),
+            ui::btn(if env.lang.is_en() { "✕ Clear Search" } else { "✕ Limpar Busca" }, Btn::Secondary, Some(Message::SearchChanged(String::new()))),
+        ]
+        .align_items(Alignment::Center);
+
+        if matches.is_empty() {
+            let empty_box = container(
+                column![
+                    text("🔍").size(36),
+                    Space::with_height(6),
+                    ui::strong(if env.lang.is_en() { "No tools found" } else { "Nenhuma ferramenta encontrada" }, 16),
+                    ui::muted(env, if env.lang.is_en() {
+                        format!("No matching tools for \"{}\". Try broader terms:", query)
+                    } else {
+                        format!("Nenhuma ferramenta encontrada para \"{}\". Tente termos como:", query)
+                    }).size(13),
+                    Space::with_height(10),
+                    row![
+                        ui::btn("🔄 Conversor", Btn::Secondary, Some(Message::Navigate(Module::QuickConvert))),
+                        ui::btn("🖼️ Fotos & RAW", Btn::Secondary, Some(Message::Navigate(Module::Images))),
+                        ui::btn("🎬 Vídeo", Btn::Secondary, Some(Message::Navigate(Module::Video))),
+                        ui::btn("📄 PDF", Btn::Secondary, Some(Message::Navigate(Module::Pdf))),
+                        ui::btn("🖩 Calculadora", Btn::Secondary, Some(Message::Navigate(Module::Calculator))),
+                        ui::btn("🎨 DevTools", Btn::Secondary, Some(Message::Navigate(Module::DevTools))),
+                    ]
+                    .spacing(8)
+                    .align_items(Alignment::Center),
+                ]
+                .spacing(6)
+                .align_items(Alignment::Center)
+                .width(Length::Fill),
+            )
+            .padding([36, 24])
+            .style(theme::bento_card);
+
+            column![header, Space::with_height(14), empty_box].spacing(8).into()
+        } else {
+            let mut list = column![].spacing(10).width(Length::Fill);
+
+            for (module, desc_pt, desc_en) in matches {
+                let desc = if env.lang.is_en() { desc_en } else { desc_pt };
+                let title = module.title_in(env.lang, false);
+                let icon = module.icon();
+
+                let item_card = button(
+                    container(
+                        row![
+                            container(text(icon).size(24))
+                                .padding([10, 14])
+                                .style(theme::solid_box(Color::from_rgb8(31, 31, 38), 8.0)),
+                            column![
+                                row![
+                                    ui::strong(title, 16),
+                                    ui::fill(),
+                                    container(text(if env.lang.is_en() { "Open Tool ➔" } else { "Abrir Ferramenta ➔" }).size(12).font(BOLD).style(c.primary))
+                                        .padding([4, 10])
+                                        .style(theme::inner_box),
+                                ]
+                                .align_items(Alignment::Center),
+                                ui::muted(env, desc).size(12),
+                            ]
+                            .spacing(4)
+                            .width(Length::Fill),
+                        ]
+                        .spacing(14)
+                        .align_items(Alignment::Center),
+                    )
+                    .padding([12, 16])
+                    .width(Length::Fill)
+                    .style(theme::bento_card),
+                )
+                .style(theme::btn(Btn::Ghost))
+                .width(Length::Fill)
+                .on_press(Message::Navigate(module));
+
+                list = list.push(item_card);
+            }
+
+            column![header, Space::with_height(14), list].spacing(8).into()
+        }
+    }
+}
+
+fn normalize_search(s: &str) -> String {
+    s.to_lowercase()
+        .chars()
+        .map(|ch| match ch {
+            'á' | 'à' | 'ã' | 'â' | 'ä' => 'a',
+            'é' | 'è' | 'ê' | 'ë' => 'e',
+            'í' | 'ì' | 'î' | 'ï' => 'i',
+            'ó' | 'ò' | 'õ' | 'ô' | 'ö' => 'o',
+            'ú' | 'ù' | 'û' | 'ü' => 'u',
+            'ç' => 'c',
+            other => other,
+        })
+        .collect()
 }

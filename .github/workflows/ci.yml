@@ -1,9 +1,8 @@
-name: CI
+name: Release Build
 
 on:
   push:
     branches: [main]
-  pull_request:
   workflow_dispatch:
 
 concurrency:
@@ -14,8 +13,8 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-test:
-    name: Build e testes (Windows)
+  build-release:
+    name: Build Release & Installer (Windows)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,25 +23,31 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
-      - name: Build
-        run: cargo build --locked
-
-      - name: Testes
-        run: cargo test --locked
-
-      - name: Build release
+      - name: Build Release Binary
         run: cargo build --release --locked
 
-      - name: SHA-256 do executável
+      - name: Compile Inno Setup Multi-Language Installer
         shell: pwsh
         run: |
-          $h = (Get-FileHash target/release/axolote_suite.exe -Algorithm SHA256).Hash.ToLower()
-          "$h  axolote_suite.exe" | Tee-Object SHA256SUMS.txt
-          "### SHA-256`n``$h``" >> $env:GITHUB_STEP_SUMMARY
+          if (-not (Get-Command iscc -ErrorAction SilentlyContinue)) {
+            choco install innosetup -y
+            $env:Path = "C:\Program Files (x86)\Inno Setup 6;$env:Path"
+          }
+          iscc installer.iss
 
-      - uses: actions/upload-artifact@v4
+      - name: SHA-256 Checksums
+        shell: pwsh
+        run: |
+          $h1 = (Get-FileHash target/release/axolote_suite.exe -Algorithm SHA256).Hash.ToLower()
+          $h2 = (Get-FileHash dist/Axolote_Setup.exe -Algorithm SHA256).Hash.ToLower()
+          "$h1  axolote_suite.exe`n$h2  Axolote_Setup.exe" | Tee-Object SHA256SUMS.txt
+          "### Release Artifacts SHA-256`n- **axolote_suite.exe**: ``$h1```n- **Axolote_Setup.exe**: ``$h2```" >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
         with:
-          name: axolote_suite-windows-x64
+          name: Axolote_Setup-windows-x64
           path: |
+            dist/Axolote_Setup.exe
             target/release/axolote_suite.exe
             SHA256SUMS.txt

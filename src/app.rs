@@ -12,7 +12,7 @@ use std::path::PathBuf;
 use std::time::Instant;
 
 use iced::widget::{
-    button, column, container, image as iced_image, progress_bar, row, scrollable, text, Space,
+    button, column, container, image as iced_image, row, scrollable, text, Space,
 };
 use iced::{Alignment, Application, Color, Command, Element, Event, Length, Subscription, Theme};
 
@@ -927,7 +927,7 @@ impl AxoloteSuite {
                 .padding(2)
                 .style(theme::logo_container),
                 ui::strong("Axolote", 18),
-                container(text("v1.4.0").size(10).font(BOLD).style(c.primary))
+                container(text(format!("v{}", env!("CARGO_PKG_VERSION"))).size(10).font(BOLD).style(c.primary))
                     .padding([2, 6])
                     .style(theme::solid_box(Color::from_rgb8(42, 41, 49), 4.0)),
                 ui::btn("🛡️ LGPD Local", Btn::Secondary, None),
@@ -939,11 +939,9 @@ impl AxoloteSuite {
                 row![
                     container(Space::new(Length::Fixed(7.0), Length::Fixed(7.0)))
                         .style(theme::solid_box(c.success, 999.0)),
-                    ui::colored("GPU Accel", 11, c.accent).font(BOLD),
+                    ui::colored("Processamento local", 11, c.accent).font(BOLD),
                     text("•").size(11).style(c.muted),
-                    text("38 MB RAM").size(11).style(c.text),
-                    text("•").size(11).style(c.muted),
-                    text("Offline").size(11).style(c.muted),
+                    text("Sem envio de arquivos").size(11).style(c.text),
                 ]
                 .spacing(6)
                 .align_items(Alignment::Center),
@@ -986,7 +984,7 @@ impl AxoloteSuite {
                             .style(theme::solid_box(Color::from_rgb8(31, 31, 38), 8.0)),
                         column![
                             ui::strong("Conversão & Despacho Rápido", 17),
-                            ui::muted(env, "Processamento atômico sem upload, bufferizado em memória RAM").size(12),
+                            ui::muted(env, "Processamento local, sem envio dos seus arquivos").size(12),
                         ]
                         .spacing(2),
                     ]
@@ -1006,10 +1004,10 @@ impl AxoloteSuite {
                             container(text("☁ ⬆").size(24).style(c.primary))
                                 .padding([12, 16])
                                 .style(theme::solid_box(Color::from_rgb8(31, 25, 48), 999.0)),
-                            ui::strong("Solte arquivos aqui para processamento instantâneo", 15),
+                            ui::strong("Arraste arquivos aqui ou abra uma ferramenta", 15),
                             ui::muted(
                                 env,
-                                "Vídeos MP4/MKV, Imagens RAW/AVIF, Áudios FLAC/WAV ou documentos PDF criptografados",
+                                "Imagens, vídeos, áudios e documentos compatíveis com os módulos disponíveis",
                             )
                             .size(12),
                             Space::with_height(8),
@@ -1037,7 +1035,7 @@ impl AxoloteSuite {
                     row![
                         container(Space::new(Length::Fixed(6.0), Length::Fixed(6.0)))
                             .style(theme::solid_box(c.success, 999.0)),
-                        ui::muted(env, "Motor Rust image & FFmpeg integrado").size(11),
+                        ui::muted(env, "Processamento local • FFmpeg para tarefas de mídia").size(11),
                     ]
                     .spacing(6)
                     .align_items(Alignment::Center),
@@ -1049,97 +1047,98 @@ impl AxoloteSuite {
             .spacing(6),
         );
 
-        // 4. Card 2: Revelador RAW & Foto Rápida
+        // 4. Card 2: Editor de Imagens
         let bento_raw = ui::bento_card(
             env,
             column![
                 row![
                     row![
-                        container(text("📷").size(16).style(c.primary))
+                        container(text("🖼").size(16).style(c.primary))
                             .padding([5, 8])
                             .style(theme::inner_box),
-                        ui::strong("Revelador RAW", 15),
+                        ui::strong("Editor de Imagens", 15),
                     ]
                     .spacing(8)
                     .align_items(Alignment::Center),
                     ui::fill(),
-                    container(text("16-bit float").size(10).style(c.muted))
+                    container(text("Local").size(10).style(c.success))
                         .padding([2, 6])
                         .style(theme::inner_box),
                 ]
                 .align_items(Alignment::Center),
-                Space::with_height(6),
-                // Mini Live Image Preview com Imagem do Axolote + Overlay da Onda Espectral
-                container(column![row![
-                    iced_image::Image::new(brand::logo_banner())
-                        .width(Length::Fixed(80.0))
-                        .height(Length::Fixed(70.0)),
+                Space::with_height(8),
+                container(
                     column![
-                        row![
-                            ui::colored("RGB Spectral Wave", 10, c.accent).font(BOLD),
-                            ui::fill(),
-                            ui::colored("ISO 100 • 1/250s", 10, c.success).font(BOLD),
-                        ]
-                        .align_items(Alignment::Center),
-                        Space::with_height(4),
-                        // Onda espectral simulada
-                        row![
-                            container(Space::new(Length::Fixed(32.0), Length::Fixed(4.0)))
-                                .style(theme::solid_box(Color::from_rgb8(239, 68, 68), 2.0)),
-                            container(Space::new(Length::Fixed(48.0), Length::Fixed(4.0)))
-                                .style(theme::solid_box(Color::from_rgb8(16, 185, 129), 2.0)),
-                            container(Space::new(Length::Fixed(40.0), Length::Fixed(4.0)))
-                                .style(theme::solid_box(Color::from_rgb8(59, 130, 246), 2.0)),
-                        ]
-                        .spacing(4),
-                        Space::with_height(4),
-                        ui::muted(env, "Histograma dinâmico ativado").size(10),
+                        ui::strong("Ajuste suas imagens", 13),
+                        ui::muted(
+                            env,
+                            "Abra o editor para aplicar ajustes, recortes, filtros e conversões disponíveis."
+                        )
+                        .size(12),
+                        ui::btn(
+                            "Abrir editor de imagens",
+                            Btn::Primary,
+                            Some(Message::Navigate(Module::Images))
+                        ),
                     ]
-                    .spacing(2)
-                    .width(Length::Fill),
-                ]
-                .spacing(10)
-                .align_items(Alignment::Center),],)
-                .padding(8)
+                    .spacing(10),
+                )
+                .padding(12)
+                .width(Length::Fill)
                 .style(theme::inner_box),
-                Space::with_height(6),
-                ui::muted(env, "LUT INSTANTÂNEA").size(10),
-                row![
-                    button(
-                        container(text("Neon Teal").size(11))
-                            .center_x()
-                            .width(Length::Fill)
-                    )
-                    .padding([6, 6])
-                    .width(Length::FillPortion(1))
-                    .style(theme::btn(Btn::Secondary))
-                    .on_press(Message::Navigate(Module::Images)),
-                    button(
-                        container(text("Cyberpunk").size(11).font(BOLD))
-                            .center_x()
-                            .width(Length::Fill)
-                    )
-                    .padding([6, 6])
-                    .width(Length::FillPortion(1))
-                    .style(theme::btn(Btn::Primary))
-                    .on_press(Message::Navigate(Module::Images)),
-                    button(
-                        container(text("Moody 35mm").size(11))
-                            .center_x()
-                            .width(Length::Fill)
-                    )
-                    .padding([6, 6])
-                    .width(Length::FillPortion(1))
-                    .style(theme::btn(Btn::Secondary))
-                    .on_press(Message::Navigate(Module::Images)),
-                ]
-                .spacing(6)
-                .width(Length::Fill),
             ]
-            .spacing(4),
+            .spacing(6),
         );
 
-        // 5. Card 3: Fila de Render & Hardware Monitor
+        // 5. Card 3: Fila de Operações com dados reais da sessão
+        let jobs = self.ctx.jobs.all();
+        let running_jobs = self.ctx.jobs.running();
+        let mut jobs_list = column![].spacing(8).width(Length::Fill);
+
+        if jobs.is_empty() {
+            jobs_list = jobs_list.push(
+                container(
+                    ui::muted(
+                        env,
+                        "Nenhuma operação nesta sessão. As tarefas aparecerão aqui quando você usar as ferramentas."
+                    )
+                    .size(12),
+                )
+                .padding(12)
+                .width(Length::Fill)
+                .style(theme::inner_box),
+            );
+        } else {
+            for job in jobs.iter().take(3) {
+                let (status, status_color) = match job.status {
+                    crate::core::jobs::JobStatus::Running => ("Em andamento", c.accent),
+                    crate::core::jobs::JobStatus::Done => ("Concluída", c.success),
+                    crate::core::jobs::JobStatus::Failed => ("Falhou", c.danger),
+                };
+
+                let item = container(
+                    row![
+                        column![
+                            ui::strong(job.title.as_str(), 12),
+                            text(format!("{} • {}", job.module, job.message))
+                                .size(10)
+                                .style(c.muted),
+                        ]
+                        .spacing(3)
+                        .width(Length::Fill),
+                        ui::badge(status, status_color),
+                    ]
+                    .spacing(8)
+                    .align_items(Alignment::Center),
+                )
+                .padding(9)
+                .width(Length::Fill)
+                .style(theme::inner_box);
+
+                jobs_list = jobs_list.push(item);
+            }
+        }
+
         let bento_render = ui::bento_card(
             env,
             column![
@@ -1148,76 +1147,39 @@ impl AxoloteSuite {
                         container(text("⚡").size(16).style(c.success))
                             .padding([5, 8])
                             .style(theme::inner_box),
-                        ui::strong("Fila de Render", 15),
+                        ui::strong("Fila de Operações", 15),
                     ]
                     .spacing(8)
                     .align_items(Alignment::Center),
                     ui::fill(),
-                    container(text("8 Threads").size(10).font(BOLD).style(c.success))
-                        .padding([2, 6])
-                        .style(theme::inner_box),
+                    ui::badge(
+                        format!("{} ativa(s)", running_jobs),
+                        if running_jobs == 0 { c.success } else { c.accent }
+                    ),
                 ]
                 .align_items(Alignment::Center),
-                Space::with_height(6),
-                // Task 1
-                container(
-                    column![
-                        row![
-                            ui::strong("projeto_vfx_4k_crf18.mp4", 12).width(Length::Fill),
-                            ui::colored("78%", 11, c.accent).font(BOLD),
-                        ],
-                        progress_bar(0.0..=100.0, 78.0).height(Length::Fixed(6.0)),
-                        row![
-                            text("NVENC AV1").size(10).style(c.muted),
-                            ui::fill(),
-                            text("ETA: 4s").size(10).style(c.muted),
-                        ],
-                    ]
-                    .spacing(3),
-                )
-                .padding(8)
-                .style(theme::inner_box),
-                Space::with_height(4),
-                // Task 2
-                container(
-                    column![
-                        row![
-                            ui::strong("backup_raw_session.zip", 12).width(Length::Fill),
-                            ui::colored("42%", 11, c.success).font(BOLD),
-                        ],
-                        progress_bar(0.0..=100.0, 42.0).height(Length::Fixed(6.0)),
-                        row![
-                            text("Zstandard -19").size(10).style(c.muted),
-                            ui::fill(),
-                            text("ETA: 11s").size(10).style(c.muted),
-                        ],
-                    ]
-                    .spacing(3),
-                )
-                .padding(8)
-                .style(theme::inner_box),
-                Space::with_height(4),
+                jobs_list,
                 row![
-                    text("CPU Rayon: 24% load").size(11).style(c.muted),
+                    ui::muted(env, "Status atualizado pela sessão atual").size(10),
                     ui::fill(),
                     ui::btn(
-                        "⏸ Pausar Fila",
+                        "Abrir fila ➔",
                         Btn::Ghost,
                         Some(Message::Navigate(Module::Queue))
                     ),
                 ]
                 .align_items(Alignment::Center),
             ]
-            .spacing(4),
+            .spacing(8),
         );
 
-        // 6. Card 4: Segurança & Hash (128 bits)
+        // 6. Card 4: Segurança & Hash
         let bento_sec = ui::bento_card(
             env,
             column![
                 row![
                     row![
-                        container(text("🔑").size(16).style(c.primary))
+                        container(text("🔐").size(16).style(c.primary))
                             .padding([5, 8])
                             .style(theme::inner_box),
                         ui::strong("Segurança & Hash", 15),
@@ -1225,56 +1187,33 @@ impl AxoloteSuite {
                     .spacing(8)
                     .align_items(Alignment::Center),
                     ui::fill(),
-                    container(text("128 bits").size(10).font(BOLD).style(c.success))
+                    container(text("Local").size(10).font(BOLD).style(c.success))
                         .padding([2, 6])
                         .style(theme::inner_box),
                 ]
                 .align_items(Alignment::Center),
-                Space::with_height(6),
+                Space::with_height(8),
                 container(
                     column![
-                        row![
-                            text("Senha Criptográfica").size(10).style(c.muted),
-                            ui::fill(),
-                            ui::colored("Alta Entropia", 10, c.success).font(BOLD),
-                        ],
-                        row![
-                            ui::strong("k9#Px!8Lm@90$vWq", 13).width(Length::Fill),
-                            ui::btn(
-                                "Copiar",
-                                Btn::Secondary,
-                                Some(Message::Navigate(Module::DevTools))
-                            ),
-                        ]
-                        .align_items(Alignment::Center),
+                        ui::strong("Senhas, hashes e UUIDs", 13),
+                        ui::muted(
+                            env,
+                            "Gere valores no momento do uso. O painel não exibe senhas fictícias como se fossem credenciais reais."
+                        )
+                        .size(12),
+                        ui::btn(
+                            "Abrir ferramentas de segurança",
+                            Btn::Primary,
+                            Some(Message::Navigate(Module::DevTools))
+                        ),
                     ]
-                    .spacing(4),
+                    .spacing(10),
                 )
-                .padding(8)
+                .padding(12)
+                .width(Length::Fill)
                 .style(theme::inner_box),
-                Space::with_height(6),
-                row![
-                    row![
-                        container(Space::new(Length::Fixed(14.0), Length::Fixed(14.0)))
-                            .style(theme::solid_box(Color::from_rgb8(124, 58, 237), 999.0)),
-                        container(Space::new(Length::Fixed(14.0), Length::Fixed(14.0)))
-                            .style(theme::solid_box(Color::from_rgb8(76, 215, 246), 999.0)),
-                        container(Space::new(Length::Fixed(14.0), Length::Fixed(14.0)))
-                            .style(theme::solid_box(Color::from_rgb8(16, 185, 129), 999.0)),
-                        text("#7C3AED").size(11).style(c.muted),
-                    ]
-                    .spacing(6)
-                    .align_items(Alignment::Center),
-                    ui::fill(),
-                    ui::btn(
-                        "Pipeta ➔",
-                        Btn::Ghost,
-                        Some(Message::Navigate(Module::DevTools))
-                    ),
-                ]
-                .align_items(Alignment::Center),
             ]
-            .spacing(4),
+            .spacing(6),
         );
 
         // 7. Card 5: PDF & Docs
@@ -1291,7 +1230,7 @@ impl AxoloteSuite {
                     .spacing(8)
                     .align_items(Alignment::Center),
                     ui::fill(),
-                    container(text("Zero Telemetria").size(10).style(c.muted))
+                    container(text("Local").size(10).style(c.muted))
                         .padding([2, 6])
                         .style(theme::inner_box),
                 ]
@@ -1318,8 +1257,8 @@ impl AxoloteSuite {
                         container(
                             column![
                                 text("🗜").size(20).style(c.success),
-                                ui::strong("Comprimir", 12),
-                                text("Motor Nativo lopdf").size(10).style(c.muted),
+                                ui::strong("Dividir", 12),
+                                text("Páginas e intervalos").size(10).style(c.muted),
                             ]
                             .spacing(2)
                             .align_items(Alignment::Center),
@@ -1334,7 +1273,7 @@ impl AxoloteSuite {
                 .spacing(8),
                 Space::with_height(6),
                 row![
-                    text("Desbloqueio de senha").size(11).style(c.muted),
+                    text("Mesclar • dividir • inspecionar").size(11).style(c.muted),
                     ui::fill(),
                     ui::btn(
                         "Abrir Central ➔",
@@ -1347,7 +1286,51 @@ impl AxoloteSuite {
             .spacing(4),
         );
 
-        // 8. Card 6 (Col Span 2): Atalhos Globais do Sistema & Auditoria
+        let recent_activity: Element<'a, Message> = {
+            let entries = self.ctx.history.entries();
+            if entries.is_empty() {
+                container(
+                    ui::muted(env, "Nenhuma atividade registrada ainda. As operações concluídas aparecerão aqui.")
+                        .size(11),
+                )
+                .padding([8, 10])
+                .width(Length::Fill)
+                .style(theme::inner_box)
+                .into()
+            } else {
+                let mut rows = column![].spacing(6).width(Length::Fill);
+                for entry in entries.iter().take(3) {
+                    let (status, status_color) = if entry.success {
+                        ("Concluída", c.success)
+                    } else {
+                        ("Falhou", c.danger)
+                    };
+                    rows = rows.push(
+                        container(
+                            row![
+                                column![
+                                    ui::strong(entry.action.as_str(), 11),
+                                    text(format!("{} • {}", entry.module, entry.timestamp))
+                                        .size(10)
+                                        .style(c.muted),
+                                ]
+                                .spacing(2)
+                                .width(Length::Fill),
+                                ui::badge(status, status_color),
+                            ]
+                            .spacing(8)
+                            .align_items(Alignment::Center),
+                        )
+                        .padding([7, 10])
+                        .width(Length::Fill)
+                        .style(theme::inner_box),
+                    );
+                }
+                rows.into()
+            }
+        };
+
+        // 8. Card 6 (Col Span 2): Acesso rápido às ferramentas & Auditoria
         let shortcuts_ribbon: Element<'a, Message> = if env.narrow() {
             column![
                 row![
@@ -1356,7 +1339,7 @@ impl AxoloteSuite {
                             row![
                                 text("Paleta").size(11).style(c.muted),
                                 ui::fill(),
-                                container(text("Ctrl+K").size(10).font(BOLD).style(c.primary))
+                                container(text("Abrir").size(10).font(BOLD).style(c.primary))
                                     .padding([2, 6])
                                     .style(theme::solid_box(Color::from_rgb8(31, 31, 38), 4.0)),
                             ]
@@ -1374,7 +1357,7 @@ impl AxoloteSuite {
                             row![
                                 text("Conversor").size(11).style(c.muted),
                                 ui::fill(),
-                                container(text("Ctrl+D").size(10).font(BOLD).style(c.accent))
+                                container(text("Abrir").size(10).font(BOLD).style(c.accent))
                                     .padding([2, 6])
                                     .style(theme::solid_box(Color::from_rgb8(31, 31, 38), 4.0)),
                             ]
@@ -1395,7 +1378,7 @@ impl AxoloteSuite {
                             row![
                                 text("Revelador").size(11).style(c.muted),
                                 ui::fill(),
-                                container(text("Ctrl+P").size(10).font(BOLD).style(c.primary))
+                                container(text("Abrir").size(10).font(BOLD).style(c.primary))
                                     .padding([2, 6])
                                     .style(theme::solid_box(Color::from_rgb8(31, 31, 38), 4.0)),
                             ]
@@ -1413,7 +1396,7 @@ impl AxoloteSuite {
                             row![
                                 text("Fila Tasks").size(11).style(c.muted),
                                 ui::fill(),
-                                container(text("Ctrl+B").size(10).font(BOLD).style(c.success))
+                                container(text("Abrir").size(10).font(BOLD).style(c.success))
                                     .padding([2, 6])
                                     .style(theme::solid_box(Color::from_rgb8(31, 31, 38), 4.0)),
                             ]
@@ -1525,7 +1508,7 @@ impl AxoloteSuite {
                     .spacing(8)
                     .align_items(Alignment::Center),
                     ui::fill(),
-                    container(text("Win32 Hook Ativo").size(10).style(c.muted))
+                    container(text("Navegação rápida").size(10).style(c.muted))
                         .padding([2, 6])
                         .style(theme::inner_box),
                 ]
@@ -1534,43 +1517,17 @@ impl AxoloteSuite {
                 column![
                     shortcuts_ribbon,
                     Space::with_height(6),
-                    // Feed de Auditoria Recente
                     row![
-                        text("Últimas Ações Concluídas").size(11).style(c.muted),
+                        text("Atividade recente").size(11).style(c.muted),
                         ui::fill(),
                         ui::btn(
-                            "Ver log completo",
+                            "Ver histórico completo",
                             Btn::Ghost,
                             Some(Message::Navigate(Module::History))
                         ),
                     ]
                     .align_items(Alignment::Center),
-                    container(
-                        row![
-                            container(Space::new(Length::Fixed(6.0), Length::Fixed(6.0)))
-                                .style(theme::solid_box(c.success, 999.0)),
-                            ui::strong("DSC_4091_RAW.cr3 → webp (lossless)", 11)
-                                .width(Length::Fill),
-                            text("12ms • 3.2MB").size(10).style(c.success),
-                        ]
-                        .spacing(8)
-                        .align_items(Alignment::Center),
-                    )
-                    .padding([6, 10])
-                    .style(theme::inner_box),
-                    container(
-                        row![
-                            container(Space::new(Length::Fixed(6.0), Length::Fixed(6.0)))
-                                .style(theme::solid_box(c.success, 999.0)),
-                            ui::strong("relatorio_financeiro_q3.pdf → otimizado", 11)
-                                .width(Length::Fill),
-                            text("45ms • -64% tam").size(10).style(c.success),
-                        ]
-                        .spacing(8)
-                        .align_items(Alignment::Center),
-                    )
-                    .padding([6, 10])
-                    .style(theme::inner_box),
+                    recent_activity,
                 ]
                 .spacing(4),
             ]

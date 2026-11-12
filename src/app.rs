@@ -2,11 +2,11 @@
 //! - Barra lateral com animação suave de expansão/recolhimento (60 FPS) e
 //!   indicador Neon animado no item selecionado
 //! - Calculadora como item direto do menu lateral (e também em Produtividade)
-//! - Barra superior com busca rápida de ferramentas (`🔍 Pesquisar ferramenta…`)
-//! - Painel de boas-vindas com o banner do mascote, Central de Ferramentas,
-//!   Status do Sistema e Últimas Novidades
-//! - Roteamento para todos os módulos, incluindo Editor de Fotos, Editor de Vídeo
-//!   e Instalador / Desinstalador integrado como tela inicial de Setup.
+//! - Barra superior com busca rápida de ferramentas
+//! - Painel inicial (Home/Dashboard) com acesso direto aos módulos, fila de
+//!   operações da sessão atual e histórico recente real
+//! - Roteamento para todos os módulos, incluindo Editor de Fotos, Editor de Vídeo,
+//!   Estúdio de Cores & Senhas e Central de PDF.
 
 use std::path::PathBuf;
 use std::time::Instant;
@@ -131,10 +131,10 @@ impl Module {
                     "Convert images, text, documents (DOCX/PDF), videos, audio, and ZIP."
                 }
                 Module::Productivity => {
-                    "Quick notepad, tasks checklist, and scientific calculator."
+                    "Quick notepad (.txt), task checklist, and folder organizer."
                 }
                 Module::Calculator => {
-                    "Scientific expression calculator with parentheses and history."
+                    "Expression calculator with parentheses, power (^), modulo (%), and history."
                 }
                 Module::Pdf => {
                     "Merge multiple PDFs, split pages and intervals, and inspect metadata."
@@ -210,8 +210,13 @@ pub enum Message {
     OpenQuickConvertShortcut,
     GlobalGestureTriggered(bool),
     QuickLaunchProductivity(productivity::Tab),
+    QuickLaunchImages(images::Mode),
+    QuickLaunchPdf(pdf::Mode),
+    QuickLaunchDevTools(devtools::Tab),
+    QuickLaunchZip(zip::Mode),
     SearchChanged(String),
     SearchSubmitted,
+    OpenSearchResult(Module),
     ToggleSidebar,
     ToggleTheme,
     WindowResized(u32, u32),
@@ -340,10 +345,11 @@ impl Application for AxoloteSuite {
     }
 
     fn title(&self) -> String {
+        let lang = self.ctx.settings.resolved_lang();
         format!(
             "Axolote Suite v{} — {}",
             env!("CARGO_PKG_VERSION"),
-            self.active.title()
+            self.active.title_in(lang, self.installer.is_installed())
         )
     }
 
@@ -430,6 +436,39 @@ impl Application for AxoloteSuite {
                 } else {
                     Module::Productivity
                 };
+                self.home_search.clear();
+                self.nav_pulse = 1.0;
+                self.last_tick = Some(Instant::now());
+                Command::none()
+            }
+            Message::QuickLaunchImages(mode) => {
+                self.images.mode = mode;
+                self.active = Module::Images;
+                self.home_search.clear();
+                self.nav_pulse = 1.0;
+                self.last_tick = Some(Instant::now());
+                Command::none()
+            }
+            Message::QuickLaunchPdf(mode) => {
+                self.pdf.mode = mode;
+                self.active = Module::Pdf;
+                self.home_search.clear();
+                self.nav_pulse = 1.0;
+                self.last_tick = Some(Instant::now());
+                Command::none()
+            }
+            Message::QuickLaunchDevTools(tab) => {
+                self.devtools.tab = tab;
+                self.active = Module::DevTools;
+                self.home_search.clear();
+                self.nav_pulse = 1.0;
+                self.last_tick = Some(Instant::now());
+                Command::none()
+            }
+            Message::QuickLaunchZip(mode) => {
+                self.zip.mode = mode;
+                self.active = Module::Zip;
+                self.home_search.clear();
                 self.nav_pulse = 1.0;
                 self.last_tick = Some(Instant::now());
                 Command::none()
@@ -439,20 +478,18 @@ impl Application for AxoloteSuite {
                 Command::none()
             }
             Message::SearchSubmitted => {
-                let q = self.home_search.trim();
+                let q = self.home_search.trim().to_string();
                 if !q.is_empty() {
-                    let matches = self.search_matches(q);
+                    let matches = self.search_matches(&q);
                     if let Some((first_mod, _, _)) = matches.first() {
-                        let m = *first_mod;
-                        if m == Module::Calculator {
-                            self.productivity.tab = productivity::Tab::Calc;
-                        }
-                        self.active = m;
-                        self.home_search.clear();
-                        self.nav_pulse = 1.0;
-                        self.last_tick = Some(Instant::now());
+                        self.open_search_target(*first_mod, &q);
                     }
                 }
+                Command::none()
+            }
+            Message::OpenSearchResult(module) => {
+                let q = self.home_search.trim().to_string();
+                self.open_search_target(module, &q);
                 Command::none()
             }
             Message::ToggleSidebar => {
@@ -852,6 +889,12 @@ impl AxoloteSuite {
             } else {
                 "🌙"
             }
+        } else if env.lang.is_en() {
+            if self.ctx.settings.dark_mode {
+                "☀  Light Theme"
+            } else {
+                "🌙  Dark Theme"
+            }
         } else if self.ctx.settings.dark_mode {
             "☀  Tema Claro"
         } else {
@@ -888,23 +931,21 @@ impl AxoloteSuite {
 
     fn home_view<'a>(&'a self, env: &Env) -> Element<'a, Message> {
         let c = env.c();
+        let is_en = env.lang.is_en();
+        let wide_grid = env.is_desktop_wide();
 
-        // 1. Barra Superior Cyber-Fluent (Idêntica ao Header do Stitch, 100% Responsiva)
+        // 1. Barra Superior Responsiva
         let top_bar: Element<'a, Message> = {
-            let search_ph = if env.lang.is_en() {
-                "Search tools, files or actions... (Enter to open)"
+            let search_ph = if is_en {
+                "Search tools, actions or formats... (Enter to open)"
             } else {
-                "Buscar ferramenta, arquivo ou ação... (Enter para abrir)"
+                "Buscar ferramenta, ação ou formato... (Enter para abrir)"
             };
             let search_input = ui::input(search_ph, &self.home_search, Message::SearchChanged)
                 .on_submit(Message::SearchSubmitted)
-                .width(if env.width < 960.0 {
-                    Length::Fill
-                } else {
-                    Length::Fixed(400.0)
-                });
+                .width(Length::Fill);
 
-            let search: Element<'a, Message> = if !self.home_search.is_empty() {
+            let search_box: Element<'a, Message> = if !self.home_search.is_empty() {
                 row![
                     search_input,
                     ui::btn("✕", Btn::Ghost, Some(Message::SearchChanged(String::new()))),
@@ -924,50 +965,82 @@ impl AxoloteSuite {
                 )
                 .padding(2)
                 .style(theme::logo_container),
-                ui::strong("Axolote", 18),
+                ui::strong("Axolote Suite", 17),
                 container(
                     text(format!("v{}", env!("CARGO_PKG_VERSION")))
                         .size(10)
                         .font(BOLD)
                         .style(c.primary)
                 )
-                .padding([2, 6])
-                .style(theme::solid_box(Color::from_rgb8(42, 41, 49), 4.0)),
-                ui::btn("🛡️ Modo local", Btn::Secondary, None),
+                .padding([3, 7])
+                .style(theme::solid_box(c.surface2, 6.0)),
             ]
             .spacing(8)
             .align_items(Alignment::Center);
 
-            let telemetry_pill = container(
-                row![
-                    container(Space::new(Length::Fixed(7.0), Length::Fixed(7.0)))
-                        .style(theme::solid_box(c.success, 999.0)),
-                    ui::colored("Processamento local", 11, c.accent).font(BOLD),
-                    text("•").size(11).style(c.muted),
-                    text("Sem envio de arquivos").size(11).style(c.text),
-                ]
-                .spacing(6)
-                .align_items(Alignment::Center),
-            )
-            .padding([5, 12])
-            .style(theme::inner_box);
+            let running_now = self.ctx.jobs.running();
+            let status_btn: Element<'a, Message> = if running_now > 0 {
+                button(
+                    row![
+                        container(Space::new(Length::Fixed(7.0), Length::Fixed(7.0)))
+                            .style(theme::solid_box(c.accent, 999.0)),
+                        ui::colored(
+                            if is_en {
+                                format!("{running_now} task(s) running")
+                            } else {
+                                format!("{running_now} tarefa(s) ativa(s)")
+                            },
+                            11,
+                            c.accent
+                        )
+                        .font(BOLD),
+                    ]
+                    .spacing(6)
+                    .align_items(Alignment::Center),
+                )
+                .padding([6, 12])
+                .style(theme::btn(Btn::Secondary))
+                .on_press(Message::Navigate(Module::Queue))
+                .into()
+            } else {
+                button(
+                    row![
+                        container(Space::new(Length::Fixed(7.0), Length::Fixed(7.0)))
+                            .style(theme::solid_box(c.success, 999.0)),
+                        ui::colored("100% Offline", 11, c.accent).font(BOLD),
+                        text("•").size(11).style(c.muted),
+                        text(if is_en {
+                            "Local Processing"
+                        } else {
+                            "Processamento local"
+                        })
+                        .size(11)
+                        .style(c.text),
+                    ]
+                    .spacing(6)
+                    .align_items(Alignment::Center),
+                )
+                .padding([6, 12])
+                .style(theme::btn(Btn::Secondary))
+                .on_press(Message::Navigate(Module::Settings))
+                .into()
+            };
 
-            if env.width < 960.0 {
+            if env.width < 900.0 {
                 column![
-                    row![brand_tag, ui::fill(), telemetry_pill]
+                    row![brand_tag, ui::fill(), status_btn]
                         .spacing(8)
                         .align_items(Alignment::Center),
-                    search,
+                    search_box,
                 ]
                 .spacing(10)
                 .into()
             } else {
                 row![
                     brand_tag,
-                    Space::with_width(Length::Fixed(12.0)),
-                    search,
+                    container(search_box).width(Length::Fill).max_width(460.0),
                     ui::fill(),
-                    telemetry_pill,
+                    status_btn,
                 ]
                 .spacing(12)
                 .align_items(Alignment::Center)
@@ -975,91 +1048,189 @@ impl AxoloteSuite {
             }
         };
 
-        // Bento Card Principal (Col Span 2): Conversão & Despacho Rápido com Drag & Drop
-        let hero_card = ui::bento_card(
+        let row1_h = wide_grid.then_some(296.0);
+        let row2_h = wide_grid.then_some(268.0);
+        let row3_h = wide_grid.then_some(176.0);
+
+        // 2. Card 1 (Span 2): Conversão & Despacho Rápido
+        let quick_actions: Element<'a, Message> = {
+            let b1 = home_action_btn(
+                if is_en {
+                    "🖼  Convert Images"
+                } else {
+                    "🖼  Converter Imagens"
+                },
+                Btn::Secondary,
+                Some(Message::Navigate(Module::QuickConvert)),
+            );
+            let b2 = home_action_btn(
+                if is_en {
+                    "🎬  Compress Video"
+                } else {
+                    "🎬  Comprimir Vídeo"
+                },
+                Btn::Secondary,
+                Some(Message::Navigate(Module::Video)),
+            );
+            let b3 = home_action_btn(
+                if is_en {
+                    "🎵  Convert Audio"
+                } else {
+                    "🎵  Converter Áudio"
+                },
+                Btn::Secondary,
+                Some(Message::Navigate(Module::Audio)),
+            );
+            if env.narrow() {
+                column![b1, b2, b3].spacing(8).width(Length::Fill).into()
+            } else {
+                row![b1, b2, b3].spacing(8).width(Length::Fill).into()
+            }
+        };
+
+        let hero_card = bento_panel(
             env,
+            row1_h,
             column![
-                // Cabeçalho
                 row![
                     row![
                         container(text("⇄").size(18).font(BOLD).style(c.accent))
                             .padding([6, 10])
-                            .style(theme::solid_box(Color::from_rgb8(31, 31, 38), 8.0)),
+                            .style(theme::solid_box(c.surface2, 8.0)),
                         column![
-                            ui::strong("Conversão & Despacho Rápido", 17),
-                            ui::muted(env, "Processamento local, sem envio dos seus arquivos").size(12),
+                            ui::strong(
+                                if is_en {
+                                    "Quick Convert & Dispatch"
+                                } else {
+                                    "Conversão & Despacho Rápido"
+                                },
+                                16
+                            ),
+                            ui::muted(
+                                env,
+                                if is_en {
+                                    "Local processing without uploading your files"
+                                } else {
+                                    "Processamento local, sem envio dos seus arquivos"
+                                }
+                            )
+                            .size(12),
                         ]
                         .spacing(2),
                     ]
                     .spacing(10)
                     .align_items(Alignment::Center),
                     ui::fill(),
-                    container(text("Conversão local").size(10).font(BOLD).style(c.accent))
+                    container(text("Local").size(10).font(BOLD).style(c.accent))
                         .padding([3, 8])
                         .style(theme::inner_box),
                 ]
                 .align_items(Alignment::Center),
-                Space::with_height(10),
-                // Área Central Interativa de Drag & Drop
-                button(
-                    container(
-                        column![
-                            container(text("☁ ⬆").size(24).style(c.primary))
-                                .padding([12, 16])
-                                .style(theme::solid_box(Color::from_rgb8(31, 25, 48), 999.0)),
-                            ui::strong("Arraste arquivos aqui ou abra uma ferramenta", 15),
-                            ui::muted(
-                                env,
-                                "Imagens, vídeos, áudios e documentos compatíveis com os módulos disponíveis",
-                            )
-                            .size(12),
-                            Space::with_height(8),
-                            // Quick Action Buttons
-                            row![
-                                ui::btn("📹  Comprimir H.265", Btn::Secondary, Some(Message::Navigate(Module::Video))),
-                                ui::btn("🖼  Converter WebP/AVIF", Btn::Secondary, Some(Message::Navigate(Module::QuickConvert))),
-                                ui::btn("🎧  Remover Chiado", Btn::Secondary, Some(Message::Navigate(Module::Audio))),
+                container(
+                    column![
+                        button(
+                            column![
+                                container(text("☁ ⬆").size(22).style(c.primary))
+                                    .padding([10, 14])
+                                    .style(theme::solid_box(c.primary_soft, 999.0)),
+                                ui::strong(
+                                    if is_en {
+                                        "Drop files anywhere or click to open Quick Convert"
+                                    } else {
+                                        "Solte arquivos na janela ou clique para escolher"
+                                    },
+                                    14
+                                ),
+                                ui::muted(
+                                    env,
+                                    if is_en {
+                                        "Images (PNG/JPG/WebP), Docs (TXT/MD/HTML/DOCX/PDF), Video, Audio & ZIP"
+                                    } else {
+                                        "Imagens (PNG/JPG/WebP), Docs (TXT/MD/HTML/DOCX/PDF), Vídeo, Áudio e ZIP"
+                                    },
+                                )
+                                .size(11),
                             ]
-                            .spacing(8),
-                        ]
-                        .spacing(6)
-                        .align_items(Alignment::Center)
-                        .width(Length::Fill),
-                    )
-                    .padding([22, 16])
-                    .width(Length::Fill)
-                    .style(theme::dropzone_box),
+                            .spacing(5)
+                            .align_items(Alignment::Center)
+                            .width(Length::Fill),
+                        )
+                        .padding([10, 12])
+                        .width(Length::Fill)
+                        .style(theme::btn(Btn::Ghost))
+                        .on_press(Message::Navigate(Module::QuickConvert)),
+                        quick_actions,
+                    ]
+                    .spacing(10)
+                    .width(Length::Fill),
                 )
-                .style(theme::btn(Btn::Ghost))
-                .on_press(Message::Navigate(Module::QuickConvert)),
-                Space::with_height(8),
-                // Rodapé do Card
+                .padding([12, 14])
+                .width(Length::Fill)
+                .style(theme::dropzone_box),
+                Space::with_height(Length::Fill),
                 row![
                     row![
                         container(Space::new(Length::Fixed(6.0), Length::Fixed(6.0)))
-                            .style(theme::solid_box(c.success, 999.0)),
-                        ui::muted(env, "Processamento local • FFmpeg para tarefas de mídia").size(11),
+                            .style(theme::solid_box(
+                                if self.video.ffmpeg_ok {
+                                    c.success
+                                } else {
+                                    c.warning
+                                },
+                                999.0
+                            )),
+                        ui::muted(
+                            env,
+                            if self.video.ffmpeg_ok {
+                                if is_en {
+                                    "FFmpeg ready for video & audio"
+                                } else {
+                                    "FFmpeg ativo para vídeo e áudio"
+                                }
+                            } else if is_en {
+                                "FFmpeg auto-downloads on first media task"
+                            } else {
+                                "FFmpeg sob demanda ao converter mídia"
+                            }
+                        )
+                        .size(11),
                     ]
                     .spacing(6)
                     .align_items(Alignment::Center),
                     ui::fill(),
-                    ui::btn("Configurar perfis de exportação ➔", Btn::Ghost, Some(Message::Navigate(Module::QuickConvert))),
+                    home_link_btn(
+                        if is_en {
+                            "Open Converter ➔"
+                        } else {
+                            "Abrir Conversor ➔"
+                        },
+                        Some(Message::Navigate(Module::QuickConvert)),
+                    ),
                 ]
                 .align_items(Alignment::Center),
             ]
-            .spacing(6),
+            .spacing(10)
+            .into(),
         );
 
-        // 4. Card 2: Editor de Imagens
-        let bento_raw = ui::bento_card(
+        // 3. Card 2: Estúdio de Imagens
+        let bento_images = bento_panel(
             env,
+            row1_h,
             column![
                 row![
                     row![
                         container(text("🖼").size(16).style(c.primary))
                             .padding([5, 8])
                             .style(theme::inner_box),
-                        ui::strong("Editor de Imagens", 15),
+                        ui::strong(
+                            if is_en {
+                                "Photo Studio"
+                            } else {
+                                "Estúdio de Imagens"
+                            },
+                            15
+                        ),
                     ]
                     .spacing(8)
                     .align_items(Alignment::Center),
@@ -1069,94 +1240,193 @@ impl AxoloteSuite {
                         .style(theme::inner_box),
                 ]
                 .align_items(Alignment::Center),
-                Space::with_height(8),
-                container(
-                    column![
-                        ui::strong("Ajuste suas imagens", 13),
-                        ui::muted(
-                            env,
-                            "Abra o editor para aplicar ajustes, recortes, filtros e conversões disponíveis."
-                        )
-                        .size(12),
-                        ui::btn(
-                            "Abrir editor de imagens",
-                            Btn::Primary,
-                            Some(Message::Navigate(Module::Images))
-                        ),
-                    ]
-                    .spacing(10),
+                ui::muted(
+                    env,
+                    if is_en {
+                        "Live RGB histogram, light/color adjustments, crop, batch sync and formats."
+                    } else {
+                        "Histograma RGB ao vivo, ajustes de luz/cor, recorte, lote e formatos."
+                    }
                 )
-                .padding(12)
-                .width(Length::Fill)
-                .style(theme::inner_box),
+                .size(12),
+                column![
+                    home_action_btn(
+                        if is_en {
+                            "🎨  Live Photo Developer"
+                        } else {
+                            "🎨  Revelador ao Vivo"
+                        },
+                        Btn::Primary,
+                        Some(Message::QuickLaunchImages(images::Mode::Editor)),
+                    ),
+                    home_action_btn(
+                        if is_en {
+                            "⚡  Batch Sync (Folder)"
+                        } else {
+                            "⚡  Sincronizar em Lote"
+                        },
+                        Btn::Secondary,
+                        Some(Message::QuickLaunchImages(images::Mode::Batch)),
+                    ),
+                    home_action_btn(
+                        if is_en {
+                            "📐  Resize & Convert"
+                        } else {
+                            "📐  Redimensionar & Formatos"
+                        },
+                        Btn::Secondary,
+                        Some(Message::QuickLaunchImages(images::Mode::ConvertResize)),
+                    ),
+                ]
+                .spacing(7)
+                .width(Length::Fill),
+                Space::with_height(Length::Fill),
+                row![
+                    text("PNG • JPG • WebP • ICO").size(10).style(c.muted),
+                    ui::fill(),
+                    home_link_btn(
+                        if is_en { "Open ➔" } else { "Abrir ➔" },
+                        Some(Message::Navigate(Module::Images)),
+                    ),
+                ]
+                .align_items(Alignment::Center),
             ]
-            .spacing(6),
+            .spacing(10)
+            .into(),
         );
 
-        // 5. Card 3: Fila de Operações com dados reais da sessão
+        // 4. Card 3: Fila de Operações (dados reais da sessão)
         let jobs = self.ctx.jobs.all();
         let running_jobs = self.ctx.jobs.running();
-        let mut jobs_list = column![].spacing(8).width(Length::Fill);
+        let finished_jobs = jobs.len().saturating_sub(running_jobs);
+        let mut jobs_list = column![].spacing(7).width(Length::Fill);
 
         if jobs.is_empty() {
             jobs_list = jobs_list.push(
                 container(
-                    ui::muted(
-                        env,
-                        "Nenhuma operação nesta sessão. As tarefas aparecerão aqui quando você usar as ferramentas."
-                    )
-                    .size(12),
+                    column![
+                        ui::strong(
+                            if is_en {
+                                "Queue is idle"
+                            } else {
+                                "Nenhuma operação na sessão"
+                            },
+                            12
+                        ),
+                        ui::muted(
+                            env,
+                            if is_en {
+                                "Background tasks from converter, video, audio, PDF and ZIP appear here."
+                            } else {
+                                "Tarefas do conversor, vídeo, áudio, PDF e ZIP aparecerão aqui em tempo real."
+                            }
+                        )
+                        .size(11),
+                    ]
+                    .spacing(4),
                 )
                 .padding(12)
                 .width(Length::Fill)
                 .style(theme::inner_box),
             );
         } else {
-            for job in jobs.iter().take(3) {
+            for job in jobs.iter().take(2) {
                 let (status, status_color) = match job.status {
-                    crate::core::jobs::JobStatus::Running => ("Em andamento", c.accent),
-                    crate::core::jobs::JobStatus::Done => ("Concluída", c.success),
-                    crate::core::jobs::JobStatus::Failed => ("Falhou", c.danger),
+                    crate::core::jobs::JobStatus::Running => {
+                        (if is_en { "Running" } else { "Em andamento" }, c.accent)
+                    }
+                    crate::core::jobs::JobStatus::Done => {
+                        (if is_en { "Done" } else { "Concluída" }, c.success)
+                    }
+                    crate::core::jobs::JobStatus::Failed => {
+                        (if is_en { "Failed" } else { "Falhou" }, c.danger)
+                    }
                 };
+                let time_info = match job.elapsed {
+                    Some(d) => format_duration_short(d),
+                    None => job.started_at.clone(),
+                };
+                let detail = truncate_label(&format!("{} • {}", job.module, job.message), 38);
 
-                let item = container(
-                    row![
+                jobs_list = jobs_list.push(
+                    container(
                         column![
-                            ui::strong(job.title.as_str(), 12),
-                            text(format!("{} • {}", job.module, job.message))
-                                .size(10)
-                                .style(c.muted),
+                            row![
+                                ui::strong(truncate_label(&job.title, 24), 12).width(Length::Fill),
+                                ui::badge(status, status_color),
+                            ]
+                            .spacing(6)
+                            .align_items(Alignment::Center),
+                            row![
+                                text(detail).size(10).style(c.muted).width(Length::Fill),
+                                text(time_info).size(10).style(c.muted),
+                            ]
+                            .spacing(6)
+                            .align_items(Alignment::Center),
                         ]
-                        .spacing(3)
-                        .width(Length::Fill),
-                        ui::badge(status, status_color),
-                    ]
-                    .spacing(8)
-                    .align_items(Alignment::Center),
-                )
-                .padding(9)
-                .width(Length::Fill)
-                .style(theme::inner_box);
-
-                jobs_list = jobs_list.push(item);
+                        .spacing(3),
+                    )
+                    .padding([8, 10])
+                    .width(Length::Fill)
+                    .style(theme::inner_box),
+                );
+            }
+            if jobs.len() > 2 {
+                jobs_list = jobs_list.push(
+                    ui::muted(
+                        env,
+                        if is_en {
+                            format!("+{} more task(s) in queue", jobs.len() - 2)
+                        } else {
+                            format!("+{} operação(ões) na fila", jobs.len() - 2)
+                        },
+                    )
+                    .size(10),
+                );
             }
         }
 
-        let bento_render = ui::bento_card(
+        let queue_badge_text = if running_jobs > 0 {
+            if is_en {
+                format!("{running_jobs} active")
+            } else {
+                format!("{running_jobs} ativa(s)")
+            }
+        } else if !jobs.is_empty() {
+            if is_en {
+                format!("{} logged", jobs.len())
+            } else {
+                format!("{} registrada(s)", jobs.len())
+            }
+        } else if is_en {
+            "Idle".to_string()
+        } else {
+            "Livre".to_string()
+        };
+
+        let bento_queue = bento_panel(
             env,
+            row1_h,
             column![
                 row![
                     row![
                         container(text("⚡").size(16).style(c.success))
                             .padding([5, 8])
                             .style(theme::inner_box),
-                        ui::strong("Fila de Operações", 15),
+                        ui::strong(
+                            if is_en {
+                                "Tasks Queue"
+                            } else {
+                                "Fila de Operações"
+                            },
+                            15
+                        ),
                     ]
                     .spacing(8)
                     .align_items(Alignment::Center),
                     ui::fill(),
                     ui::badge(
-                        format!("{} ativa(s)", running_jobs),
+                        queue_badge_text,
                         if running_jobs == 0 {
                             c.success
                         } else {
@@ -1166,30 +1436,59 @@ impl AxoloteSuite {
                 ]
                 .align_items(Alignment::Center),
                 jobs_list,
+                Space::with_height(Length::Fill),
                 row![
-                    ui::muted(env, "Status atualizado pela sessão atual").size(10),
+                    if finished_jobs > 0 {
+                        home_link_btn(
+                            if is_en { "Clear done" } else { "Limpar" },
+                            Some(Message::Queue(queue::Msg::ClearFinished)),
+                        )
+                    } else {
+                        ui::muted(
+                            env,
+                            if is_en {
+                                "Current session"
+                            } else {
+                                "Sessão atual"
+                            },
+                        )
+                        .size(10)
+                        .into()
+                    },
                     ui::fill(),
-                    ui::btn(
-                        "Abrir fila ➔",
-                        Btn::Ghost,
-                        Some(Message::Navigate(Module::Queue))
+                    home_link_btn(
+                        if is_en {
+                            "Open queue ➔"
+                        } else {
+                            "Abrir fila ➔"
+                        },
+                        Some(Message::Navigate(Module::Queue)),
                     ),
                 ]
                 .align_items(Alignment::Center),
             ]
-            .spacing(8),
+            .spacing(10)
+            .into(),
         );
 
-        // 6. Card 4: Segurança & Hash
-        let bento_sec = ui::bento_card(
+        // 5. Card 4: Cores & Senhas (DevTools)
+        let bento_colors_pass = bento_panel(
             env,
+            row2_h,
             column![
                 row![
                     row![
-                        container(text("🔐").size(16).style(c.primary))
+                        container(text("🎨").size(16).style(c.primary))
                             .padding([5, 8])
                             .style(theme::inner_box),
-                        ui::strong("Segurança & Hash", 15),
+                        ui::strong(
+                            if is_en {
+                                "Colors & Passwords"
+                            } else {
+                                "Cores & Senhas"
+                            },
+                            15
+                        ),
                     ]
                     .spacing(8)
                     .align_items(Alignment::Center),
@@ -1199,33 +1498,62 @@ impl AxoloteSuite {
                         .style(theme::inner_box),
                 ]
                 .align_items(Alignment::Center),
-                Space::with_height(8),
-                container(
-                    column![
-                        ui::strong("Senhas, hashes e UUIDs", 13),
-                        ui::muted(
-                            env,
-                            "Gere valores no momento do uso. O painel não exibe senhas fictícias como se fossem credenciais reais."
-                        )
-                        .size(12),
-                        ui::btn(
-                            "Abrir ferramentas de segurança",
-                            Btn::Primary,
-                            Some(Message::Navigate(Module::DevTools))
-                        ),
-                    ]
-                    .spacing(10),
+                ui::muted(
+                    env,
+                    if is_en {
+                        "HEX/RGB/HSL/CMYK converter, photo palette picker, strong passwords and UUID v4."
+                    } else {
+                        "Conversor HEX/RGB/HSL/CMYK, paleta de fotos, senhas fortes e UUID v4."
+                    }
                 )
-                .padding(12)
-                .width(Length::Fill)
-                .style(theme::inner_box),
+                .size(12),
+                column![
+                    home_action_btn(
+                        if is_en {
+                            "🔐  Passwords & UUID v4"
+                        } else {
+                            "🔐  Senhas Fortes & UUID"
+                        },
+                        Btn::Primary,
+                        Some(Message::QuickLaunchDevTools(devtools::Tab::Passwords)),
+                    ),
+                    home_action_btn(
+                        if is_en {
+                            "🎨  Colors & Photo Palette"
+                        } else {
+                            "🎨  Cores & Paleta de Foto"
+                        },
+                        Btn::Secondary,
+                        Some(Message::QuickLaunchDevTools(devtools::Tab::Colors)),
+                    ),
+                ]
+                .spacing(7)
+                .width(Length::Fill),
+                Space::with_height(Length::Fill),
+                row![
+                    text(if is_en {
+                        "Generated on demand"
+                    } else {
+                        "Gerado sob demanda"
+                    })
+                    .size(10)
+                    .style(c.muted),
+                    ui::fill(),
+                    home_link_btn(
+                        if is_en { "Open ➔" } else { "Abrir ➔" },
+                        Some(Message::Navigate(Module::DevTools)),
+                    ),
+                ]
+                .align_items(Alignment::Center),
             ]
-            .spacing(6),
+            .spacing(10)
+            .into(),
         );
 
-        // 7. Card 5: PDF & Docs
-        let bento_pdf = ui::bento_card(
+        // 6. Card 5: PDF & Docs
+        let bento_pdf = bento_panel(
             env,
+            row2_h,
             column![
                 row![
                     row![
@@ -1242,86 +1570,129 @@ impl AxoloteSuite {
                         .style(theme::inner_box),
                 ]
                 .align_items(Alignment::Center),
-                Space::with_height(6),
                 row![
                     button(
                         container(
                             column![
-                                text("⤹").size(20).style(c.accent),
-                                ui::strong("Mesclar", 12),
-                                text("PDFs em lote").size(10).style(c.muted),
+                                text("🔗").size(18).style(c.accent),
+                                ui::strong(if is_en { "Merge" } else { "Unir" }, 12),
+                                text(if is_en { "Order PDFs" } else { "Juntar PDFs" })
+                                    .size(10)
+                                    .style(c.muted),
                             ]
                             .spacing(2)
                             .align_items(Alignment::Center),
                         )
-                        .padding([12, 10])
+                        .padding([10, 8])
                         .width(Length::Fill)
                         .style(theme::inner_box),
                     )
+                    .width(Length::FillPortion(1))
                     .style(theme::btn(Btn::Ghost))
-                    .on_press(Message::Navigate(Module::Pdf)),
+                    .on_press(Message::QuickLaunchPdf(pdf::Mode::Merge)),
                     button(
                         container(
                             column![
-                                text("🗜").size(20).style(c.success),
-                                ui::strong("Dividir", 12),
-                                text("Páginas e intervalos").size(10).style(c.muted),
+                                text("✂").size(18).style(c.success),
+                                ui::strong(if is_en { "Split" } else { "Dividir" }, 12),
+                                text(if is_en {
+                                    "Page ranges"
+                                } else {
+                                    "Páginas/trechos"
+                                })
+                                .size(10)
+                                .style(c.muted),
                             ]
                             .spacing(2)
                             .align_items(Alignment::Center),
                         )
-                        .padding([12, 10])
+                        .padding([10, 8])
                         .width(Length::Fill)
                         .style(theme::inner_box),
                     )
+                    .width(Length::FillPortion(1))
                     .style(theme::btn(Btn::Ghost))
-                    .on_press(Message::Navigate(Module::Pdf)),
+                    .on_press(Message::QuickLaunchPdf(pdf::Mode::Split)),
                 ]
-                .spacing(8),
-                Space::with_height(6),
+                .spacing(8)
+                .width(Length::Fill),
+                ui::muted(
+                    env,
+                    if is_en {
+                        "Inspect document pages and metadata without modifying original files."
+                    } else {
+                        "Inspecione páginas e metadados sem alterar os arquivos originais."
+                    }
+                )
+                .size(11),
+                Space::with_height(Length::Fill),
                 row![
-                    text("Mesclar • dividir • inspecionar")
-                        .size(11)
-                        .style(c.muted),
+                    text(if is_en {
+                        "Merge • Split • Inspect"
+                    } else {
+                        "Unir • Dividir • Inspecionar"
+                    })
+                    .size(10)
+                    .style(c.muted),
                     ui::fill(),
-                    ui::btn(
-                        "Abrir Central ➔",
-                        Btn::Ghost,
-                        Some(Message::Navigate(Module::Pdf))
+                    home_link_btn(
+                        if is_en {
+                            "Open Hub ➔"
+                        } else {
+                            "Abrir Central ➔"
+                        },
+                        Some(Message::Navigate(Module::Pdf)),
                     ),
                 ]
                 .align_items(Alignment::Center),
             ]
-            .spacing(4),
+            .spacing(10)
+            .into(),
         );
 
+        // 7. Card 6 (Span 2): Atalhos & Atividade Recente (Histórico real)
         let recent_activity: Element<'a, Message> = {
             let entries = self.ctx.history.entries();
             if entries.is_empty() {
                 container(
-                    ui::muted(env, "Nenhuma atividade registrada ainda. As operações concluídas aparecerão aqui.")
-                        .size(11),
+                    ui::muted(
+                        env,
+                        if is_en {
+                            "No activity recorded yet. Completed operations appear here."
+                        } else {
+                            "Nenhuma atividade registrada ainda. As operações concluídas aparecerão aqui."
+                        },
+                    )
+                    .size(11),
                 )
-                .padding([8, 10])
+                .padding([10, 12])
                 .width(Length::Fill)
                 .style(theme::inner_box)
                 .into()
             } else {
                 let mut rows = column![].spacing(6).width(Length::Fill);
-                for entry in entries.iter().take(3) {
+                for entry in entries.iter().take(2) {
                     let (status, status_color) = if entry.success {
-                        ("Concluída", c.success)
+                        (if is_en { "Done" } else { "Concluída" }, c.success)
                     } else {
-                        ("Falhou", c.danger)
+                        (if is_en { "Failed" } else { "Falhou" }, c.danger)
+                    };
+                    let subtitle = if entry.details.trim().is_empty()
+                        || entry.details.trim() == entry.action.trim()
+                    {
+                        format!("{} • {}", entry.module, entry.timestamp)
+                    } else {
+                        truncate_label(
+                            &format!("{} • {} • {}", entry.module, entry.details, entry.timestamp),
+                            62,
+                        )
                     };
                     rows = rows.push(
                         container(
                             row![
                                 column![
-                                    ui::strong(entry.action.as_str(), 11),
-                                    text(format!("{} • {}", entry.module, entry.timestamp))
-                                        .size(10)
-                                        .style(c.muted),
+                                    ui::strong(truncate_label(&entry.action, 44), 11),
+                                    text(subtitle).size(10).style(c.muted),
                                 ]
                                 .spacing(2)
                                 .width(Length::Fill),
@@ -1339,226 +1710,342 @@ impl AxoloteSuite {
             }
         };
 
-        // 8. Card 6 (Col Span 2): Acesso rápido às ferramentas & Auditoria
-        let shortcuts_ribbon: Element<'a, Message> = if env.narrow() {
-            column![
-                row![
-                    button(
-                        container(
-                            row![
-                                text("Paleta").size(11).style(c.muted),
-                                ui::fill(),
-                                container(text("Abrir").size(10).font(BOLD).style(c.primary))
-                                    .padding([2, 6])
-                                    .style(theme::solid_box(Color::from_rgb8(31, 31, 38), 4.0)),
-                            ]
-                            .align_items(Alignment::Center),
-                        )
-                        .padding([6, 10])
-                        .width(Length::Fill)
-                        .style(theme::inner_box),
-                    )
-                    .width(Length::FillPortion(1))
-                    .style(theme::btn(Btn::Ghost))
-                    .on_press(Message::Navigate(Module::DevTools)),
-                    button(
-                        container(
-                            row![
-                                text("Conversor").size(11).style(c.muted),
-                                ui::fill(),
-                                container(text("Abrir").size(10).font(BOLD).style(c.accent))
-                                    .padding([2, 6])
-                                    .style(theme::solid_box(Color::from_rgb8(31, 31, 38), 4.0)),
-                            ]
-                            .align_items(Alignment::Center),
-                        )
-                        .padding([6, 10])
-                        .width(Length::Fill)
-                        .style(theme::inner_box),
-                    )
-                    .width(Length::FillPortion(1))
-                    .style(theme::btn(Btn::Ghost))
-                    .on_press(Message::Navigate(Module::QuickConvert)),
+        let quick_tiles: Element<'a, Message> = {
+            let t1 = quick_nav_tile(
+                env,
+                if is_en { "Quick Convert" } else { "Conversor" },
+                if is_en { "Open" } else { "Abrir" },
+                c.accent,
+                Message::Navigate(Module::QuickConvert),
+            );
+            let t2 = quick_nav_tile(
+                env,
+                if is_en { "Photos" } else { "Imagens" },
+                if is_en { "Open" } else { "Abrir" },
+                c.primary,
+                Message::Navigate(Module::Images),
+            );
+            let t3 = quick_nav_tile(
+                env,
+                if is_en { "Calculator" } else { "Calculadora" },
+                if is_en { "Open" } else { "Abrir" },
+                c.primary,
+                Message::Navigate(Module::Calculator),
+            );
+            let t4 = quick_nav_tile(
+                env,
+                if is_en { "Queue" } else { "Fila" },
+                if is_en { "Open" } else { "Abrir" },
+                c.success,
+                Message::Navigate(Module::Queue),
+            );
+            if env.narrow() {
+                column![
+                    row![t1, t2].spacing(8).width(Length::Fill),
+                    row![t3, t4].spacing(8).width(Length::Fill),
                 ]
-                .spacing(8),
-                row![
-                    button(
-                        container(
-                            row![
-                                text("Revelador").size(11).style(c.muted),
-                                ui::fill(),
-                                container(text("Abrir").size(10).font(BOLD).style(c.primary))
-                                    .padding([2, 6])
-                                    .style(theme::solid_box(Color::from_rgb8(31, 31, 38), 4.0)),
-                            ]
-                            .align_items(Alignment::Center),
-                        )
-                        .padding([6, 10])
-                        .width(Length::Fill)
-                        .style(theme::inner_box),
-                    )
-                    .width(Length::FillPortion(1))
-                    .style(theme::btn(Btn::Ghost))
-                    .on_press(Message::Navigate(Module::Images)),
-                    button(
-                        container(
-                            row![
-                                text("Fila Tasks").size(11).style(c.muted),
-                                ui::fill(),
-                                container(text("Abrir").size(10).font(BOLD).style(c.success))
-                                    .padding([2, 6])
-                                    .style(theme::solid_box(Color::from_rgb8(31, 31, 38), 4.0)),
-                            ]
-                            .align_items(Alignment::Center),
-                        )
-                        .padding([6, 10])
-                        .width(Length::Fill)
-                        .style(theme::inner_box),
-                    )
-                    .width(Length::FillPortion(1))
-                    .style(theme::btn(Btn::Ghost))
-                    .on_press(Message::Navigate(Module::Queue)),
-                ]
-                .spacing(8),
-            ]
-            .spacing(8)
-            .width(Length::Fill)
-            .into()
-        } else {
-            row![
-                button(
-                    container(
-                        row![
-                            text("Paleta").size(11).style(c.muted),
-                            ui::fill(),
-                            container(text("Abrir").size(10).font(BOLD).style(c.primary))
-                                .padding([2, 6])
-                                .style(theme::solid_box(Color::from_rgb8(31, 31, 38), 4.0)),
-                        ]
-                        .align_items(Alignment::Center),
-                    )
-                    .padding([6, 10])
-                    .width(Length::Fill)
-                    .style(theme::inner_box),
-                )
-                .width(Length::FillPortion(1))
-                .style(theme::btn(Btn::Ghost))
-                .on_press(Message::Navigate(Module::DevTools)),
-                button(
-                    container(
-                        row![
-                            text("Conversor").size(11).style(c.muted),
-                            ui::fill(),
-                            container(text("Abrir").size(10).font(BOLD).style(c.accent))
-                                .padding([2, 6])
-                                .style(theme::solid_box(Color::from_rgb8(31, 31, 38), 4.0)),
-                        ]
-                        .align_items(Alignment::Center),
-                    )
-                    .padding([6, 10])
-                    .width(Length::Fill)
-                    .style(theme::inner_box),
-                )
-                .width(Length::FillPortion(1))
-                .style(theme::btn(Btn::Ghost))
-                .on_press(Message::Navigate(Module::QuickConvert)),
-                button(
-                    container(
-                        row![
-                            text("Revelador").size(11).style(c.muted),
-                            ui::fill(),
-                            container(text("Abrir").size(10).font(BOLD).style(c.primary))
-                                .padding([2, 6])
-                                .style(theme::solid_box(Color::from_rgb8(31, 31, 38), 4.0)),
-                        ]
-                        .align_items(Alignment::Center),
-                    )
-                    .padding([6, 10])
-                    .width(Length::Fill)
-                    .style(theme::inner_box),
-                )
-                .width(Length::FillPortion(1))
-                .style(theme::btn(Btn::Ghost))
-                .on_press(Message::Navigate(Module::Images)),
-                button(
-                    container(
-                        row![
-                            text("Fila Tasks").size(11).style(c.muted),
-                            ui::fill(),
-                            container(text("Abrir").size(10).font(BOLD).style(c.success))
-                                .padding([2, 6])
-                                .style(theme::solid_box(Color::from_rgb8(31, 31, 38), 4.0)),
-                        ]
-                        .align_items(Alignment::Center),
-                    )
-                    .padding([6, 10])
-                    .width(Length::Fill)
-                    .style(theme::inner_box),
-                )
-                .width(Length::FillPortion(1))
-                .style(theme::btn(Btn::Ghost))
-                .on_press(Message::Navigate(Module::Queue)),
-            ]
-            .spacing(8)
-            .width(Length::Fill)
-            .into()
+                .spacing(8)
+                .width(Length::Fill)
+                .into()
+            } else {
+                row![t1, t2, t3, t4].spacing(8).width(Length::Fill).into()
+            }
         };
 
-        let bento_shortcuts = ui::bento_card(
+        let bento_shortcuts = bento_panel(
             env,
+            row2_h,
             column![
                 row![
                     row![
-                        container(text("⌨").size(16).style(c.primary))
+                        container(text("🕒").size(16).style(c.primary))
                             .padding([5, 8])
                             .style(theme::inner_box),
-                        ui::strong("Atalhos Globais do Sistema", 15),
+                        ui::strong(
+                            if is_en {
+                                "Shortcuts & Recent Activity"
+                            } else {
+                                "Atalhos & Atividade Recente"
+                            },
+                            15
+                        ),
                     ]
                     .spacing(8)
                     .align_items(Alignment::Center),
                     ui::fill(),
-                    container(text("Navegação rápida").size(10).style(c.muted))
+                    container(text("Ctrl + Alt + N").size(10).font(BOLD).style(c.accent))
+                        .padding([3, 7])
+                        .style(theme::inner_box),
+                ]
+                .align_items(Alignment::Center),
+                quick_tiles,
+                row![
+                    text(if is_en {
+                        "Recent history"
+                    } else {
+                        "Histórico recente"
+                    })
+                    .size(11)
+                    .style(c.muted),
+                    ui::fill(),
+                    home_link_btn(
+                        if is_en {
+                            "Full history ➔"
+                        } else {
+                            "Ver histórico completo ➔"
+                        },
+                        Some(Message::Navigate(Module::History)),
+                    ),
+                ]
+                .align_items(Alignment::Center),
+                recent_activity,
+            ]
+            .spacing(8)
+            .into(),
+        );
+
+        // 8. Linha 3: Demais módulos reais da suíte (Vídeo/Áudio, ZIP/Lote, Produtividade/Calculadora)
+        let bento_media = bento_panel(
+            env,
+            row3_h,
+            column![
+                row![
+                    row![
+                        container(text("🎬").size(15).style(c.primary))
+                            .padding([4, 7])
+                            .style(theme::inner_box),
+                        ui::strong(
+                            if is_en {
+                                "Video & Audio"
+                            } else {
+                                "Vídeo & Áudio"
+                            },
+                            14
+                        ),
+                    ]
+                    .spacing(8)
+                    .align_items(Alignment::Center),
+                    ui::fill(),
+                    ui::badge(
+                        if self.video.ffmpeg_ok {
+                            if is_en {
+                                "FFmpeg ready"
+                            } else {
+                                "FFmpeg ativo"
+                            }
+                        } else if is_en {
+                            "FFmpeg on demand"
+                        } else {
+                            "FFmpeg sob demanda"
+                        },
+                        if self.video.ffmpeg_ok {
+                            c.success
+                        } else {
+                            c.warning
+                        },
+                    ),
+                ]
+                .align_items(Alignment::Center),
+                ui::muted(
+                    env,
+                    if is_en {
+                        "Trim clips, 9:16/16:9 framing, CRF compression, audio extraction and bitrate."
+                    } else {
+                        "Corte na linha do tempo, 9:16/16:9, compressão CRF, extração e bitrate de áudio."
+                    }
+                )
+                .size(11),
+                Space::with_height(Length::Fill),
+                row![
+                    home_action_btn(
+                        if is_en {
+                            "🎬  Video Studio"
+                        } else {
+                            "🎬  Vídeos"
+                        },
+                        Btn::Secondary,
+                        Some(Message::Navigate(Module::Video)),
+                    ),
+                    home_action_btn(
+                        if is_en {
+                            "🎵  Audio Studio"
+                        } else {
+                            "🎵  Áudio"
+                        },
+                        Btn::Secondary,
+                        Some(Message::Navigate(Module::Audio)),
+                    ),
+                ]
+                .spacing(8)
+                .width(Length::Fill),
+            ]
+            .spacing(8)
+            .into(),
+        );
+
+        let bento_files = bento_panel(
+            env,
+            row3_h,
+            column![
+                row![
+                    row![
+                        container(text("🗜").size(15).style(c.accent))
+                            .padding([4, 7])
+                            .style(theme::inner_box),
+                        ui::strong(
+                            if is_en {
+                                "ZIP & Batch Files"
+                            } else {
+                                "ZIP & Arquivos em Lote"
+                            },
+                            14
+                        ),
+                    ]
+                    .spacing(8)
+                    .align_items(Alignment::Center),
+                    ui::fill(),
+                    container(text("Anti Zip-Slip").size(10).style(c.success))
                         .padding([2, 6])
                         .style(theme::inner_box),
                 ]
                 .align_items(Alignment::Center),
-                Space::with_height(6),
-                column![
-                    shortcuts_ribbon,
-                    Space::with_height(6),
-                    row![
-                        text("Atividade recente").size(11).style(c.muted),
-                        ui::fill(),
-                        ui::btn(
-                            "Ver histórico completo",
-                            Btn::Ghost,
-                            Some(Message::Navigate(Module::History))
-                        ),
-                    ]
-                    .align_items(Alignment::Center),
-                    recent_activity,
+                ui::muted(
+                    env,
+                    if is_en {
+                        "Compress folders, extract ZIP archives safely, and bulk rename files with preview."
+                    } else {
+                        "Compacte pastas, extraia ZIPs com segurança e renomeie arquivos com pré-visualização."
+                    }
+                )
+                .size(11),
+                Space::with_height(Length::Fill),
+                row![
+                    home_action_btn(
+                        if is_en {
+                            "🗜  ZIP Archiver"
+                        } else {
+                            "🗜  ZIP"
+                        },
+                        Btn::Secondary,
+                        Some(Message::QuickLaunchZip(zip::Mode::Extract)),
+                    ),
+                    home_action_btn(
+                        if is_en {
+                            "📁  Batch Rename"
+                        } else {
+                            "📁  Renomear Lote"
+                        },
+                        Btn::Secondary,
+                        Some(Message::Navigate(Module::BatchRename)),
+                    ),
                 ]
-                .spacing(4),
+                .spacing(8)
+                .width(Length::Fill),
             ]
-            .spacing(4),
+            .spacing(8)
+            .into(),
         );
 
-        // Grid Bento Responsivo Inteligente
-        let bento_grid: Element<'a, Message> = if env.is_desktop_wide() {
-            // Desktop Amplo (>= 1180px): Layout completo de 4 colunas como no Stitch
+        let notes_count = self.productivity.notes.len();
+        let pending_tasks = self.productivity.pending_tasks();
+        let bento_productivity = bento_panel(
+            env,
+            row3_h,
             column![
-                // Linha 1: Hero (Col Span 2) + Revelador RAW (1 Col) + Fila de Render (1 Col)
+                row![
+                    row![
+                        container(text("📋").size(15).style(c.primary))
+                            .padding([4, 7])
+                            .style(theme::inner_box),
+                        ui::strong(
+                            if is_en {
+                                "Productivity & Calc"
+                            } else {
+                                "Produtividade & Calc"
+                            },
+                            14
+                        ),
+                    ]
+                    .spacing(8)
+                    .align_items(Alignment::Center),
+                    ui::fill(),
+                    ui::badge(
+                        if is_en {
+                            format!("{notes_count} note(s) • {pending_tasks} pending")
+                        } else {
+                            format!("{notes_count} nota(s) • {pending_tasks} tarefa(s)")
+                        },
+                        c.primary,
+                    ),
+                ]
+                .align_items(Alignment::Center),
+                Space::with_height(Length::Fill),
+                column![
+                    row![
+                        home_action_btn(
+                            if is_en { "📝  Notes" } else { "📝  Notas" },
+                            Btn::Secondary,
+                            Some(Message::QuickLaunchProductivity(productivity::Tab::Notes)),
+                        ),
+                        home_action_btn(
+                            if is_en { "☑  Tasks" } else { "☑  Tarefas" },
+                            Btn::Secondary,
+                            Some(Message::QuickLaunchProductivity(productivity::Tab::Tasks)),
+                        ),
+                    ]
+                    .spacing(6)
+                    .width(Length::Fill),
+                    row![
+                        home_action_btn(
+                            if is_en {
+                                "🖩  Calculator"
+                            } else {
+                                "🖩  Calculadora"
+                            },
+                            Btn::Secondary,
+                            Some(Message::QuickLaunchProductivity(productivity::Tab::Calc)),
+                        ),
+                        home_action_btn(
+                            if is_en {
+                                "🗂  Organizer"
+                            } else {
+                                "🗂  Organizar"
+                            },
+                            Btn::Secondary,
+                            Some(Message::QuickLaunchProductivity(
+                                productivity::Tab::Organizer
+                            )),
+                        ),
+                    ]
+                    .spacing(6)
+                    .width(Length::Fill),
+                ]
+                .spacing(6)
+                .width(Length::Fill),
+            ]
+            .spacing(8)
+            .into(),
+        );
+
+        // Grid Bento Responsivo
+        let bento_grid: Element<'a, Message> = if wide_grid {
+            column![
                 row![
                     container(hero_card).width(Length::FillPortion(2)),
-                    container(bento_raw).width(Length::FillPortion(1)),
-                    container(bento_render).width(Length::FillPortion(1)),
+                    container(bento_images).width(Length::FillPortion(1)),
+                    container(bento_queue).width(Length::FillPortion(1)),
                 ]
                 .spacing(14),
-                // Linha 2: Segurança & Hash (1 Col) + PDF & Docs (1 Col) + Atalhos Globais (Col Span 2)
                 row![
-                    container(bento_sec).width(Length::FillPortion(1)),
+                    container(bento_colors_pass).width(Length::FillPortion(1)),
                     container(bento_pdf).width(Length::FillPortion(1)),
                     container(bento_shortcuts).width(Length::FillPortion(2)),
+                ]
+                .spacing(14),
+                row![
+                    container(bento_media).width(Length::FillPortion(1)),
+                    container(bento_files).width(Length::FillPortion(1)),
+                    container(bento_productivity).width(Length::FillPortion(1)),
                 ]
                 .spacing(14),
             ]
@@ -1566,37 +2053,40 @@ impl AxoloteSuite {
             .width(Length::Fill)
             .into()
         } else if env.is_medium() {
-            // Telas Médias (680px - 1180px): Layout organizado em 2 colunas perfeitamente equilibradas
             column![
-                // Hero ocupa largura total
                 hero_card,
-                // Linha 2: Revelador RAW (50%) + Fila de Render (50%)
                 row![
-                    container(bento_raw).width(Length::FillPortion(1)),
-                    container(bento_render).width(Length::FillPortion(1)),
+                    container(bento_images).width(Length::FillPortion(1)),
+                    container(bento_queue).width(Length::FillPortion(1)),
                 ]
                 .spacing(14),
-                // Linha 3: Segurança (50%) + PDF & Docs (50%)
                 row![
-                    container(bento_sec).width(Length::FillPortion(1)),
+                    container(bento_colors_pass).width(Length::FillPortion(1)),
                     container(bento_pdf).width(Length::FillPortion(1)),
                 ]
                 .spacing(14),
-                // Atalhos ocupa largura total
                 bento_shortcuts,
+                row![
+                    container(bento_media).width(Length::FillPortion(1)),
+                    container(bento_files).width(Length::FillPortion(1)),
+                ]
+                .spacing(14),
+                bento_productivity,
             ]
             .spacing(14)
             .width(Length::Fill)
             .into()
         } else {
-            // Telas Pequenas (< 680px): Coluna única limpa
             column![
                 hero_card,
-                bento_raw,
-                bento_render,
-                bento_sec,
+                bento_images,
+                bento_queue,
+                bento_colors_pass,
                 bento_pdf,
                 bento_shortcuts,
+                bento_media,
+                bento_files,
+                bento_productivity,
             ]
             .spacing(14)
             .width(Length::Fill)
@@ -1611,118 +2101,251 @@ impl AxoloteSuite {
         ui::page(env, vec![top_bar, bento_grid])
     }
 
+    fn open_search_target(&mut self, module: Module, raw_query: &str) {
+        let q = normalize_search(raw_query);
+        match module {
+            Module::Calculator => {
+                self.productivity.tab = productivity::Tab::Calc;
+                self.active = Module::Calculator;
+            }
+            Module::Productivity => {
+                if q.contains("tarefa")
+                    || q.contains("task")
+                    || q.contains("checklist")
+                    || q.contains("todo")
+                {
+                    self.productivity.tab = productivity::Tab::Tasks;
+                } else if q.contains("organiz") || q.contains("pasta") || q.contains("folder") {
+                    self.productivity.tab = productivity::Tab::Organizer;
+                } else {
+                    self.productivity.tab = productivity::Tab::Notes;
+                }
+                self.active = Module::Productivity;
+            }
+            Module::DevTools => {
+                if q.contains("senha")
+                    || q.contains("password")
+                    || q.contains("uuid")
+                    || q.contains("entrop")
+                {
+                    self.devtools.tab = devtools::Tab::Passwords;
+                } else if q.contains("cor")
+                    || q.contains("color")
+                    || q.contains("paleta")
+                    || q.contains("palette")
+                    || q.contains("hex")
+                    || q.contains("rgb")
+                    || q.contains("hsl")
+                    || q.contains("cmyk")
+                {
+                    self.devtools.tab = devtools::Tab::Colors;
+                }
+                self.active = Module::DevTools;
+            }
+            Module::Pdf => {
+                if q.contains("divid")
+                    || q.contains("split")
+                    || q.contains("pagina")
+                    || q.contains("extrair")
+                {
+                    self.pdf.mode = pdf::Mode::Split;
+                } else if q.contains("unir")
+                    || q.contains("juntar")
+                    || q.contains("mesclar")
+                    || q.contains("merge")
+                {
+                    self.pdf.mode = pdf::Mode::Merge;
+                }
+                self.active = Module::Pdf;
+            }
+            Module::Images => {
+                if q.contains("lote") || q.contains("batch") {
+                    self.images.mode = images::Mode::Batch;
+                } else if q.contains("redimensionar")
+                    || q.contains("resize")
+                    || q.contains("comprimir")
+                    || q.contains("ico")
+                {
+                    self.images.mode = images::Mode::ConvertResize;
+                } else {
+                    self.images.mode = images::Mode::Editor;
+                }
+                self.active = Module::Images;
+            }
+            Module::Zip => {
+                if q.contains("criar")
+                    || q.contains("compact")
+                    || q.contains("create")
+                    || q.contains("compress")
+                {
+                    self.zip.mode = zip::Mode::Create;
+                } else if q.contains("extrair") || q.contains("descompact") || q.contains("extract")
+                {
+                    self.zip.mode = zip::Mode::Extract;
+                }
+                self.active = Module::Zip;
+            }
+            other => {
+                self.active = other;
+            }
+        }
+        self.home_search.clear();
+        self.nav_pulse = 1.0;
+        self.last_tick = Some(Instant::now());
+    }
+
     fn search_matches(&self, query: &str) -> Vec<(Module, &'static str, &'static str)> {
         let q = normalize_search(query);
+        let terms: Vec<&str> = q.split_whitespace().collect();
+        if terms.is_empty() {
+            return Vec::new();
+        }
         let all_tools: &[(Module, &[&str], &str, &str)] = &[
             (
                 Module::QuickConvert,
-                &["converter", "conversor", "webp", "png", "jpg", "jpeg", "avif", "mp4", "mkv", "mp3", "wav", "flac", "pdf", "docx", "txt", "csv", "quick convert", "transcode", "formato", "formatos", "drag", "drop"],
-                "Conversão e transcodificação rápida de imagem, vídeo, áudio e texto.",
-                "Quick file conversion for images, videos, audio, and documents.",
+                &["converter", "conversor", "webp", "png", "jpg", "jpeg", "bmp", "gif", "tiff", "ico", "mp4", "mkv", "webm", "avi", "mov", "mp3", "wav", "flac", "ogg", "aac", "m4a", "pdf", "docx", "html", "markdown", "md", "txt", "zip", "extrair", "quick convert", "formato", "formatos", "drag", "drop", "arrastar"],
+                "Conversão rápida em 1 clique para imagens, documentos (TXT/MD/HTML/DOCX/PDF), vídeo, áudio e ZIP.",
+                "Quick 1-click conversion for images, documents (TXT/MD/HTML/DOCX/PDF), video, audio, and ZIP.",
             ),
             (
                 Module::Images,
-                &["imagem", "imagens", "foto", "fotos", "raw", "editor", "exposicao", "brilho", "contraste", "crop", "cortar", "filtro", "temperatura", "vinheta", "develop", "revelador", "presets", "fotografia"],
-                "Ajuste fino de exposição, contraste, balanço de branco, crop e presets fotográficos.",
-                "RAW developer, photo adjustments, cropping, color grading, and presets.",
+                &["imagem", "imagens", "foto", "fotos", "editor", "exposicao", "brilho", "contraste", "realces", "sombras", "crop", "cortar", "recorte", "filtro", "temperatura", "vinheta", "granulado", "nitidez", "revelador", "presets", "lote", "redimensionar", "comprimir", "ico", "histograma"],
+                "Revelador de fotos ao vivo com histograma RGB, ajustes de luz/cor, presets, lote, recorte e redimensionamento.",
+                "Live photo developer with RGB histogram, light/color controls, presets, batch sync, crop, and resize.",
             ),
             (
                 Module::Video,
-                &["video", "vídeo", "cortar", "trim", "comprimir", "compressao", "nvenc", "h264", "h265", "hevc", "av1", "gif", "fps", "resolucao", "transcoder", "render", "hardware"],
-                "Corte preciso sem perda (smart streamcopy) e render com aceleração GPU.",
-                "Fast video trimming, lossy/lossless streamcopy, and GPU encoding.",
+                &["video", "vídeo", "cortar", "trim", "comprimir", "compressao", "crf", "h264", "mp4", "mkv", "avi", "mov", "webm", "velocidade", "speed", "tiktok", "reels", "shorts", "youtube", "rotacionar", "espelhar", "filtros", "ffmpeg"],
+                "Corte na linha do tempo, controle de velocidade, formatos 16:9/9:16/1:1, filtros e compressão CRF.",
+                "Timeline video trimming, speed control, 16:9/9:16/1:1 aspect ratios, filters, and CRF compression.",
             ),
             (
                 Module::Audio,
-                &["audio", "áudio", "som", "musica", "música", "mp3", "flac", "wav", "volume", "normalizar", "chiado", "ruido", "fade", "equalizador", "ebu r128", "estudio"],
-                "Normalização de volume (EBU R128), remoção de ruídos e conversão de áudio.",
-                "Audio normalization, noise reduction, and bitrate conversion.",
+                &["audio", "áudio", "som", "musica", "música", "mp3", "flac", "wav", "ogg", "m4a", "aac", "extrair", "bitrate", "comprimir", "converter", "estudio"],
+                "Conversão de áudio, extração de trilha sonora de vídeos e compressão por bitrate.",
+                "Audio format conversion, soundtrack extraction from video, and bitrate compression.",
             ),
             (
                 Module::Pdf,
-                &["pdf", "documento", "juntar", "mesclar", "merge", "comprimir", "compressao", "dividir", "split", "proteger", "senha", "desbloquear", "lopdf", "extrair", "docs"],
-                "Mesclar múltiplos PDFs, compactação atômica nativa e proteção por senha.",
-                "Merge PDFs, compress documents offline, and manage encryption.",
+                &["pdf", "documento", "documentos", "docs", "juntar", "unir", "mesclar", "merge", "dividir", "split", "extrair", "paginas", "páginas", "metadados", "lopdf"],
+                "Unir múltiplos PDFs na ordem desejada, dividir páginas ou intervalos e inspecionar metadados.",
+                "Merge multiple PDFs in custom order, split pages or intervals, and inspect document metadata.",
             ),
             (
                 Module::BatchRename,
-                &["renomear", "rename", "lote", "batch", "arquivos", "prefixo", "sufixo", "numeracao", "substituir", "regex", "maiusculas", "minusculas", "pastas"],
-                "Renomeie coleções inteiras com regras automáticas, numeração e substituição.",
-                "Bulk file renamer with prefixes, suffixes, numbering, and patterns.",
+                &["renomear", "rename", "lote", "batch", "arquivos", "prefixo", "sufixo", "numeracao", "substituir", "maiusculas", "minusculas"],
+                "Renomeie coleções de arquivos com prefixo, sufixo, numeração, substituição e pré-visualização.",
+                "Bulk file renamer with prefixes, suffixes, numbering, text replace, and live preview.",
             ),
             (
                 Module::Zip,
-                &["zip", "compactar", "descompactar", "extrair", "extract", "compressao", "arquivo", "backup", "zstandard", "deflate", "zip-slip", "tar", "descompactador"],
-                "Compactação segura com Zstandard e extração protegida contra zip-slip.",
-                "Fast ZIP compression with Zstandard and safe extraction sandbox.",
+                &["zip", "compactar", "descompactar", "extrair", "extract", "compressao", "arquivo", "backup", "deflate", "zip-slip", "pastas"],
+                "Compactação de arquivos/pastas em ZIP e extração protegida contra Zip-Slip.",
+                "Create ZIP archives from files/folders and extract safely with Zip-Slip protection.",
             ),
             (
                 Module::Productivity,
-                &["produtividade", "notas", "bloco", "anotacoes", "anotações", "tarefas", "checklist", "todo", "to-do", "lembretes", "notepad", "texto", "markdown"],
-                "Bloco de anotações persistente e lista de tarefas rápidas.",
-                "Quick persistent notepad and actionable task checklist.",
+                &["produtividade", "notas", "bloco", "anotacoes", "anotações", "tarefas", "checklist", "todo", "to-do", "notepad", "texto", "organizador", "pastas"],
+                "Bloco de notas (.txt), lista de tarefas persistente e organizador automático de pastas.",
+                "Plain text notepad (.txt), persistent task checklist, and automatic folder organizer.",
             ),
             (
                 Module::Calculator,
-                &["calculadora", "calc", "calcular", "conta", "matematica", "cientifica", "científica", "hex", "binario", "programador", "historico", "pi", "seno", "cosseno", "porcentagem"],
-                "Cálculos científicos, funções trigonométricas, conversão de bases e histórico.",
-                "Scientific calculator with unit base conversions and evaluation history.",
+                &["calculadora", "calc", "calcular", "conta", "matematica", "matemática", "expressao", "parenteses", "potencia", "porcentagem", "resto", "historico"],
+                "Calculadora de expressões com parênteses, potência (^), resto (%) e histórico clicável.",
+                "Expression calculator with parentheses, power (^), modulo (%), and clickable history.",
             ),
             (
                 Module::DevTools,
-                &["devtools", "dev", "desenvolvedor", "hash", "sha256", "md5", "sha1", "base64", "json", "formatar", "uuid", "senha", "gerador", "pipeta", "cores", "hex", "rgb", "seguranca", "criptografia"],
-                "Gerador de senhas seguras, gerador de UUID, hash de arquivos, base64 e pipeta de cores.",
-                "Hash generator (SHA/MD5), UUIDs, password entropy, Base64, and color picker.",
+                &["cores", "paleta", "pipeta", "hex", "rgb", "hsl", "cmyk", "harmonia", "uuid", "senha", "senhas", "password", "entropia", "gerador", "devtools", "seguranca"],
+                "Conversor HEX/RGB/HSL/CMYK, extrator de paleta de imagens, gerador de senhas fortes e UUID v4.",
+                "HEX/RGB/HSL/CMYK color converter, image palette extractor, strong password generator, and UUID v4.",
             ),
             (
                 Module::Queue,
-                &["fila", "queue", "tarefas", "processos", "background", "progresso", "pausar", "cancelar", "jobs", "concluidos", "ativos"],
-                "Monitoramento e fila de processamento assíncrono em segundo plano.",
-                "Background task processing monitor and priority queue.",
+                &["fila", "queue", "tarefas", "processos", "operacoes", "segundo plano", "background", "jobs", "concluidos", "ativos"],
+                "Monitoramento em tempo real da fila de operações em segundo plano da sessão atual.",
+                "Real-time monitor for background operations in the current session.",
             ),
             (
                 Module::History,
-                &["historico", "histórico", "history", "auditoria", "atividades", "logs", "registro", "operacoes", "exportar"],
-                "Registro detalhado de operações executadas para conformidade e conferência.",
-                "Complete audit log of file transformations and operations.",
+                &["historico", "histórico", "history", "auditoria", "atividades", "registro", "operacoes", "falhas", "erros"],
+                "Registro local completo de operações realizadas com filtro de busca e status.",
+                "Complete local log of completed operations with search and error filtering.",
             ),
             (
                 Module::Settings,
-                &["configuracoes", "configurações", "settings", "tema", "escuro", "claro", "dark", "light", "idioma", "linguagem", "pasta", "destino", "privacidade", "hardware", "preferencias"],
-                "Tema visual, idioma do sistema, preferências de pasta de saída e hardware.",
-                "Theme toggling, interface language, output directories, and hardware flags.",
+                &["configuracoes", "configurações", "settings", "tema", "escuro", "claro", "dark", "light", "idioma", "linguagem", "privacidade", "abrir pasta", "preferencias"],
+                "Tema escuro/claro, idioma automático ou manual, abertura de pasta e privacidade local.",
+                "Dark/light theme, automatic or manual language, output folder opening, and local privacy.",
             ),
         ];
 
-        let mut matches = Vec::new();
-        for &(m, tags, pt, en) in all_tools {
+        let mut scored: Vec<(i32, usize, (Module, &'static str, &'static str))> = Vec::new();
+        for (idx, &(m, tags, pt, en)) in all_tools.iter().enumerate() {
             let title = normalize_search(m.title());
             let title_en = normalize_search(m.title_in(crate::shared::i18n::Lang::En, false));
-            let matches_tags = tags.iter().any(|t| {
-                let nt = normalize_search(t);
-                nt.contains(&q) || q.contains(&nt)
+            let pt_norm = normalize_search(pt);
+            let en_norm = normalize_search(en);
+            let norm_tags: Vec<String> = tags.iter().map(|t| normalize_search(t)).collect();
+
+            let all_match = terms.iter().all(|w| {
+                title.contains(w)
+                    || title_en.contains(w)
+                    || norm_tags.iter().any(|nt| nt.contains(w))
+                    || pt_norm.contains(w)
+                    || en_norm.contains(w)
             });
-            if title.contains(&q)
-                || title_en.contains(&q)
-                || matches_tags
-                || normalize_search(pt).contains(&q)
-                || normalize_search(en).contains(&q)
-            {
-                matches.push((m, pt, en));
+
+            if !all_match {
+                continue;
             }
+
+            let mut score = 0i32;
+            if title == q || title_en == q {
+                score += 1000;
+            } else if title.starts_with(&q) || title_en.starts_with(&q) {
+                score += 500;
+            } else if title.contains(&q) || title_en.contains(&q) {
+                score += 250;
+            } else if terms
+                .iter()
+                .all(|w| title.contains(w) || title_en.contains(w))
+            {
+                score += 200;
+            }
+
+            if norm_tags.iter().any(|nt| nt == &q) {
+                score += 140;
+            }
+            for w in &terms {
+                if norm_tags.iter().any(|nt| nt == w) {
+                    score += 60;
+                } else if norm_tags.iter().any(|nt| nt.contains(w)) {
+                    score += 30;
+                }
+                if pt_norm.contains(w) || en_norm.contains(w) {
+                    score += 10;
+                }
+            }
+
+            scored.push((score, idx, (m, pt, en)));
         }
-        matches
+
+        scored.sort_by(|a, b| b.0.cmp(&a.0).then_with(|| a.1.cmp(&b.1)));
+        scored.into_iter().map(|(_, _, item)| item).collect()
     }
 
     fn search_results_view<'a>(&'a self, env: &Env, query: &str) -> Element<'a, Message> {
         let c = env.c();
+        let is_en = env.lang.is_en();
         let matches = self.search_matches(query);
 
         let header = row![
             column![
                 row![
                     ui::strong(
-                        if env.lang.is_en() {
+                        if is_en {
                             "Search Results"
                         } else {
                             "Resultados da Busca"
@@ -1733,24 +2356,20 @@ impl AxoloteSuite {
                         text(format!(
                             "{} {}",
                             matches.len(),
-                            if env.lang.is_en() {
-                                "found"
-                            } else {
-                                "ferramenta(s)"
-                            }
+                            if is_en { "found" } else { "ferramenta(s)" }
                         ))
                         .size(11)
                         .font(BOLD)
                         .style(c.primary)
                     )
                     .padding([2, 8])
-                    .style(theme::solid_box(Color::from_rgb8(31, 25, 48), 6.0)),
+                    .style(theme::solid_box(c.primary_soft, 6.0)),
                 ]
                 .spacing(10)
                 .align_items(Alignment::Center),
                 ui::muted(
                     env,
-                    if env.lang.is_en() {
+                    if is_en {
                         format!("Showing tools matching \"{}\"", query)
                     } else {
                         format!(
@@ -1764,7 +2383,7 @@ impl AxoloteSuite {
             .spacing(4),
             ui::fill(),
             ui::btn(
-                if env.lang.is_en() {
+                if is_en {
                     "✕ Clear Search"
                 } else {
                     "✕ Limpar Busca"
@@ -1776,12 +2395,62 @@ impl AxoloteSuite {
         .align_items(Alignment::Center);
 
         if matches.is_empty() {
+            let suggestion_items: Vec<Element<'a, Message>> = vec![
+                home_action_btn(
+                    if is_en {
+                        "🔄 Quick Convert"
+                    } else {
+                        "🔄 Conversor"
+                    },
+                    Btn::Secondary,
+                    Some(Message::Navigate(Module::QuickConvert)),
+                ),
+                home_action_btn(
+                    if is_en {
+                        "🖼 Photos & Images"
+                    } else {
+                        "🖼 Imagens & Foto"
+                    },
+                    Btn::Secondary,
+                    Some(Message::Navigate(Module::Images)),
+                ),
+                home_action_btn(
+                    if is_en { "🎬 Video" } else { "🎬 Vídeo" },
+                    Btn::Secondary,
+                    Some(Message::Navigate(Module::Video)),
+                ),
+                home_action_btn(
+                    "📄 PDF",
+                    Btn::Secondary,
+                    Some(Message::Navigate(Module::Pdf)),
+                ),
+                home_action_btn(
+                    if is_en {
+                        "🖩 Calculator"
+                    } else {
+                        "🖩 Calculadora"
+                    },
+                    Btn::Secondary,
+                    Some(Message::Navigate(Module::Calculator)),
+                ),
+                home_action_btn(
+                    if is_en {
+                        "🎨 Colors & Passwords"
+                    } else {
+                        "🎨 Cores & Senhas"
+                    },
+                    Btn::Secondary,
+                    Some(Message::Navigate(Module::DevTools)),
+                ),
+            ];
+            let suggestions = ui::grid(suggestion_items, env.columns(160.0, 3), 8);
+
             let empty_box = container(
                 column![
                     text("🔍").size(36),
                     Space::with_height(6),
                     ui::strong(
-                        if env.lang.is_en() {
+                        if is_en {
                             "No tools found"
                         } else {
                             "Nenhuma ferramenta encontrada"
@@ -1790,57 +2459,21 @@ impl AxoloteSuite {
                     ),
                     ui::muted(
                         env,
-                        if env.lang.is_en() {
-                            format!("No matching tools for \"{}\". Try broader terms:", query)
+                        if is_en {
+                            format!("No matching tools for \"{}\". Try one of the modules below:", query)
                         } else {
-                            format!(
-                                "Nenhuma ferramenta encontrada para \"{}\". Tente termos como:",
-                                query
-                            )
+                            format!("Nenhuma ferramenta encontrada para \"{}\". Acesse um módulo abaixo:", query)
                         }
                     )
                     .size(13),
                     Space::with_height(10),
-                    row![
-                        ui::btn(
-                            "🔄 Conversor",
-                            Btn::Secondary,
-                            Some(Message::Navigate(Module::QuickConvert))
-                        ),
-                        ui::btn(
-                            "🖼️ Fotos & RAW",
-                            Btn::Secondary,
-                            Some(Message::Navigate(Module::Images))
-                        ),
-                        ui::btn(
-                            "🎬 Vídeo",
-                            Btn::Secondary,
-                            Some(Message::Navigate(Module::Video))
-                        ),
-                        ui::btn(
-                            "📄 PDF",
-                            Btn::Secondary,
-                            Some(Message::Navigate(Module::Pdf))
-                        ),
-                        ui::btn(
-                            "🖩 Calculadora",
-                            Btn::Secondary,
-                            Some(Message::Navigate(Module::Calculator))
-                        ),
-                        ui::btn(
-                            "🎨 DevTools",
-                            Btn::Secondary,
-                            Some(Message::Navigate(Module::DevTools))
-                        ),
-                    ]
-                    .spacing(8)
-                    .align_items(Alignment::Center),
+                    suggestions,
                 ]
                 .spacing(6)
                 .align_items(Alignment::Center)
                 .width(Length::Fill),
             )
-            .padding([36, 24])
+            .padding([32, 24])
             .style(theme::bento_card);
 
             column![header, Space::with_height(14), empty_box]
@@ -1850,7 +2483,7 @@ impl AxoloteSuite {
             let mut list = column![].spacing(10).width(Length::Fill);
 
             for (module, desc_pt, desc_en) in matches {
-                let desc = if env.lang.is_en() { desc_en } else { desc_pt };
+                let desc = if is_en { desc_en } else { desc_pt };
                 let title = module.title_in(env.lang, false);
                 let icon = module.icon();
 
@@ -1859,13 +2492,13 @@ impl AxoloteSuite {
                         row![
                             container(text(icon).size(24))
                                 .padding([10, 14])
-                                .style(theme::solid_box(Color::from_rgb8(31, 31, 38), 8.0)),
+                                .style(theme::solid_box(c.surface2, 8.0)),
                             column![
                                 row![
                                     ui::strong(title, 16),
                                     ui::fill(),
                                     container(
-                                        text(if env.lang.is_en() {
+                                        text(if is_en {
                                             "Open Tool ➔"
                                         } else {
                                             "Abrir Ferramenta ➔"
@@ -1892,7 +2525,7 @@ impl AxoloteSuite {
                 )
                 .style(theme::btn(Btn::Ghost))
                 .width(Length::Fill)
-                .on_press(Message::Navigate(module));
+                .on_press(Message::OpenSearchResult(module));
 
                 list = list.push(item_card);
             }
@@ -1901,6 +2534,104 @@ impl AxoloteSuite {
                 .spacing(8)
                 .into()
         }
+    }
+}
+
+fn bento_panel<'a>(
+    env: &Env,
+    fixed_h: Option<f32>,
+    body: Element<'a, Message>,
+) -> Element<'a, Message> {
+    let mut box_ = container(body)
+        .padding(if env.narrow() { 16 } else { 18 })
+        .width(Length::Fill)
+        .style(theme::bento_card);
+    if let Some(h) = fixed_h {
+        box_ = box_.height(Length::Fixed(h));
+    }
+    box_.into()
+}
+
+fn home_action_btn<'a>(
+    label: impl ToString,
+    kind: Btn,
+    msg: Option<Message>,
+) -> Element<'a, Message> {
+    button(
+        container(
+            text(label)
+                .size(12)
+                .font(SEMIBOLD)
+                .shaping(iced::widget::text::Shaping::Advanced),
+        )
+        .center_x()
+        .width(Length::Fill),
+    )
+    .padding([8, 10])
+    .width(Length::Fill)
+    .style(theme::btn(kind))
+    .on_press_maybe(msg)
+    .into()
+}
+
+fn home_link_btn<'a>(label: impl ToString, msg: Option<Message>) -> Element<'a, Message> {
+    button(
+        text(label)
+            .size(11)
+            .font(SEMIBOLD)
+            .shaping(iced::widget::text::Shaping::Advanced),
+    )
+    .padding([4, 8])
+    .style(theme::btn(Btn::Ghost))
+    .on_press_maybe(msg)
+    .into()
+}
+
+fn quick_nav_tile<'a>(
+    env: &Env,
+    title: &'a str,
+    action: &'a str,
+    accent: Color,
+    msg: Message,
+) -> Element<'a, Message> {
+    let c = env.c();
+    button(
+        container(
+            row![
+                text(title).size(11).style(c.text),
+                ui::fill(),
+                container(text(action).size(10).font(BOLD).style(accent))
+                    .padding([2, 6])
+                    .style(theme::solid_box(c.surface2, 4.0)),
+            ]
+            .spacing(6)
+            .align_items(Alignment::Center),
+        )
+        .padding([7, 9])
+        .width(Length::Fill)
+        .style(theme::inner_box),
+    )
+    .width(Length::FillPortion(1))
+    .style(theme::btn(Btn::Ghost))
+    .on_press(msg)
+    .into()
+}
+
+fn truncate_label(s: &str, max_chars: usize) -> String {
+    let mut chars = s.chars();
+    let collected: String = chars.by_ref().take(max_chars).collect();
+    if chars.next().is_some() {
+        format!("{collected}…")
+    } else {
+        collected
+    }
+}
+
+fn format_duration_short(d: std::time::Duration) -> String {
+    if d.as_secs() > 0 {
+        format!("{:.1}s", d.as_secs_f32())
+    } else {
+        format!("{} ms", d.as_millis())
     }
 }
 
@@ -1917,4 +2648,165 @@ fn normalize_search(s: &str) -> String {
             other => other,
         })
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::shared::i18n::Lang;
+
+    fn test_app() -> AxoloteSuite {
+        let ctx = Ctx {
+            settings: crate::core::config::Settings::default(),
+            history: crate::core::history::History::empty_for_test(50),
+            jobs: crate::core::jobs::Jobs::default(),
+        };
+        AxoloteSuite {
+            ctx,
+            active: Module::Home,
+            mandatory_setup: false,
+            home_search: String::new(),
+            window_width: 1380.0,
+            window_height: 880.0,
+            sidebar_collapsed: None,
+            sidebar_open_t: 1.0,
+            nav_pulse: 0.0,
+            last_tick: None,
+            quick_convert: quick_convert::State::new(),
+            productivity: productivity::State::new(),
+            batch_rename: batch_rename::State::new(),
+            zip: zip::State::new(),
+            images: images::State::new(),
+            pdf: pdf::State::new(),
+            audio: audio::State::new(),
+            video: video::State::new(),
+            devtools: devtools::State::new(),
+            queue: queue::State,
+            history: history::State::default(),
+            settings: settings::State::default(),
+            installer: installer::State::new(installer::WizardStep::Welcome),
+        }
+    }
+
+    #[test]
+    fn default_window_activates_desktop_wide_layout() {
+        let app = test_app();
+        let sidebar_w = 258.0;
+        let env = Env {
+            width: app.window_width - sidebar_w,
+            dark: true,
+            lang: Lang::Pt,
+        };
+        assert!(env.is_desktop_wide());
+        assert!(!env.is_medium());
+        assert!(!env.narrow());
+
+        let medium_env = Env {
+            width: 820.0,
+            dark: true,
+            lang: Lang::Pt,
+        };
+        assert!(medium_env.is_medium());
+        assert!(!medium_env.is_desktop_wide());
+
+        let narrow_env = Env {
+            width: 500.0,
+            dark: true,
+            lang: Lang::Pt,
+        };
+        assert!(narrow_env.narrow());
+    }
+
+    #[test]
+    fn search_matches_real_features_with_accent_normalization() {
+        let app = test_app();
+
+        let video_hits = app.search_matches("vídeo");
+        assert_eq!(video_hits.first().map(|x| x.0), Some(Module::Video));
+
+        let pdf_exact = app.search_matches("pdf");
+        assert_eq!(pdf_exact.first().map(|x| x.0), Some(Module::Pdf));
+
+        let hist_hits = app.search_matches("Histórico");
+        assert_eq!(hist_hits.first().map(|x| x.0), Some(Module::History));
+
+        let pwd_hits = app.search_matches("senhas");
+        assert_eq!(pwd_hits.first().map(|x| x.0), Some(Module::DevTools));
+
+        let pdf_split_hits = app.search_matches("dividir pdf");
+        assert_eq!(pdf_split_hits.first().map(|x| x.0), Some(Module::Pdf));
+        assert_eq!(pdf_split_hits.len(), 1);
+
+        assert!(app.search_matches("   ").is_empty());
+
+        // Ensure unsupported/removed features are not advertised in search results
+        assert!(app.search_matches("avif").is_empty());
+        assert!(app.search_matches("nvenc").is_empty());
+        assert!(app.search_matches("h265").is_empty());
+        assert!(app.search_matches("sha256").is_empty());
+        assert!(app.search_matches("zstandard").is_empty());
+    }
+
+    #[test]
+    fn quick_launch_and_search_open_correct_module_and_tab() {
+        let mut app = test_app();
+
+        let _ = app.update(Message::QuickLaunchDevTools(devtools::Tab::Passwords));
+        assert_eq!(app.active, Module::DevTools);
+        assert_eq!(app.devtools.tab, devtools::Tab::Passwords);
+
+        let _ = app.update(Message::QuickLaunchPdf(pdf::Mode::Split));
+        assert_eq!(app.active, Module::Pdf);
+        assert_eq!(app.pdf.mode, pdf::Mode::Split);
+
+        let _ = app.update(Message::QuickLaunchImages(images::Mode::Batch));
+        assert_eq!(app.active, Module::Images);
+        assert_eq!(app.images.mode, images::Mode::Batch);
+
+        let _ = app.update(Message::SearchChanged("tarefas".into()));
+        let _ = app.update(Message::SearchSubmitted);
+        assert_eq!(app.active, Module::Productivity);
+        assert_eq!(app.productivity.tab, productivity::Tab::Tasks);
+        assert!(app.home_search.is_empty());
+    }
+
+    #[test]
+    fn truncate_label_preserves_utf8_boundaries() {
+        assert_eq!(truncate_label("Olá", 10), "Olá");
+        assert_eq!(truncate_label("Conversão de vídeo", 9), "Conversão…");
+    }
+
+    #[test]
+    fn home_view_renders_across_sizes_themes_and_languages() {
+        let mut app = test_app();
+        let job_id = app.ctx.jobs.start("PDF", "Dividir contrato.pdf");
+        let done_res = crate::shared::types::OperationResult::ok("3 páginas extraídas");
+        let _ = app.ctx.jobs.finish(job_id, &done_res);
+        app.ctx
+            .history
+            .add_in_memory("PDF", "Dividir contrato.pdf", "3 páginas extraídas", true);
+        let _running_id = app.ctx.jobs.start("Vídeo", "Comprimir clipe.mp4");
+
+        for (w, h) in [(560, 480), (880, 720), (1380, 880), (1920, 1080)] {
+            app.window_width = w as f32;
+            app.window_height = h as f32;
+            for dark in [true, false] {
+                app.ctx.settings.dark_mode = dark;
+                for lang_mode in [
+                    crate::shared::i18n::LanguageMode::PtBr,
+                    crate::shared::i18n::LanguageMode::EnUs,
+                ] {
+                    app.ctx.settings.language = lang_mode;
+                    app.home_search.clear();
+                    let _ = app.view();
+
+                    app.home_search = "pdf".into();
+                    let _ = app.view();
+
+                    app.home_search = "termo_inexistente_xyz".into();
+                    let _ = app.view();
+                }
+            }
+        }
+    }
 }

@@ -20,7 +20,11 @@ impl Ctx {
     pub fn load() -> Self {
         let settings = config::Settings::load();
         let history = history::History::load(settings.max_history);
-        Self { settings, history, jobs: jobs::Jobs::default() }
+        Self {
+            settings,
+            history,
+            jobs: jobs::Jobs::default(),
+        }
     }
 
     /// Registra o início de uma operação demorada na fila e devolve seu ID.
@@ -31,12 +35,14 @@ impl Ctx {
     /// Marca a operação como concluída e grava no histórico.
     pub fn finish_job(&mut self, id: u64, result: &OperationResult) {
         if let Some((module, title)) = self.jobs.finish(id, result) {
-            self.history.add(&module, &title, &result.title, result.success);
+            self.history
+                .add(&module, &title, &result.title, result.success);
         }
     }
 
     /// Grava uma operação rápida (sem fila) no histórico.
     pub fn log(&mut self, module: &str, action: &str, result: &OperationResult) {
-        self.history.add(module, action, &result.title, result.success);
+        self.history
+            .add(module, action, &result.title, result.success);
     }
 }

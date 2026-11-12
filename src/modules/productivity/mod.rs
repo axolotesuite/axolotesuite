@@ -136,7 +136,11 @@ impl State {
                     self.confirm_delete = false;
                     self.note_result = None;
                 }
-                Err(e) => self.note_result = Some(OperationResult::err(format!("Não foi possível abrir a nota: {e}"))),
+                Err(e) => {
+                    self.note_result = Some(OperationResult::err(format!(
+                        "Não foi possível abrir a nota: {e}"
+                    )))
+                }
             },
             Msg::NoteNew => {
                 self.editor = text_editor::Content::new();
@@ -201,7 +205,12 @@ impl State {
                     let id = self.tasks.iter().map(|t| t.id).max().unwrap_or(0) + 1;
                     self.tasks.insert(
                         0,
-                        Task { id, title, done: false, created: chrono::Local::now().format("%d/%m %H:%M").to_string() },
+                        Task {
+                            id,
+                            title,
+                            done: false,
+                            created: chrono::Local::now().format("%d/%m %H:%M").to_string(),
+                        },
                     );
                     self.new_task.clear();
                     service::save_tasks(&self.tasks);
@@ -243,7 +252,8 @@ impl State {
             Msg::CalcEval => match service::evaluate(&self.calc_expr) {
                 Ok(v) => {
                     let formatted = service::format_number(v);
-                    self.calc_history.insert(0, (self.calc_expr.clone(), formatted.clone()));
+                    self.calc_history
+                        .insert(0, (self.calc_expr.clone(), formatted.clone()));
                     self.calc_history.truncate(12);
                     self.calc_result = Some(Ok(formatted));
                 }
@@ -274,10 +284,16 @@ impl State {
             }
             Msg::OrgRun => {
                 let dir = PathBuf::from(self.org_dir.trim());
-                let id = ctx.start_job(MODULE, &format!("Organizar pasta {}", crate::shared::ui::file_name(&dir)));
+                let id = ctx.start_job(
+                    MODULE,
+                    &format!("Organizar pasta {}", crate::shared::ui::file_name(&dir)),
+                );
                 self.org_busy = true;
                 self.org_result = None;
-                return Command::perform(system::run_blocking(move || service::organize(dir)), move |r| Msg::OrgDone(id, r));
+                return Command::perform(
+                    system::run_blocking(move || service::organize(dir)),
+                    move |r| Msg::OrgDone(id, r),
+                );
             }
             Msg::OrgDone(id, res) => {
                 ctx.finish_job(id, &res);

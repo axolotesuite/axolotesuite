@@ -81,11 +81,16 @@ impl State {
                 self.entries = None;
             }
             Msg::BrowseZip => {
-                if let Some(p) = system::pick_file("Selecione um arquivo ZIP", "Arquivos ZIP (*.zip)", &["zip"]) {
+                if let Some(p) =
+                    system::pick_file("Selecione um arquivo ZIP", "Arquivos ZIP (*.zip)", &["zip"])
+                {
                     // Sugere automaticamente uma pasta de destino ao lado do ZIP
                     if self.dest_dir.trim().is_empty() {
                         let parent = p.parent().unwrap_or_else(|| Path::new("."));
-                        let stem = p.file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_else(|| "Extraido".into());
+                        let stem = p
+                            .file_stem()
+                            .map(|s| s.to_string_lossy().to_string())
+                            .unwrap_or_else(|| "Extraido".into());
                         self.dest_dir = parent.join(stem).display().to_string();
                     }
                     self.zip_path = p.display().to_string();
@@ -107,16 +112,25 @@ impl State {
                 let zip_p = PathBuf::from(self.zip_path.trim());
                 let dest = if self.dest_dir.trim().is_empty() {
                     let parent = zip_p.parent().unwrap_or_else(|| Path::new("."));
-                    let stem = zip_p.file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_else(|| "Extraido".into());
+                    let stem = zip_p
+                        .file_stem()
+                        .map(|s| s.to_string_lossy().to_string())
+                        .unwrap_or_else(|| "Extraido".into());
                     parent.join(stem)
                 } else {
                     PathBuf::from(self.dest_dir.trim())
                 };
                 self.dest_dir = dest.display().to_string();
-                let id = ctx.start_job(MODULE, &format!("Extrair {}", crate::shared::ui::file_name(&zip_p)));
+                let id = ctx.start_job(
+                    MODULE,
+                    &format!("Extrair {}", crate::shared::ui::file_name(&zip_p)),
+                );
                 self.busy = true;
                 self.result = None;
-                return Command::perform(system::run_blocking(move || service::extract(zip_p, dest)), move |r| Msg::Done(id, r));
+                return Command::perform(
+                    system::run_blocking(move || service::extract(zip_p, dest)),
+                    move |r| Msg::Done(id, r),
+                );
             }
 
             // Criar ZIP
@@ -149,7 +163,12 @@ impl State {
             }
             Msg::OutputZipChanged(s) => self.output_zip = s,
             Msg::BrowseOutputZip => {
-                if let Some(p) = system::save_file("Onde salvar o novo arquivo ZIP", "compactado.zip", "Arquivo ZIP (*.zip)", &["zip"]) {
+                if let Some(p) = system::save_file(
+                    "Onde salvar o novo arquivo ZIP",
+                    "compactado.zip",
+                    "Arquivo ZIP (*.zip)",
+                    &["zip"],
+                ) {
                     self.output_zip = p.display().to_string();
                 }
             }
@@ -159,10 +178,16 @@ impl State {
                     out.set_extension("zip");
                 }
                 let sources = self.sources.clone();
-                let id = ctx.start_job(MODULE, &format!("Criar {}", crate::shared::ui::file_name(&out)));
+                let id = ctx.start_job(
+                    MODULE,
+                    &format!("Criar {}", crate::shared::ui::file_name(&out)),
+                );
                 self.busy = true;
                 self.result = None;
-                return Command::perform(system::run_blocking(move || service::create(out, sources)), move |r| Msg::Done(id, r));
+                return Command::perform(
+                    system::run_blocking(move || service::create(out, sources)),
+                    move |r| Msg::Done(id, r),
+                );
             }
 
             Msg::Done(id, res) => {
@@ -183,7 +208,10 @@ impl State {
     fn suggest_output_from(&mut self, first: &Path) {
         if self.output_zip.trim().is_empty() {
             let parent = first.parent().unwrap_or_else(|| Path::new("."));
-            let stem = first.file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_else(|| "arquivos".into());
+            let stem = first
+                .file_stem()
+                .map(|s| s.to_string_lossy().to_string())
+                .unwrap_or_else(|| "arquivos".into());
             let candidate = paths::unique_path(parent.join(format!("{stem}.zip")));
             self.output_zip = candidate.display().to_string();
         }

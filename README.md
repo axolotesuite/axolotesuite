@@ -195,6 +195,7 @@ Novos contribuidores e agentes de IA: comecem por [`AGENTS.md`](AGENTS.md) e [`C
 | Sistema | Pacote | Formato | Observações |
 |---|---|---|---|
 | Windows 10 / 11 (x64) | [**`Axolote_Setup.exe`**](https://github.com/axolotesuite/axolotesuite/releases/download/v1.4.0/Axolote_Setup.exe) | Instalador Oficial | **Recomendado**: instalador e desinstalador completo em 19 idiomas |
+| Windows 10 / 11 (x64) | [**`axolote_suite-portable.zip`**](https://github.com/axolotesuite/axolotesuite/releases/download/v1.4.0/axolote_suite-portable.zip) | ZIP Portátil | Executável + licenças prontos para extrair e rodar |
 | Windows 10 / 11 (x64) | [**`axolote_suite.exe`**](https://github.com/axolotesuite/axolotesuite/releases/download/v1.4.0/axolote_suite.exe) | Executável Portátil | Executável direto sem instalação |
 | Todos | [**`SHA256SUMS.txt`**](https://github.com/axolotesuite/axolotesuite/releases/download/v1.4.0/SHA256SUMS.txt) | Assinaturas | Hashes criptográficos oficiais para conferência |
 

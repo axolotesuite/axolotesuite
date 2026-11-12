@@ -20,7 +20,10 @@ where
     std::thread::spawn(move || {
         let _ = tx.send(f());
     });
-    async move { rx.await.expect("a operação em segundo plano foi interrompida") }
+    async move {
+        rx.await
+            .expect("a operação em segundo plano foi interrompida")
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -32,14 +35,20 @@ pub fn open_path(path: &Path) {
     #[cfg(windows)]
     {
         if path.is_file() {
-            let _ = Command::new("explorer").arg(format!("/select,{}", path.display())).spawn();
+            let _ = Command::new("explorer")
+                .arg(format!("/select,{}", path.display()))
+                .spawn();
         } else {
             let _ = Command::new("explorer").arg(path).spawn();
         }
     }
     #[cfg(not(windows))]
     {
-        let target = if path.is_file() { path.parent().unwrap_or(path) } else { path };
+        let target = if path.is_file() {
+            path.parent().unwrap_or(path)
+        } else {
+            path
+        };
         let _ = Command::new("xdg-open").arg(target).spawn();
     }
 }
@@ -70,7 +79,12 @@ pub fn pick_folder(title: &str) -> Option<PathBuf> {
     rfd::FileDialog::new().set_title(title).pick_folder()
 }
 
-pub fn save_file(title: &str, default_name: &str, filter_name: &str, exts: &[&str]) -> Option<PathBuf> {
+pub fn save_file(
+    title: &str,
+    default_name: &str,
+    filter_name: &str,
+    exts: &[&str],
+) -> Option<PathBuf> {
     rfd::FileDialog::new()
         .set_title(title)
         .set_file_name(default_name)
@@ -148,7 +162,11 @@ pub fn ensure_ffmpeg_installed(dest_bin_dir: &Path) -> Result<PathBuf, String> {
             if existing != appdata_ffmpeg {
                 let _ = std::fs::copy(&existing, &appdata_ffmpeg);
             }
-            return Ok(if target_ffmpeg.is_file() { target_ffmpeg } else { existing });
+            return Ok(if target_ffmpeg.is_file() {
+                target_ffmpeg
+            } else {
+                existing
+            });
         }
         return Ok(existing);
     }
@@ -170,12 +188,14 @@ pub fn ensure_ffmpeg_installed(dest_bin_dir: &Path) -> Result<PathBuf, String> {
             .args(["-NoProfile", "-NonInteractive", "-Command", &dl_cmd])
             .status();
 
-        if status.map(|s| s.success()).unwrap_or(false) && tmp_zip.is_file() {
-            if extract_ffmpeg_from_zip(&tmp_zip, &target_ffmpeg).is_ok() && target_ffmpeg.is_file() {
-                let _ = std::fs::copy(&target_ffmpeg, &appdata_ffmpeg);
-                let _ = std::fs::remove_file(&tmp_zip);
-                return Ok(target_ffmpeg);
-            }
+        if status.map(|s| s.success()).unwrap_or(false)
+            && tmp_zip.is_file()
+            && extract_ffmpeg_from_zip(&tmp_zip, &target_ffmpeg).is_ok()
+            && target_ffmpeg.is_file()
+        {
+            let _ = std::fs::copy(&target_ffmpeg, &appdata_ffmpeg);
+            let _ = std::fs::remove_file(&tmp_zip);
+            return Ok(target_ffmpeg);
         }
         let _ = std::fs::remove_file(&tmp_zip);
     }
@@ -197,14 +217,18 @@ pub fn ensure_ffmpeg_installed(dest_bin_dir: &Path) -> Result<PathBuf, String> {
         return Ok(found);
     }
 
-    Err("Não foi possível baixar o FFmpeg automaticamente (verifique sua conexão com a internet).".into())
+    Err(
+        "Não foi possível baixar o FFmpeg automaticamente (verifique sua conexão com a internet)."
+            .into(),
+    )
 }
 
 fn extract_ffmpeg_from_zip(zip_path: &Path, target_ffmpeg: &Path) -> std::io::Result<()> {
     let file = std::fs::File::open(zip_path)?;
-    let mut archive = zip::ZipArchive::new(file).map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
+    let mut archive = zip::ZipArchive::new(file)
+        .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
     for i in 0..archive.len() {
-        let mut entry = archive.by_index(i).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+        let mut entry = archive.by_index(i).map_err(std::io::Error::other)?;
         let name = entry.name().replace('\\', "/");
         if name.ends_with("/ffmpeg.exe") || name.eq_ignore_ascii_case("ffmpeg.exe") {
             if let Some(parent) = target_ffmpeg.parent() {
@@ -215,7 +239,10 @@ fn extract_ffmpeg_from_zip(zip_path: &Path, target_ffmpeg: &Path) -> std::io::Re
             return Ok(());
         }
     }
-    Err(std::io::Error::new(std::io::ErrorKind::NotFound, "ffmpeg.exe não encontrado dentro do pacote ZIP"))
+    Err(std::io::Error::new(
+        std::io::ErrorKind::NotFound,
+        "ffmpeg.exe não encontrado dentro do pacote ZIP",
+    ))
 }
 
 /// Executa o FFmpeg com os argumentos dados. Em caso de erro devolve as
@@ -230,9 +257,18 @@ pub fn run_ffmpeg(ffmpeg: &Path, args: &[String]) -> Result<(), String> {
         Ok(())
     } else {
         let stderr = String::from_utf8_lossy(&out.stderr);
-        let tail: Vec<&str> = stderr.lines().filter(|l| !l.trim().is_empty()).rev().take(3).collect();
+        let tail: Vec<&str> = stderr
+            .lines()
+            .filter(|l| !l.trim().is_empty())
+            .rev()
+            .take(3)
+            .collect();
         let msg = tail.into_iter().rev().collect::<Vec<_>>().join(" | ");
-        Err(if msg.is_empty() { "O FFmpeg terminou com erro.".into() } else { msg })
+        Err(if msg.is_empty() {
+            "O FFmpeg terminou com erro.".into()
+        } else {
+            msg
+        })
     }
 }
 
@@ -255,11 +291,14 @@ pub fn probe_media(ffmpeg: &Path, input: &Path) -> Vec<String> {
     for line in stderr.lines() {
         let t = line.trim();
         if t.starts_with("Duration:") {
-            lines.push(t.replace("Duration:", "Duração:").replace("start:", "início:"));
+            lines.push(
+                t.replace("Duration:", "Duração:")
+                    .replace("start:", "início:"),
+            );
         } else if t.starts_with("Stream #") {
             let pretty = t
-                .splitn(2, ": ")
-                .nth(1)
+                .split_once(": ")
+                .map(|x| x.1)
                 .unwrap_or(t)
                 .replace("Video:", "Vídeo:")
                 .replace("Audio:", "Áudio:");
@@ -285,7 +324,10 @@ mod win_gesture {
         fn GetAsyncKeyState(vkey: i32) -> i16;
         fn GetForegroundWindow() -> isize;
         fn GetClassNameW(hwnd: isize, lp_class_name: *mut u16, max_count: i32) -> i32;
-        fn EnumWindows(lp_enum_func: unsafe extern "system" fn(isize, isize) -> i32, lparam: isize) -> i32;
+        fn EnumWindows(
+            lp_enum_func: unsafe extern "system" fn(isize, isize) -> i32,
+            lparam: isize,
+        ) -> i32;
         fn GetWindowThreadProcessId(hwnd: isize, lpdw_process_id: *mut u32) -> u32;
         fn IsWindowVisible(hwnd: isize) -> i32;
         fn ShowWindow(hwnd: isize, cmd_show: i32) -> i32;
@@ -316,7 +358,10 @@ mod win_gesture {
                 return false;
             }
             let cls = String::from_utf16_lossy(&buf[..len as usize]);
-            matches!(cls.as_str(), "CabinetWClass" | "ExploreWClass" | "Progman" | "WorkerW")
+            matches!(
+                cls.as_str(),
+                "CabinetWClass" | "ExploreWClass" | "Progman" | "WorkerW"
+            )
         }
     }
 

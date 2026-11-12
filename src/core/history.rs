@@ -25,7 +25,10 @@ impl History {
             .ok()
             .and_then(|s| serde_json::from_str::<Vec<HistoryEntry>>(&s).ok())
             .unwrap_or_default();
-        let mut h = Self { entries, max: max.max(10) };
+        let mut h = Self {
+            entries,
+            max: max.max(10),
+        };
         h.entries.truncate(h.max);
         h
     }

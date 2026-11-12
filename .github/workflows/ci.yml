@@ -65,15 +65,19 @@ jobs:
           }
           & iscc installer.iss
 
-      - name: SHA-256 Checksums
+      - name: Build Portable ZIP & SHA-256 Checksums
         shell: pwsh
         run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Compress-Archive -Path target/release/axolote_suite.exe, README.md, LICENSE-MIT, LICENSE-APACHE, NOTICE -DestinationPath dist/axolote_suite-portable.zip -Force
           $h1 = (Get-FileHash target/release/axolote_suite.exe -Algorithm SHA256).Hash.ToLower()
           $h2 = (Get-FileHash dist/Axolote_Setup.exe -Algorithm SHA256).Hash.ToLower()
-          "$h1  axolote_suite.exe`n$h2  Axolote_Setup.exe" | Out-File -Encoding utf8 SHA256SUMS.txt
+          $h3 = (Get-FileHash dist/axolote_suite-portable.zip -Algorithm SHA256).Hash.ToLower()
+          "$h1  axolote_suite.exe`n$h2  Axolote_Setup.exe`n$h3  axolote_suite-portable.zip" | Out-File -Encoding utf8 SHA256SUMS.txt
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### Release Artifacts SHA-256"
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- axolote_suite.exe: $h1"
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Axolote_Setup.exe: $h2"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- axolote_suite-portable.zip: $h3"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -81,6 +85,7 @@ jobs:
           name: Axolote_Setup-windows-x64
           path: |
             dist/Axolote_Setup.exe
+            dist/axolote_suite-portable.zip
             target/release/axolote_suite.exe
             SHA256SUMS.txt
 
@@ -91,6 +96,7 @@ jobs:
           name: Axolote Suite ${{ github.ref_name }}
           files: |
             dist/Axolote_Setup.exe
+            dist/axolote_suite-portable.zip
             target/release/axolote_suite.exe
             SHA256SUMS.txt
           generate_release_notes: true

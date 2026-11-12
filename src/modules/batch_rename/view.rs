@@ -24,8 +24,16 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     let file_btns = ui::actions(
         env,
         vec![
-            act("➕  Escolher arquivos…", Btn::Primary, (!state.busy).then_some(Msg::AddFiles)),
-            act("📁  Carregar pasta inteira…", Btn::Secondary, (!state.busy).then_some(Msg::AddFolder)),
+            act(
+                "➕  Escolher arquivos…",
+                Btn::Primary,
+                (!state.busy).then_some(Msg::AddFiles),
+            ),
+            act(
+                "📁  Carregar pasta inteira…",
+                Btn::Secondary,
+                (!state.busy).then_some(Msg::AddFolder),
+            ),
             act(
                 "🗑  Limpar lista",
                 Btn::Ghost,
@@ -89,10 +97,18 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     let changes_count = previews.iter().filter(|p| p.changed).count();
 
     let mut preview_col = column![row![
-        ui::strong(format!("Pré-visualização ({} arquivo(s))", previews.len()), 15).width(Length::Fill),
+        ui::strong(
+            format!("Pré-visualização ({} arquivo(s))", previews.len()),
+            15
+        )
+        .width(Length::Fill),
         ui::badge(
             format!("{changes_count} será(ão) alterado(s)"),
-            if changes_count > 0 { c.success } else { c.muted },
+            if changes_count > 0 {
+                c.success
+            } else {
+                c.muted
+            },
         ),
     ]
     .align_items(Alignment::Center)]
@@ -118,7 +134,10 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
                 .into()
             } else {
                 row![
-                    text(&item.old_name).size(13).style(c.muted).width(Length::FillPortion(1)),
+                    text(&item.old_name)
+                        .size(13)
+                        .style(c.muted)
+                        .width(Length::FillPortion(1)),
                     ui::colored("→", 14, arrow_color).font(ui::BOLD),
                     ui::colored(&item.new_name, 13, arrow_color)
                         .font(SEMIBOLD)
@@ -137,7 +156,10 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
             ));
         }
         if previews.len() > 60 {
-            preview_col = preview_col.push(ui::muted(env, format!("… e mais {} arquivo(s).", previews.len() - 60)));
+            preview_col = preview_col.push(ui::muted(
+                env,
+                format!("… e mais {} arquivo(s).", previews.len() - 60),
+            ));
         }
     }
 

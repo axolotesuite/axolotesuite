@@ -29,7 +29,11 @@ pub fn view<'a>(jobs: &'a Jobs, env: &Env) -> Element<'a, Msg> {
     );
 
     let top_row = row![
-        ui::strong(format!("Operações registradas nesta sessão ({})", all.len()), 15).width(Length::Fill),
+        ui::strong(
+            format!("Operações registradas nesta sessão ({})", all.len()),
+            15
+        )
+        .width(Length::Fill),
         ui::btn(
             "🗑  Limpar concluídas",
             Btn::Secondary,

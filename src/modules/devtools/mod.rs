@@ -75,8 +75,13 @@ impl State {
         let r = 124;
         let g = 58;
         let b = 237;
-        let swatch = iced_image::Handle::from_pixels(110, 110, service::render_color_swatch(r, g, b, 110, 110));
-        let (pwds, entropy, rating) = service::generate_passwords(20, true, true, true, true, true, 5);
+        let swatch = iced_image::Handle::from_pixels(
+            110,
+            110,
+            service::render_color_swatch(r, g, b, 110, 110),
+        );
+        let (pwds, entropy, rating) =
+            service::generate_passwords(20, true, true, true, true, true, 5);
         let uuids = service::generate_uuids(5);
 
         Self {
@@ -133,7 +138,8 @@ impl State {
             }
             Msg::CopyText(s) => {
                 if service::copy_to_clipboard(&s) {
-                    self.clipboard_feedback = Some(format!("✓ Copiado para a área de transferência: {s}"));
+                    self.clipboard_feedback =
+                        Some(format!("✓ Copiado para a área de transferência: {s}"));
                 }
             }
             Msg::HexChanged(hex) => {

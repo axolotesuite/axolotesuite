@@ -46,7 +46,10 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         ]
         .spacing(10);
         if state.downloading_ffmpeg {
-            ff_col = ff_col.push(ui::busy(env, "Baixando e instalando o FFmpeg automaticamente"));
+            ff_col = ff_col.push(ui::busy(
+                env,
+                "Baixando e instalando o FFmpeg automaticamente",
+            ));
         }
         page_items.push(ui::section(
             env,
@@ -94,7 +97,13 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         io_col = io_col.push(ui::list_row(info));
     }
 
-    let io_card = ui::section(env, "📂", "1. Selecionar Arquivo", "Escolha o áudio ou vídeo de origem.", io_col);
+    let io_card = ui::section(
+        env,
+        "📂",
+        "1. Selecionar Arquivo",
+        "Escolha o áudio ou vídeo de origem.",
+        io_col,
+    );
 
     // Converter / Extrair
     let fmt_picker = pick_list(AudioFormat::ALL, Some(state.format), Msg::FormatChanged)
@@ -138,7 +147,12 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         "Comprimir Áudio (Diminuir Tamanho em MB)",
         "Reduz o tamanho do arquivo ajustando a taxa de bits (bitrate) em MP3.",
         column![
-            ui::field(env, "Taxa de bits (qualidade × tamanho)", "Quanto menor o valor em kbps, menor fica o arquivo final.", br_picker),
+            ui::field(
+                env,
+                "Taxa de bits (qualidade × tamanho)",
+                "Quanto menor o valor em kbps, menor fica o arquivo final.",
+                br_picker
+            ),
             ui::actions(
                 env,
                 vec![act(

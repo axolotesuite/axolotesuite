@@ -56,8 +56,21 @@ impl Adj {
         Adj::Whites,
         Adj::Blacks,
     ];
-    pub const COLOR: &'static [Adj] = &[Adj::Temperature, Adj::Tint, Adj::Vibrance, Adj::Saturation, Adj::Hue];
-    pub const EFFECTS: &'static [Adj] = &[Adj::Clarity, Adj::Sharpen, Adj::Blur, Adj::Vignette, Adj::Grain, Adj::Pixelate];
+    pub const COLOR: &'static [Adj] = &[
+        Adj::Temperature,
+        Adj::Tint,
+        Adj::Vibrance,
+        Adj::Saturation,
+        Adj::Hue,
+    ];
+    pub const EFFECTS: &'static [Adj] = &[
+        Adj::Clarity,
+        Adj::Sharpen,
+        Adj::Blur,
+        Adj::Vignette,
+        Adj::Grain,
+        Adj::Pixelate,
+    ];
 
     pub fn label(&self) -> &'static str {
         match self {
@@ -153,9 +166,21 @@ fn hue_matrix(degrees: f32) -> [[f32; 3]; 3] {
     let (s, c) = degrees.to_radians().sin_cos();
     let (lr, lg, lb) = (0.213, 0.715, 0.072);
     [
-        [lr + c * (1.0 - lr) + s * (-lr), lg + c * (-lg) + s * (-lg), lb + c * (-lb) + s * (1.0 - lb)],
-        [lr + c * (-lr) + s * 0.143, lg + c * (1.0 - lg) + s * 0.140, lb + c * (-lb) + s * (-0.283)],
-        [lr + c * (-lr) + s * (-(1.0 - lr)), lg + c * (-lg) + s * lg, lb + c * (1.0 - lb) + s * lb],
+        [
+            lr + c * (1.0 - lr) + s * (-lr),
+            lg + c * (-lg) + s * (-lg),
+            lb + c * (-lb) + s * (1.0 - lb),
+        ],
+        [
+            lr + c * (-lr) + s * 0.143,
+            lg + c * (1.0 - lg) + s * 0.140,
+            lb + c * (-lb) + s * (-0.283),
+        ],
+        [
+            lr + c * (-lr) + s * (-(1.0 - lr)),
+            lg + c * (-lg) + s * lg,
+            lb + c * (1.0 - lb) + s * lb,
+        ],
     ]
 }
 
@@ -293,7 +318,12 @@ fn unsharp(img: &RgbaImage, sigma: f32, amount: f32) -> RgbaImage {
 
 fn pixelate(img: &RgbaImage, block: u32) -> RgbaImage {
     let (w, h) = img.dimensions();
-    let small = imageops::resize(img, (w / block).max(1), (h / block).max(1), imageops::FilterType::Triangle);
+    let small = imageops::resize(
+        img,
+        (w / block).max(1),
+        (h / block).max(1),
+        imageops::FilterType::Triangle,
+    );
     imageops::resize(&small, w, h, imageops::FilterType::Nearest)
 }
 
@@ -334,13 +364,17 @@ pub fn apply_effects(mut rgba: RgbaImage, e: &PhotoEdits) -> RgbaImage {
         for (x, y, px) in rgba.enumerate_pixels_mut() {
             let mut k = 1.0;
             if amt != 0.0 {
-                let d = (((x as f32 - cx).powi(2) + (y as f32 - cy).powi(2)).sqrt() / max_d).clamp(0.0, 1.0);
+                let d = (((x as f32 - cx).powi(2) + (y as f32 - cy).powi(2)).sqrt() / max_d)
+                    .clamp(0.0, 1.0);
                 let v = smoothstep(0.35, 1.0, d);
                 // Negativo escurece as bordas, positivo clareia
                 k = 1.0 + amt * v * 0.85;
             }
             let n = if grain > 0.0 {
-                hash_noise((x as f32 / grain_scale) as u32, (y as f32 / grain_scale) as u32) * grain
+                hash_noise(
+                    (x as f32 / grain_scale) as u32,
+                    (y as f32 / grain_scale) as u32,
+                ) * grain
             } else {
                 0.0
             };
@@ -368,7 +402,13 @@ pub fn develop(mut img: DynamicImage, e: &PhotoEdits) -> DynamicImage {
     }
     img = super::service::crop_to_aspect(img, e.crop);
 
-    let neutral = PhotoEdits { rotation: e.rotation, flip_h: e.flip_h, flip_v: e.flip_v, crop: e.crop, ..PhotoEdits::default() };
+    let neutral = PhotoEdits {
+        rotation: e.rotation,
+        flip_h: e.flip_h,
+        flip_v: e.flip_v,
+        crop: e.crop,
+        ..PhotoEdits::default()
+    };
     if *e == neutral {
         return img;
     }
@@ -401,12 +441,19 @@ pub fn histogram(img: &DynamicImage) -> [[u32; 256]; 4] {
 pub fn histogram_handle(img: &DynamicImage) -> Handle {
     let h = histogram(img);
     // Ignora as pontas (0 e 255) na escala para não achatar o gráfico.
-    let peak = h[..3].iter().flat_map(|c| c[1..255].iter()).copied().max().unwrap_or(1).max(1) as f32;
+    let peak = h[..3]
+        .iter()
+        .flat_map(|c| c[1..255].iter())
+        .copied()
+        .max()
+        .unwrap_or(1)
+        .max(1) as f32;
     let mut out = RgbaImage::from_pixel(HIST_W, HIST_H, image::Rgba([14, 12, 24, 255]));
     let colors = [[239u8, 68, 68], [34, 197, 94], [59, 130, 246]];
     for x in 0..HIST_W {
         for (ch, col) in colors.iter().enumerate() {
-            let bar = ((h[ch][x as usize] as f32 / peak).sqrt().min(1.0) * (HIST_H - 1) as f32) as u32;
+            let bar =
+                ((h[ch][x as usize] as f32 / peak).sqrt().min(1.0) * (HIST_H - 1) as f32) as u32;
             for y in (HIST_H - bar)..HIST_H {
                 let p = out.get_pixel_mut(x, y);
                 for c in 0..3 {
@@ -436,16 +483,102 @@ pub struct Preset {
 /// Looks inspirados em revelação fotográfica e color grading de cinema.
 pub fn builtin_looks() -> Vec<Preset> {
     let d = PhotoEdits::default();
-    let p = |name: &str, edits: PhotoEdits| Preset { name: name.into(), edits };
+    let p = |name: &str, edits: PhotoEdits| Preset {
+        name: name.into(),
+        edits,
+    };
     vec![
-        p("🌅 Vívido", PhotoEdits { vibrance: 45, contrast: 12, clarity: 20, shadows: 15, ..d }),
-        p("🎬 Cinema", PhotoEdits { temperature: 12, tint: -6, contrast: 18, highlights: -25, shadows: 10, saturation: -10, vignette: -35, ..d }),
-        p("📼 Retrô Desbotado", PhotoEdits { blacks: 35, contrast: -20, saturation: -25, temperature: 18, grain: 35, vignette: -20, ..d }),
-        p("🖤 P&B Dramático", PhotoEdits { filter: PhotoFilter::Grayscale, contrast: 35, clarity: 40, blacks: -20, vignette: -40, ..d }),
-        p("🌸 Retrato Suave", PhotoEdits { exposure: 8, highlights: -20, shadows: 20, clarity: -25, temperature: 8, vibrance: 10, ..d }),
-        p("🏔 Paisagem", PhotoEdits { vibrance: 35, clarity: 35, highlights: -35, shadows: 25, sharpen: 30, ..d }),
-        p("❄ Inverno", PhotoEdits { temperature: -35, tint: 5, saturation: -15, exposure: 10, whites: 15, ..d }),
-        p("💜 Axolote Neon", PhotoEdits { tint: 30, vibrance: 40, contrast: 20, hue: -12, vignette: -30, ..d }),
+        p(
+            "🌅 Vívido",
+            PhotoEdits {
+                vibrance: 45,
+                contrast: 12,
+                clarity: 20,
+                shadows: 15,
+                ..d
+            },
+        ),
+        p(
+            "🎬 Cinema",
+            PhotoEdits {
+                temperature: 12,
+                tint: -6,
+                contrast: 18,
+                highlights: -25,
+                shadows: 10,
+                saturation: -10,
+                vignette: -35,
+                ..d
+            },
+        ),
+        p(
+            "📼 Retrô Desbotado",
+            PhotoEdits {
+                blacks: 35,
+                contrast: -20,
+                saturation: -25,
+                temperature: 18,
+                grain: 35,
+                vignette: -20,
+                ..d
+            },
+        ),
+        p(
+            "🖤 P&B Dramático",
+            PhotoEdits {
+                filter: PhotoFilter::Grayscale,
+                contrast: 35,
+                clarity: 40,
+                blacks: -20,
+                vignette: -40,
+                ..d
+            },
+        ),
+        p(
+            "🌸 Retrato Suave",
+            PhotoEdits {
+                exposure: 8,
+                highlights: -20,
+                shadows: 20,
+                clarity: -25,
+                temperature: 8,
+                vibrance: 10,
+                ..d
+            },
+        ),
+        p(
+            "🏔 Paisagem",
+            PhotoEdits {
+                vibrance: 35,
+                clarity: 35,
+                highlights: -35,
+                shadows: 25,
+                sharpen: 30,
+                ..d
+            },
+        ),
+        p(
+            "❄ Inverno",
+            PhotoEdits {
+                temperature: -35,
+                tint: 5,
+                saturation: -15,
+                exposure: 10,
+                whites: 15,
+                ..d
+            },
+        ),
+        p(
+            "💜 Axolote Neon",
+            PhotoEdits {
+                tint: 30,
+                vibrance: 40,
+                contrast: 20,
+                hue: -12,
+                vignette: -30,
+                ..d
+            },
+        ),
     ]
 }
 
@@ -462,7 +595,10 @@ pub fn save_user_presets(list: &[Preset]) -> Result<(), String> {
 }
 
 fn load_presets_from(path: &Path) -> Vec<Preset> {
-    fs::read_to_string(path).ok().and_then(|s| serde_json::from_str(&s).ok()).unwrap_or_default()
+    fs::read_to_string(path)
+        .ok()
+        .and_then(|s| serde_json::from_str(&s).ok())
+        .unwrap_or_default()
 }
 
 fn save_presets_to(path: &Path, list: &[Preset]) -> Result<(), String> {
@@ -489,29 +625,62 @@ mod tests {
 
     #[test]
     fn exposure_brightens_and_darkens() {
-        let up = develop(gray(100), &PhotoEdits { exposure: 50, ..Default::default() });
-        let down = develop(gray(100), &PhotoEdits { exposure: -50, ..Default::default() });
+        let up = develop(
+            gray(100),
+            &PhotoEdits {
+                exposure: 50,
+                ..Default::default()
+            },
+        );
+        let down = develop(
+            gray(100),
+            &PhotoEdits {
+                exposure: -50,
+                ..Default::default()
+            },
+        );
         assert!(up.to_rgba8().get_pixel(5, 5)[0] > 150);
         assert!(down.to_rgba8().get_pixel(5, 5)[0] < 70);
     }
 
     #[test]
     fn temperature_warms_image() {
-        let out = develop(gray(128), &PhotoEdits { temperature: 80, ..Default::default() }).to_rgba8();
+        let out = develop(
+            gray(128),
+            &PhotoEdits {
+                temperature: 80,
+                ..Default::default()
+            },
+        )
+        .to_rgba8();
         let p = out.get_pixel(3, 3);
         assert!(p[0] > p[2], "vermelho deve ficar maior que azul: {p:?}");
     }
 
     #[test]
     fn hue_rotation_keeps_gray() {
-        let out = develop(gray(128), &PhotoEdits { hue: 90, ..Default::default() }).to_rgba8();
+        let out = develop(
+            gray(128),
+            &PhotoEdits {
+                hue: 90,
+                ..Default::default()
+            },
+        )
+        .to_rgba8();
         let p = out.get_pixel(1, 1);
         assert!((p[0] as i32 - 128).abs() <= 2 && (p[2] as i32 - 128).abs() <= 2);
     }
 
     #[test]
     fn vignette_darkens_corners_only() {
-        let out = develop(gray(200), &PhotoEdits { vignette: -100, ..Default::default() }).to_rgba8();
+        let out = develop(
+            gray(200),
+            &PhotoEdits {
+                vignette: -100,
+                ..Default::default()
+            },
+        )
+        .to_rgba8();
         assert!(out.get_pixel(0, 0)[0] < out.get_pixel(20, 15)[0]);
     }
 

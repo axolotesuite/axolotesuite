@@ -200,7 +200,11 @@ pub fn extract_thumbnail(path: &Path, at_time: &str) -> Option<Handle> {
         return None;
     }
     let tmp = std::env::temp_dir().join("axolote_video_preview.jpg");
-    let seek = if at_time.trim().is_empty() { "00:00:01" } else { at_time.trim() };
+    let seek = if at_time.trim().is_empty() {
+        "00:00:01"
+    } else {
+        at_time.trim()
+    };
     let args = vec![
         "-ss".to_string(),
         seek.to_string(),
@@ -231,9 +235,15 @@ pub fn extract_thumbnail(path: &Path, at_time: &str) -> Option<Handle> {
 }
 
 /// Renderiza o vídeo aplicando os cortes, velocidade, proporção, filtros e áudio do Editor de Vídeo.
-pub fn render_edited_video(input: PathBuf, output: PathBuf, cfg: VideoEditConfig) -> OperationResult {
+pub fn render_edited_video(
+    input: PathBuf,
+    output: PathBuf,
+    cfg: VideoEditConfig,
+) -> OperationResult {
     let Some(ff) = system::find_ffmpeg() else {
-        return OperationResult::err("FFmpeg não encontrado. Instale o FFmpeg para editar e exportar vídeos.");
+        return OperationResult::err(
+            "FFmpeg não encontrado. Instale o FFmpeg para editar e exportar vídeos.",
+        );
     };
     if !input.is_file() {
         return OperationResult::err("Arquivo de vídeo não encontrado.");
@@ -281,8 +291,11 @@ pub fn render_edited_video(input: PathBuf, output: PathBuf, cfg: VideoEditConfig
         VideoLook::Original => {}
         VideoLook::Vivid => vfilters.push("eq=saturation=1.35:contrast=1.08".into()),
         VideoLook::BlackAndWhite => vfilters.push("hue=s=0".into()),
-        VideoLook::Vintage => vfilters.push("colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131".into()),
-        VideoLook::CinemaContrast => vfilters.push("eq=contrast=1.22:brightness=-0.03:saturation=0.9".into()),
+        VideoLook::Vintage => vfilters
+            .push("colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131".into()),
+        VideoLook::CinemaContrast => {
+            vfilters.push("eq=contrast=1.22:brightness=-0.03:saturation=0.9".into())
+        }
     }
 
     let spd = cfg.speed.factor();
@@ -325,9 +338,12 @@ pub fn render_edited_video(input: PathBuf, output: PathBuf, cfg: VideoEditConfig
     match system::run_ffmpeg(&ff, &args) {
         Ok(()) => {
             let sz = fs::metadata(&output).map(|m| m.len()).unwrap_or(0);
-            OperationResult::ok(format!("Vídeo editado e exportado com sucesso ({})", human_size(sz)))
-                .with_detail(format!("Salvo em: {}", output.display()))
-                .with_output(output)
+            OperationResult::ok(format!(
+                "Vídeo editado e exportado com sucesso ({})",
+                human_size(sz)
+            ))
+            .with_detail(format!("Salvo em: {}", output.display()))
+            .with_output(output)
         }
         Err(e) => OperationResult::err("Não foi possível exportar o vídeo editado.").with_detail(e),
     }
@@ -335,7 +351,9 @@ pub fn render_edited_video(input: PathBuf, output: PathBuf, cfg: VideoEditConfig
 
 pub fn convert(input: PathBuf, output: PathBuf, fmt: VideoFormat) -> OperationResult {
     let Some(ff) = system::find_ffmpeg() else {
-        return OperationResult::err("FFmpeg não encontrado. Instale o FFmpeg para converter vídeos.");
+        return OperationResult::err(
+            "FFmpeg não encontrado. Instale o FFmpeg para converter vídeos.",
+        );
     };
     if !input.is_file() {
         return OperationResult::err("Arquivo de vídeo não encontrado.");
@@ -370,9 +388,13 @@ pub fn convert(input: PathBuf, output: PathBuf, fmt: VideoFormat) -> OperationRe
     match system::run_ffmpeg(&ff, &args) {
         Ok(()) => {
             let sz = fs::metadata(&output).map(|m| m.len()).unwrap_or(0);
-            OperationResult::ok(format!("Vídeo convertido para {} ({})", fmt.ext().to_uppercase(), human_size(sz)))
-                .with_detail(format!("Salvo em: {}", output.display()))
-                .with_output(output)
+            OperationResult::ok(format!(
+                "Vídeo convertido para {} ({})",
+                fmt.ext().to_uppercase(),
+                human_size(sz)
+            ))
+            .with_detail(format!("Salvo em: {}", output.display()))
+            .with_output(output)
         }
         Err(e) => OperationResult::err("Não foi possível converter o vídeo.").with_detail(e),
     }
@@ -380,7 +402,9 @@ pub fn convert(input: PathBuf, output: PathBuf, fmt: VideoFormat) -> OperationRe
 
 pub fn compress(input: PathBuf, output: PathBuf, crf: u8) -> OperationResult {
     let Some(ff) = system::find_ffmpeg() else {
-        return OperationResult::err("FFmpeg não encontrado. Instale o FFmpeg para comprimir vídeos.");
+        return OperationResult::err(
+            "FFmpeg não encontrado. Instale o FFmpeg para comprimir vídeos.",
+        );
     };
     if !input.is_file() {
         return OperationResult::err("Arquivo de vídeo não encontrado.");

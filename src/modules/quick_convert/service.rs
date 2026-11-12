@@ -56,10 +56,17 @@ impl WheelCategory {
     }
 
     pub fn from_extension(ext: &str) -> Self {
-        match ext.trim().trim_start_matches('.').to_ascii_lowercase().as_str() {
+        match ext
+            .trim()
+            .trim_start_matches('.')
+            .to_ascii_lowercase()
+            .as_str()
+        {
             "png" | "jpg" | "jpeg" | "webp" | "bmp" | "gif" | "tiff" | "tif" | "ico" => Self::Image,
             "txt" | "md" | "markdown" | "html" | "htm" | "docx" | "pdf" => Self::Document,
-            "mp4" | "mkv" | "webm" | "mov" | "avi" | "wmv" | "flv" | "m4v" | "mpg" | "mpeg" => Self::Video,
+            "mp4" | "mkv" | "webm" | "mov" | "avi" | "wmv" | "flv" | "m4v" | "mpg" | "mpeg" => {
+                Self::Video
+            }
             "mp3" | "wav" | "flac" | "aac" | "ogg" | "m4a" | "opus" | "wma" => Self::Audio,
             _ => Self::Archive,
         }
@@ -84,11 +91,10 @@ pub fn targets_for_extension(ext: &str, ffmpeg_available: bool) -> Vec<&'static 
     match norm {
         // Imagens -> demais formatos de imagem + PDF + ZIP
         "PNG" | "JPG" | "WEBP" | "BMP" | "GIF" | "TIFF" | "ICO" => {
-            let all = ["PNG", "JPG", "WEBP", "PDF", "GIF", "BMP", "TIFF", "ICO", "ZIP"];
-            all.into_iter()
-                .filter(|&f| f != norm)
-                .take(8)
-                .collect()
+            let all = [
+                "PNG", "JPG", "WEBP", "PDF", "GIF", "BMP", "TIFF", "ICO", "ZIP",
+            ];
+            all.into_iter().filter(|&f| f != norm).take(8).collect()
         }
         // TXT -> MD, HTML, DOCX, PDF + ZIP
         "TXT" => vec!["MD", "HTML", "DOCX", "PDF", "ZIP"],
@@ -134,7 +140,10 @@ pub fn unique_output_path(src: &Path, target_ext: &str, custom_dir: Option<&Path
         .and_then(|s| s.to_str())
         .filter(|s| !s.is_empty())
         .unwrap_or("arquivo");
-    let ext_lower = target_ext.trim().trim_start_matches('.').to_ascii_lowercase();
+    let ext_lower = target_ext
+        .trim()
+        .trim_start_matches('.')
+        .to_ascii_lowercase();
 
     let first = parent.join(format!("{stem}.{ext_lower}"));
     if !first.exists() && first != src {
@@ -194,7 +203,10 @@ fn write_bytes_atomic(final_path: &Path, bytes: &[u8]) -> Result<(), String> {
     }
     if let Err(e) = fs::rename(&tmp, final_path) {
         let _ = fs::remove_file(&tmp);
-        return Err(format!("Falha ao finalizar arquivo {}: {e}", final_path.display()));
+        return Err(format!(
+            "Falha ao finalizar arquivo {}: {e}",
+            final_path.display()
+        ));
     }
     Ok(())
 }
@@ -240,7 +252,9 @@ pub fn execute_wheel_conversion(
     match category {
         WheelCategory::Image => convert_images_batch(&files, &fmt, custom_dir_ref, strip_metadata),
         WheelCategory::Document => convert_documents_batch(&files, &fmt, custom_dir_ref),
-        WheelCategory::Video | WheelCategory::Audio => convert_media_batch(&files, &fmt, custom_dir_ref),
+        WheelCategory::Video | WheelCategory::Audio => {
+            convert_media_batch(&files, &fmt, custom_dir_ref)
+        }
         WheelCategory::Archive => compress_files_to_zip(&files, custom_dir_ref),
     }
 }
@@ -271,12 +285,16 @@ fn compress_files_to_zip(files: &[PathBuf], custom_dir: Option<&Path>) -> Operat
                 .unwrap_or("arquivo");
             zw.start_file(name, opts)
                 .map_err(|e| format!("Erro ao iniciar entrada ZIP ({name}): {e}"))?;
-            let mut f = File::open(src).map_err(|e| format!("Erro ao abrir {}: {e}", src.display()))?;
-            std::io::copy(&mut f, &mut zw)
-                .map_err(|e| format!("Erro ao comprimir {name}: {e}"))?;
-            details.push(format!("✓ Adicionado ao pacote (original intacto): {}", src.display()));
+            let mut f =
+                File::open(src).map_err(|e| format!("Erro ao abrir {}: {e}", src.display()))?;
+            std::io::copy(&mut f, &mut zw).map_err(|e| format!("Erro ao comprimir {name}: {e}"))?;
+            details.push(format!(
+                "✓ Adicionado ao pacote (original intacto): {}",
+                src.display()
+            ));
         }
-        zw.finish().map_err(|e| format!("Erro ao finalizar ZIP: {e}"))?;
+        zw.finish()
+            .map_err(|e| format!("Erro ao finalizar ZIP: {e}"))?;
         Ok(details)
     })();
 
@@ -284,9 +302,13 @@ fn compress_files_to_zip(files: &[PathBuf], custom_dir: Option<&Path>) -> Operat
         Ok(mut details) => {
             if let Err(e) = fs::rename(&tmp_zip, &out_zip) {
                 let _ = fs::remove_file(&tmp_zip);
-                return OperationResult::err("Falha ao renomear pacote ZIP final").with_detail(e.to_string());
+                return OperationResult::err("Falha ao renomear pacote ZIP final")
+                    .with_detail(e.to_string());
             }
-            details.push(format!("🗜 Pacote salvo ao lado do original: {}", out_zip.display()));
+            details.push(format!(
+                "🗜 Pacote salvo ao lado do original: {}",
+                out_zip.display()
+            ));
             OperationResult::ok(format!("Compactado com sucesso em {}!", out_zip.display()))
                 .with_details(details)
                 .with_output(out_zip)
@@ -318,12 +340,19 @@ fn extract_zip_archives(files: &[PathBuf], custom_dir: Option<&Path>) -> Operati
         let mut extracted_here = 0usize;
         let mut total_bytes_here = 0u64;
         for i in 0..archive.len() {
-            let Ok(mut entry) = archive.by_index(i) else { continue };
+            let Ok(mut entry) = archive.by_index(i) else {
+                continue;
+            };
             // Rejeita links simbólicos
-            if entry.unix_mode().map(|m| (m & 0o170000) == 0o120000).unwrap_or(false) {
+            if entry
+                .unix_mode()
+                .map(|m| (m & 0o170000) == 0o120000)
+                .unwrap_or(false)
+            {
                 continue;
             }
-            let Some(rel) = crate::modules::zip::service::sanitize_relative_path(entry.name()) else {
+            let Some(rel) = crate::modules::zip::service::sanitize_relative_path(entry.name())
+            else {
                 continue;
             };
             let out_path = dest_dir.join(rel);
@@ -339,11 +368,14 @@ fn extract_zip_archives(files: &[PathBuf], custom_dir: Option<&Path>) -> Operati
                     out_path
                 };
                 if let Ok(mut out_f) = File::create(&safe_out) {
-                    let mut limited = (&mut entry).take(crate::modules::zip::service::MAX_ENTRY_BYTES);
+                    let mut limited =
+                        (&mut entry).take(crate::modules::zip::service::MAX_ENTRY_BYTES);
                     if let Ok(n) = std::io::copy(&mut limited, &mut out_f) {
                         extracted_here += 1;
                         total_bytes_here += n;
-                        if total_bytes_here > crate::modules::zip::service::MAX_TOTAL_UNCOMPRESSED_BYTES {
+                        if total_bytes_here
+                            > crate::modules::zip::service::MAX_TOTAL_UNCOMPRESSED_BYTES
+                        {
                             break;
                         }
                     }
@@ -450,7 +482,10 @@ fn convert_images_to_pdf(files: &[PathBuf], custom_dir: Option<&Path>) -> Operat
 
     for src in files {
         let Ok(img) = image::open(src) else {
-            details.push(format!("✖ Ignorado (não é imagem suportada): {}", src.display()));
+            details.push(format!(
+                "✖ Ignorado (não é imagem suportada): {}",
+                src.display()
+            ));
             continue;
         };
         let rgb = img.to_rgb8();
@@ -499,7 +534,10 @@ fn convert_images_to_pdf(files: &[PathBuf], custom_dir: Option<&Path>) -> Operat
                 Operation::new("Q", vec![]),
             ],
         };
-        let content_id = doc.add_object(Stream::new(dictionary! {}, content.encode().unwrap_or_default()));
+        let content_id = doc.add_object(Stream::new(
+            dictionary! {},
+            content.encode().unwrap_or_default(),
+        ));
 
         let resources_id = doc.add_object(dictionary! {
             "XObject" => dictionary! {
@@ -515,11 +553,15 @@ fn convert_images_to_pdf(files: &[PathBuf], custom_dir: Option<&Path>) -> Operat
             "Resources" => resources_id,
         });
         page_ids.push(Object::Reference(page_id));
-        details.push(format!("✓ Página adicionada ao PDF: {} ({w}×{h})", src.display()));
+        details.push(format!(
+            "✓ Página adicionada ao PDF: {} ({w}×{h})",
+            src.display()
+        ));
     }
 
     if page_ids.is_empty() {
-        return OperationResult::err("Nenhuma imagem válida pôde ser convertida em PDF").with_details(details);
+        return OperationResult::err("Nenhuma imagem válida pôde ser convertida em PDF")
+            .with_details(details);
     }
 
     let count = page_ids.len() as i64;
@@ -546,7 +588,10 @@ fn convert_images_to_pdf(files: &[PathBuf], custom_dir: Option<&Path>) -> Operat
         return OperationResult::err("Erro ao salvar PDF final").with_detail(e);
     }
 
-    details.push(format!("📄 Arquivo PDF salvo ao lado do original: {}", out_pdf.display()));
+    details.push(format!(
+        "📄 Arquivo PDF salvo ao lado do original: {}",
+        out_pdf.display()
+    ));
     OperationResult::ok(format!("PDF gerado com {count} página(s)!"))
         .with_details(details)
         .with_output(out_pdf)
@@ -583,7 +628,10 @@ fn convert_documents_batch(
         };
 
         let out_path = unique_output_path(src, &ext, custom_dir);
-        let title = src.file_stem().and_then(|s| s.to_str()).unwrap_or("Documento");
+        let title = src
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("Documento");
 
         // 2. Converte o texto para o formato de destino (TXT, MD, HTML, DOCX, PDF)
         let write_res = match ext.as_str() {
@@ -597,11 +645,14 @@ fn convert_documents_batch(
                 write_bytes_atomic(&out_path, md.as_bytes())
             }
             "html" => {
-                let html = render_clean_html(title, &plain_text, src_ext == "md" || src_ext == "markdown");
+                let html =
+                    render_clean_html(title, &plain_text, src_ext == "md" || src_ext == "markdown");
                 write_bytes_atomic(&out_path, html.as_bytes())
             }
             "docx" => build_docx_bytes(&plain_text).and_then(|b| write_bytes_atomic(&out_path, &b)),
-            "pdf" => build_text_pdf_bytes(&plain_text).and_then(|b| write_bytes_atomic(&out_path, &b)),
+            "pdf" => {
+                build_text_pdf_bytes(&plain_text).and_then(|b| write_bytes_atomic(&out_path, &b))
+            }
             _ => Err(format!("Formato de documento não suportado: {ext}")),
         };
 
@@ -654,7 +705,15 @@ fn strip_html_tags(html: &str) -> String {
         } else if ch == '>' {
             in_tag = false;
             let t = tag_buf.trim().to_ascii_lowercase();
-            if t.starts_with("p") || t.starts_with("/p") || t.starts_with("br") || t.starts_with("div") || t.starts_with("li") || t.starts_with("h1") || t.starts_with("h2") || t.starts_with("h3") {
+            if t.starts_with("p")
+                || t.starts_with("/p")
+                || t.starts_with("br")
+                || t.starts_with("div")
+                || t.starts_with("li")
+                || t.starts_with("h1")
+                || t.starts_with("h2")
+                || t.starts_with("h3")
+            {
                 out.push('\n');
             }
         } else if in_tag {
@@ -751,7 +810,10 @@ fn extract_pdf_text(path: &Path) -> Result<String, String> {
         .extract_text(&pages)
         .map_err(|e| format!("Erro ao extrair texto do PDF: {e}"))?;
     if text.trim().is_empty() {
-        return Err("Este PDF parece ser digitalizado (imagem) e não contém texto selecionável (sem OCR).".into());
+        return Err(
+            "Este PDF parece ser digitalizado (imagem) e não contém texto selecionável (sem OCR)."
+                .into(),
+        );
     }
     Ok(text)
 }
@@ -777,14 +839,17 @@ fn build_docx_bytes(text: &str) -> Result<Vec<u8>, String> {
   <Default Extension="xml" ContentType="application/xml"/>
   <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
 </Types>"#;
-        zw.start_file("[Content_Types].xml", opts).map_err(|e| e.to_string())?;
-        zw.write_all(content_types.as_bytes()).map_err(|e| e.to_string())?;
+        zw.start_file("[Content_Types].xml", opts)
+            .map_err(|e| e.to_string())?;
+        zw.write_all(content_types.as_bytes())
+            .map_err(|e| e.to_string())?;
 
         let rels = r#"<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
   <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
 </Relationships>"#;
-        zw.start_file("_rels/.rels", opts).map_err(|e| e.to_string())?;
+        zw.start_file("_rels/.rels", opts)
+            .map_err(|e| e.to_string())?;
         zw.write_all(rels.as_bytes()).map_err(|e| e.to_string())?;
 
         let mut paragraphs = String::new();
@@ -800,8 +865,10 @@ fn build_docx_bytes(text: &str) -> Result<Vec<u8>, String> {
             <w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\">\
             <w:body>{paragraphs}</w:body></w:document>"
         );
-        zw.start_file("word/document.xml", opts).map_err(|e| e.to_string())?;
-        zw.write_all(doc_xml.as_bytes()).map_err(|e| e.to_string())?;
+        zw.start_file("word/document.xml", opts)
+            .map_err(|e| e.to_string())?;
+        zw.write_all(doc_xml.as_bytes())
+            .map_err(|e| e.to_string())?;
         zw.finish().map_err(|e| e.to_string())?;
     }
     Ok(buf.into_inner())
@@ -862,13 +929,19 @@ fn build_text_pdf_bytes(text: &str) -> Result<Vec<u8>, String> {
                 .chars()
                 .map(|c| if (c as u32) <= 0xFF { c as u8 } else { b'?' })
                 .collect();
-            ops.push(Operation::new("Tj", vec![Object::String(win_ansi, lopdf::StringFormat::Literal)]));
+            ops.push(Operation::new(
+                "Tj",
+                vec![Object::String(win_ansi, lopdf::StringFormat::Literal)],
+            ));
             ops.push(Operation::new("T*", vec![]));
         }
         ops.push(Operation::new("ET", vec![]));
 
         let content = Content { operations: ops };
-        let content_id = doc.add_object(Stream::new(dictionary! {}, content.encode().unwrap_or_default()));
+        let content_id = doc.add_object(Stream::new(
+            dictionary! {},
+            content.encode().unwrap_or_default(),
+        ));
         let page_id = doc.add_object(dictionary! {
             "Type" => "Page",
             "Parent" => pages_id,
@@ -903,11 +976,7 @@ fn build_text_pdf_bytes(text: &str) -> Result<Vec<u8>, String> {
 // Engine 4: Vídeo, GIF Animado e Áudio via FFmpeg com Escrita Atômica (.tmp -> rename)
 // ---------------------------------------------------------------------------
 
-fn convert_media_batch(
-    files: &[PathBuf],
-    fmt: &str,
-    custom_dir: Option<&Path>,
-) -> OperationResult {
+fn convert_media_batch(files: &[PathBuf], fmt: &str, custom_dir: Option<&Path>) -> OperationResult {
     let Some(ffmpeg) = system::find_ffmpeg() else {
         return OperationResult::err("FFmpeg não encontrado")
             .with_detail("Sem FFmpeg, arquivos de vídeo oferecem apenas ZIP. Vá em 'Instalar / Setup' para instalar o FFmpeg incluído.");
@@ -921,7 +990,10 @@ fn convert_media_batch(
     for src in files {
         let out_path = unique_output_path(src, &ext, custom_dir);
         // O FFmpeg precisa da extensão final para detectar o container, então colocamos .axolote_tmp ANTES da extensão
-        let stem = out_path.file_stem().and_then(|s| s.to_str()).unwrap_or("midia");
+        let stem = out_path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("midia");
         let pid = std::process::id();
         let tmp_path = out_path.with_file_name(format!(".{stem}.{pid}.axolote_tmp.{ext}"));
 
@@ -969,7 +1041,11 @@ fn convert_media_batch(
             Ok(o) => {
                 let _ = fs::remove_file(&tmp_path);
                 let err = String::from_utf8_lossy(&o.stderr);
-                details.push(format!("✖ Falha em {}: {}", src.display(), err.lines().last().unwrap_or("erro")));
+                details.push(format!(
+                    "✖ Falha em {}: {}",
+                    src.display(),
+                    err.lines().last().unwrap_or("erro")
+                ));
             }
             Err(e) => {
                 let _ = fs::remove_file(&tmp_path);
@@ -979,7 +1055,8 @@ fn convert_media_batch(
     }
 
     if ok_count == 0 {
-        OperationResult::err("Não foi possível converter os arquivos de mídia").with_details(details)
+        OperationResult::err("Não foi possível converter os arquivos de mídia")
+            .with_details(details)
     } else {
         OperationResult::ok(format!(
             "{ok_count} de {} arquivo(s) convertido(s) para {fmt} (original preservado)!",

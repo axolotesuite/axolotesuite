@@ -22,16 +22,28 @@ pub fn view<'a>(state: &'a State, history: &'a History, env: &Env) -> Element<'a
     );
 
     let search_bar: Element<'a, Msg> = {
-        let inp = ui::input("Filtrar por módulo, ação ou detalhe…", &state.search, Msg::SearchChanged).width(Length::Fill);
+        let inp = ui::input(
+            "Filtrar por módulo, ação ou detalhe…",
+            &state.search,
+            Msg::SearchChanged,
+        )
+        .width(Length::Fill);
         let chk = checkbox("Mostrar apenas falhas", state.only_errors)
             .on_toggle(Msg::ToggleOnlyErrors)
             .size(18)
             .text_size(13);
-        let clear_btn = ui::btn("🗑  Limpar histórico", Btn::Danger, (!entries.is_empty()).then_some(Msg::AskClear));
+        let clear_btn = ui::btn(
+            "🗑  Limpar histórico",
+            Btn::Danger,
+            (!entries.is_empty()).then_some(Msg::AskClear),
+        );
         if env.narrow() {
             column![inp, chk, clear_btn].spacing(8).into()
         } else {
-            row![inp, chk, clear_btn].spacing(12).align_items(Alignment::Center).into()
+            row![inp, chk, clear_btn]
+                .spacing(12)
+                .align_items(Alignment::Center)
+                .into()
         }
     };
 
@@ -57,7 +69,11 @@ pub fn view<'a>(state: &'a State, history: &'a History, env: &Env) -> Element<'a
         ));
     } else {
         for item in filtered.iter().take(100) {
-            let (icon, col) = if item.success { ("✅", c.success) } else { ("⚠", c.danger) };
+            let (icon, col) = if item.success {
+                ("✅", c.success)
+            } else {
+                ("⚠", c.danger)
+            };
             let row_content: Element<'a, Msg> = if env.narrow() {
                 column![
                     row![
@@ -102,7 +118,11 @@ pub fn view<'a>(state: &'a State, history: &'a History, env: &Env) -> Element<'a
                         .size(13)
                         .style(c.danger)
                         .width(Length::Fill),
-                    ui::btn("Sim, limpar tudo", Btn::Danger, Some(Msg::ConfirmClear(true))),
+                    ui::btn(
+                        "Sim, limpar tudo",
+                        Btn::Danger,
+                        Some(Msg::ConfirmClear(true))
+                    ),
                     ui::btn("Cancelar", Btn::Secondary, Some(Msg::ConfirmClear(false))),
                 ]
                 .spacing(10)

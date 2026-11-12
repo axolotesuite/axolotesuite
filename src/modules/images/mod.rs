@@ -13,11 +13,13 @@ use image::DynamicImage;
 
 use crate::core::{paths, system, Ctx};
 use crate::shared::types::OperationResult;
-use service::{AspectCrop, ImageMeta, OutFormat, PhotoEdits, PhotoFilter};
 use develop::{Adj, Preset};
+use service::{AspectCrop, ImageMeta, OutFormat, PhotoEdits, PhotoFilter};
 
 const MODULE: &str = "Imagens";
-const IMG_EXTS: &[&str] = &["png", "jpg", "jpeg", "webp", "bmp", "gif", "ico", "tif", "tiff"];
+const IMG_EXTS: &[&str] = &[
+    "png", "jpg", "jpeg", "webp", "bmp", "gif", "ico", "tif", "tiff",
+];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Mode {
@@ -147,7 +149,9 @@ impl State {
                 self.input = s;
             }
             Msg::BrowseInput => {
-                if let Some(p) = system::pick_file("Escolha uma foto ou imagem", "Imagens", IMG_EXTS) {
+                if let Some(p) =
+                    system::pick_file("Escolha uma foto ou imagem", "Imagens", IMG_EXTS)
+                {
                     self.load_image(&p);
                     self.input = p.display().to_string();
                     self.result = None;
@@ -155,7 +159,12 @@ impl State {
             }
             Msg::OutputChanged(s) => self.output = s,
             Msg::BrowseOutput => {
-                if let Some(p) = system::save_file("Onde salvar a imagem processada", "foto_editada.png", "Imagens", IMG_EXTS) {
+                if let Some(p) = system::save_file(
+                    "Onde salvar a imagem processada",
+                    "foto_editada.png",
+                    "Imagens",
+                    IMG_EXTS,
+                ) {
                     self.output = p.display().to_string();
                 }
             }
@@ -211,10 +220,20 @@ impl State {
             }
             Msg::SaveEditedPhoto => {
                 let input = PathBuf::from(self.input.trim());
-                let ext = input.extension().and_then(|e| e.to_str()).unwrap_or("png").to_string();
+                let ext = input
+                    .extension()
+                    .and_then(|e| e.to_str())
+                    .unwrap_or("png")
+                    .to_string();
                 let out = self.resolve_output(&input, "editada", &ext);
                 let edits = self.edits;
-                let id = ctx.start_job(MODULE, &format!("Salvar foto editada {}", crate::shared::ui::file_name(&input)));
+                let id = ctx.start_job(
+                    MODULE,
+                    &format!(
+                        "Salvar foto editada {}",
+                        crate::shared::ui::file_name(&input)
+                    ),
+                );
                 self.busy = true;
                 self.result = None;
                 return Command::perform(
@@ -226,14 +245,22 @@ impl State {
             // -------------------- Processamento em Lote --------------------
             Msg::BatchFolderChanged(f) => self.batch_folder = f,
             Msg::BrowseBatchFolder => {
-                if let Some(p) = system::pick_folder("Escolha a pasta com fotos para aplicar os ajustes") {
+                if let Some(p) =
+                    system::pick_folder("Escolha a pasta com fotos para aplicar os ajustes")
+                {
                     self.batch_folder = p.display().to_string();
                 }
             }
             Msg::RunBatch => {
                 let folder = PathBuf::from(self.batch_folder.trim());
                 let edits = self.edits;
-                let id = ctx.start_job(MODULE, &format!("Aplicar ajustes em lote na pasta {}", crate::shared::ui::file_name(&folder)));
+                let id = ctx.start_job(
+                    MODULE,
+                    &format!(
+                        "Aplicar ajustes em lote na pasta {}",
+                        crate::shared::ui::file_name(&folder)
+                    ),
+                );
                 self.busy = true;
                 self.result = None;
                 return Command::perform(
@@ -247,7 +274,8 @@ impl State {
                 if self.keep_aspect {
                     if let (Ok(new_w), Some(Ok(m))) = (w.trim().parse::<u32>(), &self.meta) {
                         if m.width > 0 && new_w > 0 {
-                            let h = ((new_w as f64) * (m.height as f64) / (m.width as f64)).round() as u32;
+                            let h = ((new_w as f64) * (m.height as f64) / (m.width as f64)).round()
+                                as u32;
                             self.height = h.max(1).to_string();
                         }
                     }
@@ -258,7 +286,8 @@ impl State {
                 if self.keep_aspect {
                     if let (Ok(new_h), Some(Ok(m))) = (h.trim().parse::<u32>(), &self.meta) {
                         if m.height > 0 && new_h > 0 {
-                            let w = ((new_h as f64) * (m.width as f64) / (m.height as f64)).round() as u32;
+                            let w = ((new_h as f64) * (m.width as f64) / (m.height as f64)).round()
+                                as u32;
                             self.width = w.max(1).to_string();
                         }
                     }
@@ -281,22 +310,38 @@ impl State {
                 let input = PathBuf::from(self.input.trim());
                 let w = self.width.trim().parse::<u32>().unwrap_or(0);
                 let h = self.height.trim().parse::<u32>().unwrap_or(0);
-                let ext = input.extension().and_then(|e| e.to_str()).unwrap_or("png").to_string();
+                let ext = input
+                    .extension()
+                    .and_then(|e| e.to_str())
+                    .unwrap_or("png")
+                    .to_string();
                 let out = self.resolve_output(&input, &format!("{w}x{h}"), &ext);
                 let keep = self.keep_aspect;
-                let id = ctx.start_job(MODULE, &format!("Redimensionar {}", crate::shared::ui::file_name(&input)));
+                let id = ctx.start_job(
+                    MODULE,
+                    &format!("Redimensionar {}", crate::shared::ui::file_name(&input)),
+                );
                 self.busy = true;
                 self.result = None;
-                return Command::perform(system::run_blocking(move || service::resize(input, out, w, h, keep)), move |r| Msg::Done(id, r));
+                return Command::perform(
+                    system::run_blocking(move || service::resize(input, out, w, h, keep)),
+                    move |r| Msg::Done(id, r),
+                );
             }
             Msg::ConvertRun => {
                 let input = PathBuf::from(self.input.trim());
                 let fmt = self.format;
                 let out = self.resolve_output(&input, "convertida", fmt.ext());
-                let id = ctx.start_job(MODULE, &format!("Converter para {}", fmt.ext().to_uppercase()));
+                let id = ctx.start_job(
+                    MODULE,
+                    &format!("Converter para {}", fmt.ext().to_uppercase()),
+                );
                 self.busy = true;
                 self.result = None;
-                return Command::perform(system::run_blocking(move || service::convert(input, out, fmt)), move |r| Msg::Done(id, r));
+                return Command::perform(
+                    system::run_blocking(move || service::convert(input, out, fmt)),
+                    move |r| Msg::Done(id, r),
+                );
             }
             Msg::CompressRun => {
                 let input = PathBuf::from(self.input.trim());
@@ -305,7 +350,10 @@ impl State {
                 let id = ctx.start_job(MODULE, &format!("Comprimir imagem ({q}%)"));
                 self.busy = true;
                 self.result = None;
-                return Command::perform(system::run_blocking(move || service::compress(input, out, q)), move |r| Msg::Done(id, r));
+                return Command::perform(
+                    system::run_blocking(move || service::compress(input, out, q)),
+                    move |r| Msg::Done(id, r),
+                );
             }
             Msg::Done(id, res) => {
                 ctx.finish_job(id, &res);

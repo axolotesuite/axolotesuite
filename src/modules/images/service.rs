@@ -185,12 +185,18 @@ pub fn inspect(path: &Path) -> Result<ImageMeta, String> {
         return Err("Arquivo de imagem não encontrado.".into());
     }
     let size_bytes = fs::metadata(path).map(|m| m.len()).unwrap_or(0);
-    let (width, height) = image::image_dimensions(path).map_err(|e| format!("Não foi possível ler as dimensões da imagem: {e}"))?;
+    let (width, height) = image::image_dimensions(path)
+        .map_err(|e| format!("Não foi possível ler as dimensões da imagem: {e}"))?;
     let ext = path
         .extension()
         .map(|e| e.to_string_lossy().to_uppercase())
         .unwrap_or_else(|| "IMAGEM".into());
-    Ok(ImageMeta { width, height, size_bytes, format_label: ext })
+    Ok(ImageMeta {
+        width,
+        height,
+        size_bytes,
+        format_label: ext,
+    })
 }
 
 /// Carrega uma miniatura base (máx 440px) para o preview do editor responder em tempo real.
@@ -249,13 +255,22 @@ pub fn save_edited_photo(input: PathBuf, output: PathBuf, edits: PhotoEdits) -> 
         return OperationResult::err(format!("Erro ao salvar a foto editada: {e}"));
     }
     let out_size = fs::metadata(&output).map(|m| m.len()).unwrap_or(0);
-    OperationResult::ok(format!("Foto editada salva ({w}×{h} px, {})", human_size(out_size)))
-        .with_detail(format!("Arquivo salvo em: {}", output.display()))
-        .with_output(output)
+    OperationResult::ok(format!(
+        "Foto editada salva ({w}×{h} px, {})",
+        human_size(out_size)
+    ))
+    .with_detail(format!("Arquivo salvo em: {}", output.display()))
+    .with_output(output)
 }
 
 /// Redimensiona a imagem usando filtro Lanczos3 (alta nitidez).
-pub fn resize(input: PathBuf, output: PathBuf, width: u32, height: u32, keep_aspect: bool) -> OperationResult {
+pub fn resize(
+    input: PathBuf,
+    output: PathBuf,
+    width: u32,
+    height: u32,
+    keep_aspect: bool,
+) -> OperationResult {
     if width == 0 || height == 0 {
         return OperationResult::err("Informe uma largura e altura maiores que zero.");
     }
@@ -274,12 +289,14 @@ pub fn resize(input: PathBuf, output: PathBuf, width: u32, height: u32, keep_asp
         return OperationResult::err(format!("Erro ao salvar a imagem redimensionada: {e}"));
     }
     let out_size = fs::metadata(&output).map(|m| m.len()).unwrap_or(0);
-    OperationResult::ok(format!("Imagem redimensionada: {orig_w}×{orig_h} → {new_w}×{new_h} px"))
-        .with_details(vec![
-            format!("Arquivo salvo em: {}", output.display()),
-            format!("Tamanho final: {}", human_size(out_size)),
-        ])
-        .with_output(output)
+    OperationResult::ok(format!(
+        "Imagem redimensionada: {orig_w}×{orig_h} → {new_w}×{new_h} px"
+    ))
+    .with_details(vec![
+        format!("Arquivo salvo em: {}", output.display()),
+        format!("Tamanho final: {}", human_size(out_size)),
+    ])
+    .with_output(output)
 }
 
 /// Converte a imagem para o formato escolhido.
@@ -307,9 +324,13 @@ pub fn convert(input: PathBuf, output: PathBuf, fmt: OutFormat) -> OperationResu
         return OperationResult::err(format!("Erro ao converter a imagem: {e}"));
     }
     let out_size = fs::metadata(&output).map(|m| m.len()).unwrap_or(0);
-    OperationResult::ok(format!("Imagem convertida para {} ({})", fmt.ext().to_uppercase(), human_size(out_size)))
-        .with_detail(format!("Arquivo salvo em: {}", output.display()))
-        .with_output(output)
+    OperationResult::ok(format!(
+        "Imagem convertida para {} ({})",
+        fmt.ext().to_uppercase(),
+        human_size(out_size)
+    ))
+    .with_detail(format!("Arquivo salvo em: {}", output.display()))
+    .with_output(output)
 }
 
 /// Comprime a imagem como JPEG ajustando a qualidade (10 a 100).
@@ -361,10 +382,15 @@ fn save_auto(img: &DynamicImage, output: &Path) -> Result<(), String> {
         .unwrap_or("png")
         .to_lowercase();
     // Gravação atômica: escreve em `nome.axolote_tmp.ext` e só renomeia no fim.
-    let stem = output.file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_else(|| "foto".into());
+    let stem = output
+        .file_stem()
+        .map(|s| s.to_string_lossy().to_string())
+        .unwrap_or_else(|| "foto".into());
     let tmp = output.with_file_name(format!("{stem}.axolote_tmp.{ext}"));
     let res = if ext == "jpg" || ext == "jpeg" {
-        DynamicImage::ImageRgb8(img.to_rgb8()).save(&tmp).map_err(|e| e.to_string())
+        DynamicImage::ImageRgb8(img.to_rgb8())
+            .save(&tmp)
+            .map_err(|e| e.to_string())
     } else {
         img.save(&tmp).map_err(|e| e.to_string())
     };
@@ -405,7 +431,11 @@ pub fn batch_apply(folder: PathBuf, edits: PhotoEdits) -> OperationResult {
     let mut ok = 0usize;
     let mut errors = Vec::new();
     for f in &files {
-        let ext = f.extension().and_then(|e| e.to_str()).unwrap_or("png").to_lowercase();
+        let ext = f
+            .extension()
+            .and_then(|e| e.to_str())
+            .unwrap_or("png")
+            .to_lowercase();
         let out = crate::core::paths::output_path(f, Some(&out_dir), "", &ext);
         match image::open(f) {
             Ok(img) => match save_auto(&apply_edits(img, &edits), &out) {
@@ -421,9 +451,17 @@ pub fn batch_apply(folder: PathBuf, edits: PhotoEdits) -> OperationResult {
     let title = if errors.is_empty() {
         format!("{ok} foto(s) editada(s) em lote")
     } else {
-        format!("{ok} de {} foto(s) editada(s); {} com erro", files.len(), errors.len())
+        format!(
+            "{ok} de {} foto(s) editada(s); {} com erro",
+            files.len(),
+            errors.len()
+        )
     };
-    let res = if ok > 0 { OperationResult::ok(title) } else { OperationResult::err(title) };
+    let res = if ok > 0 {
+        OperationResult::ok(title)
+    } else {
+        OperationResult::err(title)
+    };
     res.with_details(details).with_output(out_dir)
 }
 
@@ -438,18 +476,31 @@ mod tests {
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         for name in ["a.png", "b.png"] {
-            RgbaImage::from_pixel(8, 8, image::Rgba([100, 100, 100, 255])).save(dir.join(name)).unwrap();
+            RgbaImage::from_pixel(8, 8, image::Rgba([100, 100, 100, 255]))
+                .save(dir.join(name))
+                .unwrap();
         }
-        let edits = PhotoEdits { exposure: 50, ..Default::default() };
+        let edits = PhotoEdits {
+            exposure: 50,
+            ..Default::default()
+        };
         let res = batch_apply(dir.clone(), edits);
         assert!(res.success, "{}", res.title);
-        let out = image::open(dir.join("Axolote_Editadas").join("a.png")).unwrap().to_rgba8();
+        let out = image::open(dir.join("Axolote_Editadas").join("a.png"))
+            .unwrap()
+            .to_rgba8();
         assert!(out.get_pixel(0, 0)[0] > 150);
         let orig = image::open(dir.join("a.png")).unwrap().to_rgba8();
         assert_eq!(orig.get_pixel(0, 0)[0], 100);
         let leftovers = fs::read_dir(dir.join("Axolote_Editadas"))
             .unwrap()
-            .filter(|e| e.as_ref().unwrap().file_name().to_string_lossy().contains("axolote_tmp"))
+            .filter(|e| {
+                e.as_ref()
+                    .unwrap()
+                    .file_name()
+                    .to_string_lossy()
+                    .contains("axolote_tmp")
+            })
             .count();
         assert_eq!(leftovers, 0);
         let _ = fs::remove_dir_all(dir);

@@ -128,7 +128,9 @@ impl State {
                 self.input = s;
             }
             Msg::BrowseInput => {
-                if let Some(p) = system::pick_file("Escolha um arquivo de vídeo", "Vídeos", VIDEO_EXTS) {
+                if let Some(p) =
+                    system::pick_file("Escolha um arquivo de vídeo", "Vídeos", VIDEO_EXTS)
+                {
                     self.info_lines = service::inspect(&p);
                     self.edit = VideoEditConfig::default();
                     self.thumbnail = service::extract_thumbnail(&p, "");
@@ -139,7 +141,12 @@ impl State {
             Msg::OutputChanged(s) => self.output = s,
             Msg::BrowseOutput => {
                 let ext = self.format.ext();
-                if let Some(p) = system::save_file("Onde salvar o vídeo", &format!("video_editado.{ext}"), "Vídeo", &[ext]) {
+                if let Some(p) = system::save_file(
+                    "Onde salvar o vídeo",
+                    &format!("video_editado.{ext}"),
+                    "Vídeo",
+                    &[ext],
+                ) {
                     self.output = p.display().to_string();
                 }
             }
@@ -167,7 +174,13 @@ impl State {
                 let input = PathBuf::from(self.input.trim());
                 let out = self.resolve_output(&input, "editado", "mp4");
                 let cfg = self.edit.clone();
-                let id = ctx.start_job(MODULE, &format!("Exportar vídeo editado {}", crate::shared::ui::file_name(&input)));
+                let id = ctx.start_job(
+                    MODULE,
+                    &format!(
+                        "Exportar vídeo editado {}",
+                        crate::shared::ui::file_name(&input)
+                    ),
+                );
                 self.busy = true;
                 self.result = None;
                 return Command::perform(
@@ -184,10 +197,16 @@ impl State {
                 let input = PathBuf::from(self.input.trim());
                 let fmt = self.format;
                 let out = self.resolve_output(&input, "convertido", fmt.ext());
-                let id = ctx.start_job(MODULE, &format!("Converter vídeo para {}", fmt.ext().to_uppercase()));
+                let id = ctx.start_job(
+                    MODULE,
+                    &format!("Converter vídeo para {}", fmt.ext().to_uppercase()),
+                );
                 self.busy = true;
                 self.result = None;
-                return Command::perform(system::run_blocking(move || service::convert(input, out, fmt)), move |r| Msg::Done(id, r));
+                return Command::perform(
+                    system::run_blocking(move || service::convert(input, out, fmt)),
+                    move |r| Msg::Done(id, r),
+                );
             }
             Msg::CompressRun => {
                 let input = PathBuf::from(self.input.trim());
@@ -196,7 +215,10 @@ impl State {
                 let id = ctx.start_job(MODULE, &format!("Comprimir vídeo (CRF {crf})"));
                 self.busy = true;
                 self.result = None;
-                return Command::perform(system::run_blocking(move || service::compress(input, out, crf)), move |r| Msg::Done(id, r));
+                return Command::perform(
+                    system::run_blocking(move || service::compress(input, out, crf)),
+                    move |r| Msg::Done(id, r),
+                );
             }
             Msg::Done(id, res) => {
                 ctx.finish_job(id, &res);

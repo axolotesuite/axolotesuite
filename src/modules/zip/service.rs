@@ -30,9 +30,28 @@ pub fn is_windows_reserved_name(comp: &str) -> bool {
     let upper = stem.to_ascii_uppercase();
     matches!(
         upper.as_str(),
-        "CON" | "PRN" | "AUX" | "NUL"
-            | "COM1" | "COM2" | "COM3" | "COM4" | "COM5" | "COM6" | "COM7" | "COM8" | "COM9"
-            | "LPT1" | "LPT2" | "LPT3" | "LPT4" | "LPT5" | "LPT6" | "LPT7" | "LPT8" | "LPT9"
+        "CON"
+            | "PRN"
+            | "AUX"
+            | "NUL"
+            | "COM1"
+            | "COM2"
+            | "COM3"
+            | "COM4"
+            | "COM5"
+            | "COM6"
+            | "COM7"
+            | "COM8"
+            | "COM9"
+            | "LPT1"
+            | "LPT2"
+            | "LPT3"
+            | "LPT4"
+            | "LPT5"
+            | "LPT6"
+            | "LPT7"
+            | "LPT8"
+            | "LPT9"
     )
 }
 
@@ -75,7 +94,8 @@ pub fn list_contents(zip_path: &Path) -> Result<Vec<ZipEntryInfo>, String> {
         return Err("Arquivo ZIP não encontrado. Escolha um arquivo .zip válido.".into());
     }
     let file = File::open(zip_path).map_err(|e| format!("Não foi possível abrir o ZIP: {e}"))?;
-    let mut archive = ZipArchive::new(file).map_err(|e| format!("Arquivo ZIP inválido ou corrompido: {e}"))?;
+    let mut archive =
+        ZipArchive::new(file).map_err(|e| format!("Arquivo ZIP inválido ou corrompido: {e}"))?;
     let mut list = Vec::with_capacity(archive.len());
     for i in 0..archive.len() {
         if let Ok(f) = archive.by_index(i) {
@@ -121,10 +141,16 @@ pub fn extract(zip_path: PathBuf, dest_dir: PathBuf) -> OperationResult {
     let mut total_bytes = 0u64;
 
     for i in 0..archive.len() {
-        let Ok(mut entry) = archive.by_index(i) else { continue };
+        let Ok(mut entry) = archive.by_index(i) else {
+            continue;
+        };
 
         // Rejeita links simbólicos em arquivos ZIP
-        if entry.unix_mode().map(|m| (m & 0o170000) == 0o120000).unwrap_or(false) {
+        if entry
+            .unix_mode()
+            .map(|m| (m & 0o170000) == 0o120000)
+            .unwrap_or(false)
+        {
             blocked += 1;
             continue;
         }
@@ -167,7 +193,9 @@ pub fn extract(zip_path: PathBuf, dest_dir: PathBuf) -> OperationResult {
         format!("Total extraído: {}", human_size(total_bytes)),
     ];
     if blocked > 0 {
-        details.push(format!("🛡 {blocked} caminho(s) suspeito(s) bloqueado(s) por segurança."));
+        details.push(format!(
+            "🛡 {blocked} caminho(s) suspeito(s) bloqueado(s) por segurança."
+        ));
     }
     OperationResult::ok(format!("{extracted} arquivo(s) extraído(s) com sucesso."))
         .with_details(details)
@@ -186,7 +214,9 @@ pub fn create(output: PathBuf, sources: Vec<PathBuf>) -> OperationResult {
     }
     let file = match File::create(&output) {
         Ok(f) => f,
-        Err(e) => return OperationResult::err(format!("Não foi possível criar o arquivo ZIP: {e}")),
+        Err(e) => {
+            return OperationResult::err(format!("Não foi possível criar o arquivo ZIP: {e}"))
+        }
     };
     let mut zip = ZipWriter::new(file);
     let options = FileOptions::default()
@@ -236,9 +266,12 @@ pub fn create(output: PathBuf, sources: Vec<PathBuf>) -> OperationResult {
     for err in errors.iter().take(10) {
         details.push(format!("Aviso: {err}"));
     }
-    OperationResult::ok(format!("ZIP criado com {count} arquivo(s) ({})", human_size(final_size)))
-        .with_details(details)
-        .with_output(output)
+    OperationResult::ok(format!(
+        "ZIP criado com {count} arquivo(s) ({})",
+        human_size(final_size)
+    ))
+    .with_details(details)
+    .with_output(output)
 }
 
 fn add_file_to_zip<W: io::Write + io::Seek>(
@@ -248,7 +281,8 @@ fn add_file_to_zip<W: io::Write + io::Seek>(
     options: FileOptions,
 ) -> io::Result<()> {
     let mut f = File::open(src)?;
-    zip.start_file(zip_name, options).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+    zip.start_file(zip_name, options)
+        .map_err(io::Error::other)?;
     io::copy(&mut f, zip)?;
     Ok(())
 }
@@ -267,7 +301,10 @@ mod tests {
         assert!(sanitize_relative_path("NUL.txt").is_none());
         assert!(sanitize_relative_path("doc.txt:ads.exe").is_none());
         assert!(sanitize_relative_path("arquivo_com_espaco ").is_none());
-        assert_eq!(sanitize_relative_path("fotos/praia.jpg"), Some(PathBuf::from("fotos").join("praia.jpg")));
+        assert_eq!(
+            sanitize_relative_path("fotos/praia.jpg"),
+            Some(PathBuf::from("fotos").join("praia.jpg"))
+        );
     }
 
     #[test]
@@ -288,7 +325,10 @@ mod tests {
         let out_dir = dir.join("extraido");
         let ext = extract(zip_path, out_dir.clone());
         assert!(ext.success);
-        assert_eq!(fs::read_to_string(out_dir.join("ola.txt")).unwrap(), "conteudo de teste");
+        assert_eq!(
+            fs::read_to_string(out_dir.join("ola.txt")).unwrap(),
+            "conteudo de teste"
+        );
         let _ = fs::remove_dir_all(&dir);
     }
 }

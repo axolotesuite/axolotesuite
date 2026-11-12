@@ -83,7 +83,11 @@ impl State {
                 self.result = None;
             }
             Msg::AddMergeFiles => {
-                for p in system::pick_files("Selecione os arquivos PDF para unir", "Documentos PDF (*.pdf)", &["pdf"]) {
+                for p in system::pick_files(
+                    "Selecione os arquivos PDF para unir",
+                    "Documentos PDF (*.pdf)",
+                    &["pdf"],
+                ) {
                     if !self.merge_files.iter().any(|(existing, _)| existing == &p) {
                         if self.merge_output.trim().is_empty() {
                             let parent = p.parent().unwrap_or_else(|| Path::new("."));
@@ -117,12 +121,18 @@ impl State {
             }
             Msg::MergeOutputChanged(s) => self.merge_output = s,
             Msg::BrowseMergeOutput => {
-                if let Some(p) = system::save_file("Onde salvar o PDF unido", "documento_unido.pdf", "PDF (*.pdf)", &["pdf"]) {
+                if let Some(p) = system::save_file(
+                    "Onde salvar o PDF unido",
+                    "documento_unido.pdf",
+                    "PDF (*.pdf)",
+                    &["pdf"],
+                ) {
                     self.merge_output = p.display().to_string();
                 }
             }
             Msg::MergeRun => {
-                let inputs: Vec<PathBuf> = self.merge_files.iter().map(|(p, _)| p.clone()).collect();
+                let inputs: Vec<PathBuf> =
+                    self.merge_files.iter().map(|(p, _)| p.clone()).collect();
                 let mut out = PathBuf::from(self.merge_output.trim());
                 if out.extension().is_none() {
                     out.set_extension("pdf");
@@ -130,7 +140,10 @@ impl State {
                 let id = ctx.start_job(MODULE, &format!("Unir {} arquivos PDF", inputs.len()));
                 self.busy = true;
                 self.result = None;
-                return Command::perform(system::run_blocking(move || service::merge(out, inputs)), move |r| Msg::Done(id, r));
+                return Command::perform(
+                    system::run_blocking(move || service::merge(out, inputs)),
+                    move |r| Msg::Done(id, r),
+                );
             }
 
             // Dividir / inspecionar
@@ -144,12 +157,18 @@ impl State {
                 self.split_input = s;
             }
             Msg::BrowseSplitInput => {
-                if let Some(p) = system::pick_file("Escolha um arquivo PDF", "PDF (*.pdf)", &["pdf"]) {
+                if let Some(p) =
+                    system::pick_file("Escolha um arquivo PDF", "PDF (*.pdf)", &["pdf"])
+                {
                     self.load_split_meta(&p);
                     if self.split_out_dir.trim().is_empty() {
                         let parent = p.parent().unwrap_or_else(|| Path::new("."));
-                        let stem = p.file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_else(|| "paginas".into());
-                        self.split_out_dir = parent.join(format!("{stem}_paginas")).display().to_string();
+                        let stem = p
+                            .file_stem()
+                            .map(|s| s.to_string_lossy().to_string())
+                            .unwrap_or_else(|| "paginas".into());
+                        self.split_out_dir =
+                            parent.join(format!("{stem}_paginas")).display().to_string();
                     }
                     self.split_input = p.display().to_string();
                     self.result = None;
@@ -167,17 +186,26 @@ impl State {
                 let pdf = PathBuf::from(self.split_input.trim());
                 let out_dir = if self.split_out_dir.trim().is_empty() {
                     let parent = pdf.parent().unwrap_or_else(|| Path::new("."));
-                    let stem = pdf.file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_else(|| "paginas".into());
+                    let stem = pdf
+                        .file_stem()
+                        .map(|s| s.to_string_lossy().to_string())
+                        .unwrap_or_else(|| "paginas".into());
                     parent.join(format!("{stem}_paginas"))
                 } else {
                     PathBuf::from(self.split_out_dir.trim())
                 };
                 self.split_out_dir = out_dir.display().to_string();
-                let range = match (self.page_from.trim().parse::<u32>(), self.page_to.trim().parse::<u32>()) {
+                let range = match (
+                    self.page_from.trim().parse::<u32>(),
+                    self.page_to.trim().parse::<u32>(),
+                ) {
                     (Ok(f), Ok(t)) => Some((f, t)),
                     _ => None,
                 };
-                let id = ctx.start_job(MODULE, &format!("Dividir {}", crate::shared::ui::file_name(&pdf)));
+                let id = ctx.start_job(
+                    MODULE,
+                    &format!("Dividir {}", crate::shared::ui::file_name(&pdf)),
+                );
                 self.busy = true;
                 self.result = None;
                 return Command::perform(

@@ -18,8 +18,16 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     );
 
     let tabs = row![
-        ui::btn("🔗  Unir vários PDFs em um só", Btn::Tab(state.mode == Mode::Merge), Some(Msg::ModeChanged(Mode::Merge))),
-        ui::btn("✂  Dividir PDF em páginas / Informações", Btn::Tab(state.mode == Mode::Split), Some(Msg::ModeChanged(Mode::Split))),
+        ui::btn(
+            "🔗  Unir vários PDFs em um só",
+            Btn::Tab(state.mode == Mode::Merge),
+            Some(Msg::ModeChanged(Mode::Merge))
+        ),
+        ui::btn(
+            "✂  Dividir PDF em páginas / Informações",
+            Btn::Tab(state.mode == Mode::Split),
+            Some(Msg::ModeChanged(Mode::Split))
+        ),
     ]
     .spacing(10)
     .align_items(Alignment::Center);
@@ -34,12 +42,17 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
 
 fn merge_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     let c = env.c();
-    let can_merge = state.merge_files.len() >= 2 && !state.merge_output.trim().is_empty() && !state.busy;
+    let can_merge =
+        state.merge_files.len() >= 2 && !state.merge_output.trim().is_empty() && !state.busy;
 
     let top_btns = ui::actions(
         env,
         vec![
-            act("➕  Adicionar arquivos PDF…", Btn::Primary, (!state.busy).then_some(Msg::AddMergeFiles)),
+            act(
+                "➕  Adicionar arquivos PDF…",
+                Btn::Primary,
+                (!state.busy).then_some(Msg::AddMergeFiles),
+            ),
             act(
                 "🗑  Limpar lista",
                 Btn::Ghost,
@@ -50,7 +63,11 @@ fn merge_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
 
     let total_pages: usize = state.merge_files.iter().filter_map(|(_, p)| *p).sum();
     let mut list_col = column![row![
-        ui::strong(format!("Ordem dos documentos ({})", state.merge_files.len()), 15).width(Length::Fill),
+        ui::strong(
+            format!("Ordem dos documentos ({})", state.merge_files.len()),
+            15
+        )
+        .width(Length::Fill),
         ui::badge(format!("Total estimado: {total_pages} página(s)"), c.accent),
     ]
     .align_items(Alignment::Center)]
@@ -73,10 +90,17 @@ fn merge_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
             list_col = list_col.push(ui::list_row(
                 row![
                     ui::badge(i + 1, c.accent),
-                    text(ui::file_name(path)).size(13).font(SEMIBOLD).width(Length::Fill),
+                    text(ui::file_name(path))
+                        .size(13)
+                        .font(SEMIBOLD)
+                        .width(Length::Fill),
                     pages_badge,
                     ui::btn("↑", Btn::Secondary, (i > 0).then_some(Msg::MoveUp(i))),
-                    ui::btn("↓", Btn::Secondary, (i + 1 < len).then_some(Msg::MoveDown(i))),
+                    ui::btn(
+                        "↓",
+                        Btn::Secondary,
+                        (i + 1 < len).then_some(Msg::MoveDown(i))
+                    ),
                     ui::btn("✕", Btn::Ghost, Some(Msg::RemoveMergeFile(i))),
                 ]
                 .spacing(8)
@@ -99,7 +123,14 @@ fn merge_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         ),
     );
 
-    let merge_btn = ui::actions(env, vec![act("🔗  Unir PDFs agora", Btn::Primary, can_merge.then_some(Msg::MergeRun))]);
+    let merge_btn = ui::actions(
+        env,
+        vec![act(
+            "🔗  Unir PDFs agora",
+            Btn::Primary,
+            can_merge.then_some(Msg::MergeRun),
+        )],
+    );
 
     let mut body = column![top_btns, list_col, out_field, merge_btn].spacing(16);
 
@@ -160,7 +191,11 @@ fn split_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
                         ui::strong(format!("{} página(s)", m.pages), 15).width(Length::Fill),
                         ui::badge(format!("Tamanho: {}", human_size(m.size_bytes)), c.accent),
                         ui::badge(
-                            if m.encrypted { "🔒 Criptografado" } else { "🔓 Sem senha" },
+                            if m.encrypted {
+                                "🔒 Criptografado"
+                            } else {
+                                "🔓 Sem senha"
+                            },
                             if m.encrypted { c.warning } else { c.success },
                         ),
                     ]
@@ -210,7 +245,11 @@ fn split_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
 
     let split_btn = ui::actions(
         env,
-        vec![act("✂  Extrair páginas em PDFs separados", Btn::Primary, has_pdf.then_some(Msg::SplitRun))],
+        vec![act(
+            "✂  Extrair páginas em PDFs separados",
+            Btn::Primary,
+            has_pdf.then_some(Msg::SplitRun),
+        )],
     );
 
     let mut body = column![in_field, info_block, range_row, out_dir_field, split_btn].spacing(14);

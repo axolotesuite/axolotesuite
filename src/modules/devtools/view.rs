@@ -18,8 +18,16 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     );
 
     let tabs = row![
-        ui::btn("🎨  Cores & Paleta de Foto", Btn::Tab(state.tab == Tab::Colors), Some(Msg::SelectTab(Tab::Colors))),
-        ui::btn("🔒  Senhas Fortes & UUID", Btn::Tab(state.tab == Tab::Passwords), Some(Msg::SelectTab(Tab::Passwords))),
+        ui::btn(
+            "🎨  Cores & Paleta de Foto",
+            Btn::Tab(state.tab == Tab::Colors),
+            Some(Msg::SelectTab(Tab::Colors))
+        ),
+        ui::btn(
+            "🔒  Senhas Fortes & UUID",
+            Btn::Tab(state.tab == Tab::Passwords),
+            Some(Msg::SelectTab(Tab::Passwords))
+        ),
     ]
     .spacing(10);
 
@@ -70,8 +78,16 @@ fn colors_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         "Digite qualquer cor hexadecimal (#RRGGBB) ou ajuste os canais R, G, B abaixo.",
         row![
             ui::input("#7C3AED", &state.color_hex, Msg::HexChanged).width(Length::Fill),
-            ui::btn("📋 Copiar HEX", Btn::Secondary, Some(Msg::CopyText(state.color_hex.clone()))),
-            ui::btn("📋 Copiar RGB", Btn::Secondary, Some(Msg::CopyText(rgb_str))),
+            ui::btn(
+                "📋 Copiar HEX",
+                Btn::Secondary,
+                Some(Msg::CopyText(state.color_hex.clone()))
+            ),
+            ui::btn(
+                "📋 Copiar RGB",
+                Btn::Secondary,
+                Some(Msg::CopyText(rgb_str))
+            ),
         ]
         .spacing(8)
         .align_items(Alignment::Center),
@@ -100,7 +116,11 @@ fn colors_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     .spacing(10);
 
     let harmonies = service::color_harmonies(state.r, state.g, state.b);
-    let mut harm_col = column![ui::strong("Harmonias Cromáticas (clique para selecionar)", 14)].spacing(6);
+    let mut harm_col = column![ui::strong(
+        "Harmonias Cromáticas (clique para selecionar)",
+        14
+    )]
+    .spacing(6);
     for (name, hex, (hr, hg, hb)) in harmonies {
         let chip_color = Color::from_rgb8(hr, hg, hb);
         harm_col = harm_col.push(ui::list_row(
@@ -121,7 +141,14 @@ fn colors_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         "🎨",
         "Conversor & Harmonia de Cores ao Vivo",
         "Converte instantaneamente entre HEX, RGB, HSL e CMYK.",
-        column![swatch_row, hex_field, sliders, Space::with_height(4), harm_col].spacing(14),
+        column![
+            swatch_row,
+            hex_field,
+            sliders,
+            Space::with_height(4),
+            harm_col
+        ]
+        .spacing(14),
     );
 
     let mut pal_col = column![
@@ -138,7 +165,10 @@ fn colors_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     .spacing(10);
 
     if !state.palette_source_path.is_empty() {
-        pal_col = pal_col.push(ui::muted(env, format!("Imagem: {}", state.palette_source_path)));
+        pal_col = pal_col.push(ui::muted(
+            env,
+            format!("Imagem: {}", state.palette_source_path),
+        ));
     }
     if state.extracted_palette.is_empty() {
         pal_col = pal_col.push(ui::empty_state(
@@ -155,8 +185,16 @@ fn colors_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
                     ui::badge(format!("  {hex}  "), col),
                     ui::strong(format!("RGB({pr}, {pg}, {pb})"), 13).width(Length::Fill),
                     ui::badge(format!("{pct}% da foto"), env.c().accent),
-                    ui::btn("Inspecionar", Btn::Secondary, Some(Msg::SelectRgb(*pr, *pg, *pb))),
-                    ui::btn("📋 Copiar", Btn::Secondary, Some(Msg::CopyText(hex.clone()))),
+                    ui::btn(
+                        "Inspecionar",
+                        Btn::Secondary,
+                        Some(Msg::SelectRgb(*pr, *pg, *pb))
+                    ),
+                    ui::btn(
+                        "📋 Copiar",
+                        Btn::Secondary,
+                        Some(Msg::CopyText(hex.clone()))
+                    ),
                 ]
                 .spacing(8)
                 .align_items(Alignment::Center),
@@ -201,9 +239,16 @@ fn passwords_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
 
     let controls = column![
         row![
-            ui::strong(format!("Comprimento da senha: {} caracteres", state.pwd_len), 14).width(Length::Fill),
+            ui::strong(
+                format!("Comprimento da senha: {} caracteres", state.pwd_len),
+                14
+            )
+            .width(Length::Fill),
             ui::badge(
-                format!("Entropia: {:.1} bits • {}", state.pwd_entropy, state.pwd_rating),
+                format!(
+                    "Entropia: {:.1} bits • {}",
+                    state.pwd_entropy, state.pwd_rating
+                ),
                 rating_color
             ),
         ]
@@ -212,15 +257,37 @@ fn passwords_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         slider(6.0..=64.0, state.pwd_len as f32, Msg::PwdLenChanged),
         ui::list_row(
             column![
-                checkbox("Letras Maiúsculas (A–Z)", state.pwd_upper).on_toggle(Msg::TogglePwdUpper).size(18).text_size(13),
-                checkbox("Letras Minúsculas (a–z)", state.pwd_lower).on_toggle(Msg::TogglePwdLower).size(18).text_size(13),
-                checkbox("Números (0–9)", state.pwd_digits).on_toggle(Msg::TogglePwdDigits).size(18).text_size(13),
-                checkbox("Símbolos Especiais (!@#$%^&*...)", state.pwd_symbols).on_toggle(Msg::TogglePwdSymbols).size(18).text_size(13),
-                checkbox("Evitar caracteres parecidos (0, O, 1, l, I)", state.pwd_avoid_ambiguous).on_toggle(Msg::TogglePwdAmbiguous).size(18).text_size(13),
+                checkbox("Letras Maiúsculas (A–Z)", state.pwd_upper)
+                    .on_toggle(Msg::TogglePwdUpper)
+                    .size(18)
+                    .text_size(13),
+                checkbox("Letras Minúsculas (a–z)", state.pwd_lower)
+                    .on_toggle(Msg::TogglePwdLower)
+                    .size(18)
+                    .text_size(13),
+                checkbox("Números (0–9)", state.pwd_digits)
+                    .on_toggle(Msg::TogglePwdDigits)
+                    .size(18)
+                    .text_size(13),
+                checkbox("Símbolos Especiais (!@#$%^&*...)", state.pwd_symbols)
+                    .on_toggle(Msg::TogglePwdSymbols)
+                    .size(18)
+                    .text_size(13),
+                checkbox(
+                    "Evitar caracteres parecidos (0, O, 1, l, I)",
+                    state.pwd_avoid_ambiguous
+                )
+                .on_toggle(Msg::TogglePwdAmbiguous)
+                .size(18)
+                .text_size(13),
             ]
             .spacing(8),
         ),
-        ui::btn("🔄  Gerar Novas Senhas Seguras", Btn::Primary, Some(Msg::RegeneratePasswords)),
+        ui::btn(
+            "🔄  Gerar Novas Senhas Seguras",
+            Btn::Primary,
+            Some(Msg::RegeneratePasswords)
+        ),
     ]
     .spacing(12);
 
@@ -229,7 +296,11 @@ fn passwords_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         pwd_list = pwd_list.push(ui::list_row(
             row![
                 ui::strong(pwd, 14).width(Length::Fill),
-                ui::btn("📋 Copiar", Btn::Secondary, Some(Msg::CopyText(pwd.clone()))),
+                ui::btn(
+                    "📋 Copiar",
+                    Btn::Secondary,
+                    Some(Msg::CopyText(pwd.clone()))
+                ),
             ]
             .spacing(10)
             .align_items(Alignment::Center),
@@ -244,9 +315,11 @@ fn passwords_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         column![controls, Space::with_height(4), pwd_list].spacing(14),
     );
 
-    let mut uuid_list = column![
-        ui::btn("🔄  Gerar Novos UUIDs v4 (RFC 4122)", Btn::Secondary, Some(Msg::RegenerateUuids)),
-    ]
+    let mut uuid_list = column![ui::btn(
+        "🔄  Gerar Novos UUIDs v4 (RFC 4122)",
+        Btn::Secondary,
+        Some(Msg::RegenerateUuids)
+    ),]
     .spacing(8);
     for u in &state.generated_uuids {
         uuid_list = uuid_list.push(ui::list_row(

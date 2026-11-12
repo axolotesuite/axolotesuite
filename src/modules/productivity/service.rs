@@ -20,8 +20,16 @@ pub fn list_notes(dir: &Path) -> Vec<String> {
         .into_iter()
         .flatten()
         .flatten()
-        .filter(|e| e.path().extension().map_or(false, |x| x.eq_ignore_ascii_case("txt")))
-        .filter_map(|e| e.path().file_stem().map(|s| s.to_string_lossy().to_string()))
+        .filter(|e| {
+            e.path()
+                .extension()
+                .is_some_and(|x| x.eq_ignore_ascii_case("txt"))
+        })
+        .filter_map(|e| {
+            e.path()
+                .file_stem()
+                .map(|s| s.to_string_lossy().to_string())
+        })
         .collect();
     notes.sort_by_key(|n| n.to_lowercase());
     notes
@@ -32,9 +40,19 @@ pub fn sanitize_name(name: &str) -> String {
     let cleaned: String = name
         .trim()
         .chars()
-        .map(|c| if "\\/:*?\"<>|".contains(c) || c.is_control() { '_' } else { c })
+        .map(|c| {
+            if "\\/:*?\"<>|".contains(c) || c.is_control() {
+                '_'
+            } else {
+                c
+            }
+        })
         .collect();
-    let cleaned = cleaned.trim_end_matches(".txt").trim().trim_end_matches('.').to_string();
+    let cleaned = cleaned
+        .trim_end_matches(".txt")
+        .trim()
+        .trim_end_matches('.')
+        .to_string();
     if crate::modules::zip::service::is_windows_reserved_name(&cleaned) {
         format!("_{cleaned}")
     } else {
@@ -114,10 +132,16 @@ pub fn evaluate(expr: &str) -> Result<f64, String> {
     if normalized.is_empty() {
         return Err("Digite uma expressão, por exemplo 12,5 * (3 + 2)".into());
     }
-    let mut parser = Parser { chars: normalized.chars().collect(), pos: 0 };
+    let mut parser = Parser {
+        chars: normalized.chars().collect(),
+        pos: 0,
+    };
     let value = parser.expr()?;
     if parser.pos < parser.chars.len() {
-        return Err(format!("Caractere inesperado: \"{}\"", parser.chars[parser.pos]));
+        return Err(format!(
+            "Caractere inesperado: \"{}\"",
+            parser.chars[parser.pos]
+        ));
     }
     if !value.is_finite() {
         return Err("Resultado indefinido (divisão por zero?)".into());
@@ -238,7 +262,8 @@ impl Parser {
                     }
                 }
                 let s: String = self.chars[start..self.pos].iter().collect();
-                s.parse::<f64>().map_err(|_| format!("Número inválido: \"{s}\""))
+                s.parse::<f64>()
+                    .map_err(|_| format!("Número inválido: \"{s}\""))
             }
             Some(c) => Err(format!("Caractere não permitido: \"{c}\"")),
             None => Err("A expressão terminou de forma incompleta.".into()),
@@ -253,9 +278,11 @@ impl Parser {
 /// Categoria (subpasta) de destino para cada extensão.
 pub fn category_for(ext: &str) -> &'static str {
     match ext.to_lowercase().as_str() {
-        "jpg" | "jpeg" | "png" | "gif" | "bmp" | "webp" | "svg" | "heic" | "ico" | "tif" | "tiff" | "raw" => "Imagens",
+        "jpg" | "jpeg" | "png" | "gif" | "bmp" | "webp" | "svg" | "heic" | "ico" | "tif"
+        | "tiff" | "raw" => "Imagens",
         "pdf" => "PDFs",
-        "doc" | "docx" | "odt" | "rtf" | "txt" | "md" | "xls" | "xlsx" | "ods" | "csv" | "ppt" | "pptx" | "odp" => "Documentos",
+        "doc" | "docx" | "odt" | "rtf" | "txt" | "md" | "xls" | "xlsx" | "ods" | "csv" | "ppt"
+        | "pptx" | "odp" => "Documentos",
         "mp3" | "wav" | "flac" | "ogg" | "m4a" | "aac" | "wma" | "opus" => "Áudios",
         "mp4" | "mkv" | "avi" | "mov" | "wmv" | "webm" | "flv" | "m4v" => "Vídeos",
         "zip" | "rar" | "7z" | "tar" | "gz" | "bz2" | "xz" => "Compactados",
@@ -273,7 +300,10 @@ pub fn organize_preview(dir: &Path) -> Result<BTreeMap<&'static str, usize>, Str
     for entry in fs::read_dir(dir).map_err(|e| e.to_string())?.flatten() {
         let p = entry.path();
         if p.is_file() {
-            let ext = p.extension().map(|e| e.to_string_lossy().to_string()).unwrap_or_default();
+            let ext = p
+                .extension()
+                .map(|e| e.to_string_lossy().to_string())
+                .unwrap_or_default();
             *map.entry(category_for(&ext)).or_insert(0) += 1;
         }
     }
@@ -297,7 +327,10 @@ pub fn organize(dir: PathBuf) -> OperationResult {
         if !p.is_file() {
             continue;
         }
-        let ext = p.extension().map(|e| e.to_string_lossy().to_string()).unwrap_or_default();
+        let ext = p
+            .extension()
+            .map(|e| e.to_string_lossy().to_string())
+            .unwrap_or_default();
         let cat = category_for(&ext);
         let target_dir = dir.join(cat);
         if let Err(e) = fs::create_dir_all(&target_dir) {
@@ -313,16 +346,27 @@ pub fn organize(dir: PathBuf) -> OperationResult {
             Err(e) => errors.push(format!("{}: {e}", crate::shared::ui::file_name(&p))),
         }
     }
-    let mut details: Vec<String> = per_cat.iter().map(|(c, n)| format!("{c}: {n} arquivo(s)")).collect();
+    let mut details: Vec<String> = per_cat
+        .iter()
+        .map(|(c, n)| format!("{c}: {n} arquivo(s)"))
+        .collect();
     for e in errors.iter().take(10) {
         details.push(format!("Erro: {e}"));
     }
     let title = if errors.is_empty() {
         format!("{moved} arquivo(s) organizado(s) em subpastas.")
     } else {
-        format!("{moved} arquivo(s) organizado(s), {} com erro.", errors.len())
+        format!(
+            "{moved} arquivo(s) organizado(s), {} com erro.",
+            errors.len()
+        )
     };
-    OperationResult { success: errors.is_empty() || moved > 0, title, details, output: Some(dir) }
+    OperationResult {
+        success: errors.is_empty() || moved > 0,
+        title,
+        details,
+        output: Some(dir),
+    }
 }
 
 #[cfg(test)]

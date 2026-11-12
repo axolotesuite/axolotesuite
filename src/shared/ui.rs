@@ -5,7 +5,9 @@
 
 use iced::font::{Family, Weight};
 use iced::widget::text::Shaping;
-use iced::widget::{button, column, container, horizontal_space, row, scrollable, text, text_input, Space};
+use iced::widget::{
+    button, column, container, horizontal_space, row, scrollable, text, text_input, Space,
+};
 use iced::{Alignment, Color, Element, Font, Length};
 
 use crate::shared::theme::{self, BannerKind, Btn};
@@ -24,29 +26,47 @@ pub const SEMIBOLD: Font = Font {
 
 /// Texto em negrito.
 pub fn strong<'a>(content: impl ToString, size: u16) -> iced::widget::Text<'a> {
-    text(content).size(size).font(BOLD).shaping(Shaping::Advanced)
+    text(content)
+        .size(size)
+        .font(BOLD)
+        .shaping(Shaping::Advanced)
 }
 
 /// Texto secundário (cinza).
 pub fn muted<'a>(env: &Env, content: impl ToString) -> iced::widget::Text<'a> {
-    text(content).size(13).style(env.c().muted).shaping(Shaping::Advanced)
+    text(content)
+        .size(13)
+        .style(env.c().muted)
+        .shaping(Shaping::Advanced)
 }
 
 /// Texto colorido.
 pub fn colored<'a>(content: impl ToString, size: u16, color: Color) -> iced::widget::Text<'a> {
-    text(content).size(size).style(color).shaping(Shaping::Advanced)
+    text(content)
+        .size(size)
+        .style(color)
+        .shaping(Shaping::Advanced)
 }
 
 /// Botão estilizado. Se `msg` for `None`, o botão aparece desativado.
-pub fn btn<'a, M: Clone + 'a>(label: impl ToString, kind: Btn, msg: Option<M>) -> iced::widget::Button<'a, M> {
+pub fn btn<'a, M: Clone + 'a>(
+    label: impl ToString,
+    kind: Btn,
+    msg: Option<M>,
+) -> iced::widget::Button<'a, M> {
     let size = match kind {
         Btn::Key | Btn::KeyOp => 18,
         _ => 14,
     };
     button(
-        container(text(label).size(size).font(SEMIBOLD).shaping(Shaping::Advanced))
-            .center_x()
-            .width(Length::Shrink),
+        container(
+            text(label)
+                .size(size)
+                .font(SEMIBOLD)
+                .shaping(Shaping::Advanced),
+        )
+        .center_x()
+        .width(Length::Shrink),
     )
     .padding([10, 18])
     .style(theme::btn(kind))
@@ -55,16 +75,28 @@ pub fn btn<'a, M: Clone + 'a>(label: impl ToString, kind: Btn, msg: Option<M>) -
 
 /// Linha de botões de ação. Em telas estreitas os botões ficam empilhados
 /// e ocupam toda a largura, facilitando o clique.
-pub fn actions<'a, M: Clone + 'a>(env: &Env, items: Vec<(String, Btn, Option<M>)>) -> Element<'a, M> {
+pub fn actions<'a, M: Clone + 'a>(
+    env: &Env,
+    items: Vec<(String, Btn, Option<M>)>,
+) -> Element<'a, M> {
     if env.narrow() {
         let mut col = column![].spacing(8).width(Length::Fill);
         for (label, kind, msg) in items {
             col = col.push(
-                button(container(text(label).size(14).font(SEMIBOLD).shaping(Shaping::Advanced)).center_x().width(Length::Fill))
-                    .padding([11, 18])
-                    .width(Length::Fill)
-                    .style(theme::btn(kind))
-                    .on_press_maybe(msg),
+                button(
+                    container(
+                        text(label)
+                            .size(14)
+                            .font(SEMIBOLD)
+                            .shaping(Shaping::Advanced),
+                    )
+                    .center_x()
+                    .width(Length::Fill),
+                )
+                .padding([11, 18])
+                .width(Length::Fill)
+                .style(theme::btn(kind))
+                .on_press_maybe(msg),
             );
         }
         col.into()
@@ -92,14 +124,20 @@ pub fn section<'a, M: 'a>(
 ) -> Element<'a, M> {
     let c = env.c();
     let mut header = row![
-        container(text(icon).size(18).shaping(Shaping::Advanced)).padding([6, 9]).style(theme::icon_tile(c.primary)),
-        column![strong(title, 17), muted(env, subtitle)].spacing(2).width(Length::Fill),
+        container(text(icon).size(18).shaping(Shaping::Advanced))
+            .padding([6, 9])
+            .style(theme::icon_tile(c.primary)),
+        column![strong(title, 17), muted(env, subtitle)]
+            .spacing(2)
+            .width(Length::Fill),
     ]
     .spacing(12)
     .align_items(Alignment::Center);
     if subtitle.is_empty() {
         header = row![
-            container(text(icon).size(18).shaping(Shaping::Advanced)).padding([6, 9]).style(theme::icon_tile(c.primary)),
+            container(text(icon).size(18).shaping(Shaping::Advanced))
+                .padding([6, 9])
+                .style(theme::icon_tile(c.primary)),
             strong(title, 17),
         ]
         .spacing(12)
@@ -142,8 +180,13 @@ pub fn bento_hero<'a, M: 'a>(env: &Env, body: impl Into<Element<'a, M>>) -> Elem
 /// Caixa explicativa "Como usar" com passos numerados e uma dica opcional.
 pub fn help<'a, M: 'a>(env: &Env, steps: &[&str], tip: Option<&str>) -> Element<'a, M> {
     let c = env.c();
-    let mut col = column![row![text("💡").size(16).shaping(Shaping::Advanced), strong("Como usar", 15)].spacing(8).align_items(Alignment::Center)]
-        .spacing(10);
+    let mut col = column![row![
+        text("💡").size(16).shaping(Shaping::Advanced),
+        strong("Como usar", 15)
+    ]
+    .spacing(8)
+    .align_items(Alignment::Center)]
+    .spacing(10);
     for (i, step) in steps.iter().enumerate() {
         col = col.push(
             row![
@@ -153,7 +196,10 @@ pub fn help<'a, M: 'a>(env: &Env, steps: &[&str], tip: Option<&str>) -> Element<
                     .center_x()
                     .center_y()
                     .style(theme::badge(c.accent)),
-                text(*step).size(13).shaping(Shaping::Advanced).width(Length::Fill),
+                text(*step)
+                    .size(13)
+                    .shaping(Shaping::Advanced)
+                    .width(Length::Fill),
             ]
             .spacing(10)
             .align_items(Alignment::Start),
@@ -161,16 +207,37 @@ pub fn help<'a, M: 'a>(env: &Env, steps: &[&str], tip: Option<&str>) -> Element<
     }
     if let Some(tip) = tip {
         col = col.push(
-            container(text(format!("Dica: {tip}")).size(12).style(c.muted).shaping(Shaping::Advanced))
-                .padding([8, 0, 0, 0]),
+            container(
+                text(format!("Dica: {tip}"))
+                    .size(12)
+                    .style(c.muted)
+                    .shaping(Shaping::Advanced),
+            )
+            .padding([8, 0, 0, 0]),
         );
     }
-    container(col).padding(18).width(Length::Fill).style(theme::help_box).into()
+    container(col)
+        .padding(18)
+        .width(Length::Fill)
+        .style(theme::help_box)
+        .into()
 }
 
 /// Rótulo + controle + dica abaixo.
-pub fn field<'a, M: 'a>(env: &Env, label: &str, hint: &str, control: impl Into<Element<'a, M>>) -> Element<'a, M> {
-    let mut col = column![text(label).size(13).font(SEMIBOLD).shaping(Shaping::Advanced), control.into()].spacing(6);
+pub fn field<'a, M: 'a>(
+    env: &Env,
+    label: &str,
+    hint: &str,
+    control: impl Into<Element<'a, M>>,
+) -> Element<'a, M> {
+    let mut col = column![
+        text(label)
+            .size(13)
+            .font(SEMIBOLD)
+            .shaping(Shaping::Advanced),
+        control.into()
+    ]
+    .spacing(6);
     if !hint.is_empty() {
         col = col.push(muted(env, hint).size(12));
     }
@@ -203,11 +270,20 @@ pub fn path_field<'a, M: Clone + 'a>(
     if env.narrow() {
         column![
             inp,
-            button(container(text(browse_label).size(14).font(SEMIBOLD).shaping(Shaping::Advanced)).center_x().width(Length::Fill))
-                .padding([10, 16])
+            button(
+                container(
+                    text(browse_label)
+                        .size(14)
+                        .font(SEMIBOLD)
+                        .shaping(Shaping::Advanced)
+                )
+                .center_x()
                 .width(Length::Fill)
-                .style(theme::btn(Btn::Secondary))
-                .on_press(on_browse)
+            )
+            .padding([10, 16])
+            .width(Length::Fill)
+            .style(theme::btn(Btn::Secondary))
+            .on_press(on_browse)
         ]
         .spacing(8)
         .into()
@@ -255,10 +331,16 @@ pub fn two_col<'a, M: 'a>(env: &Env, main: Element<'a, M>, side: Element<'a, M>)
 
 /// Etiqueta arredondada.
 pub fn badge<'a, M: 'a>(label: impl ToString, color: Color) -> Element<'a, M> {
-    container(text(label).size(11).font(SEMIBOLD).style(color).shaping(Shaping::Advanced))
-        .padding([3, 10])
-        .style(theme::badge(color))
-        .into()
+    container(
+        text(label)
+            .size(11)
+            .font(SEMIBOLD)
+            .style(color)
+            .shaping(Shaping::Advanced),
+    )
+    .padding([3, 10])
+    .style(theme::badge(color))
+    .into()
 }
 
 /// Ícone grande dentro de um quadrado colorido.
@@ -270,12 +352,20 @@ pub fn icon_tile<'a, M: 'a>(icon: &str, color: Color, size: u16) -> Element<'a, 
 }
 
 /// Cabeçalho de página.
-pub fn page_header<'a, M: 'a>(env: &Env, icon: &str, title: &str, desc: &str, extra: Option<Element<'a, M>>) -> Element<'a, M> {
+pub fn page_header<'a, M: 'a>(
+    env: &Env,
+    icon: &str,
+    title: &str,
+    desc: &str,
+    extra: Option<Element<'a, M>>,
+) -> Element<'a, M> {
     let c = env.c();
     let title_size = if env.narrow() { 22 } else { 28 };
     let mut r = row![
         icon_tile(icon, c.primary, if env.narrow() { 22 } else { 28 }),
-        column![strong(title, title_size), muted(env, desc).size(14)].spacing(4).width(Length::Fill),
+        column![strong(title, title_size), muted(env, desc).size(14)]
+            .spacing(4)
+            .width(Length::Fill),
     ]
     .spacing(16)
     .align_items(Alignment::Center);
@@ -305,7 +395,11 @@ pub fn page<'a, M: 'a>(env: &Env, children: Vec<Element<'a, M>>) -> Element<'a, 
 }
 
 /// Faixa com o resultado de uma operação (sucesso ou erro).
-pub fn result_banner<'a, M: Clone + 'a>(env: &Env, res: &OperationResult, open: Option<M>) -> Element<'a, M> {
+pub fn result_banner<'a, M: Clone + 'a>(
+    env: &Env,
+    res: &OperationResult,
+    open: Option<M>,
+) -> Element<'a, M> {
     let c = env.c();
     let (kind, icon, color) = if res.success {
         (BannerKind::Success, "✅", c.success)
@@ -314,7 +408,12 @@ pub fn result_banner<'a, M: Clone + 'a>(env: &Env, res: &OperationResult, open: 
     };
     let mut col = column![row![
         text(icon).size(18).shaping(Shaping::Advanced),
-        text(&res.title).size(15).font(SEMIBOLD).style(color).shaping(Shaping::Advanced).width(Length::Fill),
+        text(&res.title)
+            .size(15)
+            .font(SEMIBOLD)
+            .style(color)
+            .shaping(Shaping::Advanced)
+            .width(Length::Fill),
     ]
     .spacing(10)
     .align_items(Alignment::Center)]
@@ -322,20 +421,42 @@ pub fn result_banner<'a, M: Clone + 'a>(env: &Env, res: &OperationResult, open: 
 
     let max_lines = 40;
     for line in res.details.iter().take(max_lines) {
-        col = col.push(text(line).size(12).style(c.muted).shaping(Shaping::Advanced));
+        col = col.push(
+            text(line)
+                .size(12)
+                .style(c.muted)
+                .shaping(Shaping::Advanced),
+        );
     }
     if res.details.len() > max_lines {
-        col = col.push(text(format!("… e mais {} linha(s)", res.details.len() - max_lines)).size(12).style(c.muted).shaping(Shaping::Advanced));
+        col = col.push(
+            text(format!(
+                "… e mais {} linha(s)",
+                res.details.len() - max_lines
+            ))
+            .size(12)
+            .style(c.muted)
+            .shaping(Shaping::Advanced),
+        );
     }
     if let (Some(msg), Some(_)) = (open, res.output.as_ref()) {
         col = col.push(Space::with_height(4));
         col = col.push(btn("📂  Abrir no Explorer", Btn::Secondary, Some(msg)));
     }
-    container(col).padding(16).width(Length::Fill).style(theme::banner(kind)).into()
+    container(col)
+        .padding(16)
+        .width(Length::Fill)
+        .style(theme::banner(kind))
+        .into()
 }
 
 /// Faixa informativa simples.
-pub fn info_banner<'a, M: 'a>(env: &Env, kind: BannerKind, icon: &str, message: &str) -> Element<'a, M> {
+pub fn info_banner<'a, M: 'a>(
+    env: &Env,
+    kind: BannerKind,
+    icon: &str,
+    message: &str,
+) -> Element<'a, M> {
     let c = env.c();
     let color = match kind {
         BannerKind::Success => c.success,
@@ -344,9 +465,16 @@ pub fn info_banner<'a, M: 'a>(env: &Env, kind: BannerKind, icon: &str, message: 
         BannerKind::Warning => c.warning,
     };
     container(
-        row![text(icon).size(16).shaping(Shaping::Advanced), text(message).size(13).style(color).shaping(Shaping::Advanced).width(Length::Fill)]
-            .spacing(10)
-            .align_items(Alignment::Center),
+        row![
+            text(icon).size(16).shaping(Shaping::Advanced),
+            text(message)
+                .size(13)
+                .style(color)
+                .shaping(Shaping::Advanced)
+                .width(Length::Fill)
+        ]
+        .spacing(10)
+        .align_items(Alignment::Center),
     )
     .padding([12, 16])
     .width(Length::Fill)
@@ -356,15 +484,24 @@ pub fn info_banner<'a, M: 'a>(env: &Env, kind: BannerKind, icon: &str, message: 
 
 /// Indicador de operação em andamento.
 pub fn busy<'a, M: 'a>(env: &Env, message: &str) -> Element<'a, M> {
-    info_banner(env, BannerKind::Info, "⏳", &format!("{message} — você pode continuar usando o programa enquanto isso."))
+    info_banner(
+        env,
+        BannerKind::Info,
+        "⏳",
+        &format!("{message} — você pode continuar usando o programa enquanto isso."),
+    )
 }
 
 /// Estado vazio (nenhum item).
 pub fn empty_state<'a, M: 'a>(env: &Env, icon: &str, title: &str, desc: &str) -> Element<'a, M> {
     container(
-        column![text(icon).size(36).shaping(Shaping::Advanced), strong(title, 15), muted(env, desc)]
-            .spacing(6)
-            .align_items(Alignment::Center),
+        column![
+            text(icon).size(36).shaping(Shaping::Advanced),
+            strong(title, 15),
+            muted(env, desc)
+        ]
+        .spacing(6)
+        .align_items(Alignment::Center),
     )
     .padding(24)
     .width(Length::Fill)
@@ -374,7 +511,11 @@ pub fn empty_state<'a, M: 'a>(env: &Env, icon: &str, title: &str, desc: &str) ->
 
 /// Linha de lista com fundo suave.
 pub fn list_row<'a, M: 'a>(content: impl Into<Element<'a, M>>) -> Element<'a, M> {
-    container(content).padding([10, 14]).width(Length::Fill).style(theme::list_row).into()
+    container(content)
+        .padding([10, 14])
+        .width(Length::Fill)
+        .style(theme::list_row)
+        .into()
 }
 
 /// Espaço flexível horizontal.

@@ -63,7 +63,9 @@ impl State {
                 self.result = None;
             }
             Msg::AddFolder => {
-                if let Some(dir) = system::pick_folder("Selecione uma pasta para carregar todos os arquivos dela") {
+                if let Some(dir) =
+                    system::pick_folder("Selecione uma pasta para carregar todos os arquivos dela")
+                {
                     for p in service::files_in_folder(&dir) {
                         if !self.files.contains(&p) {
                             self.files.push(p);

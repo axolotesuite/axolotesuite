@@ -53,7 +53,11 @@ impl Jobs {
     /// Conclui a operação; devolve (módulo, título) para registrar no histórico.
     pub fn finish(&mut self, id: u64, result: &OperationResult) -> Option<(String, String)> {
         let job = self.jobs.iter_mut().find(|j| j.id == id)?;
-        job.status = if result.success { JobStatus::Done } else { JobStatus::Failed };
+        job.status = if result.success {
+            JobStatus::Done
+        } else {
+            JobStatus::Failed
+        };
         job.elapsed = Some(job.started.elapsed());
         job.message = result.title.clone();
         Some((job.module.clone(), job.title.clone()))
@@ -64,7 +68,10 @@ impl Jobs {
     }
 
     pub fn running(&self) -> usize {
-        self.jobs.iter().filter(|j| j.status == JobStatus::Running).count()
+        self.jobs
+            .iter()
+            .filter(|j| j.status == JobStatus::Running)
+            .count()
     }
 
     pub fn clear_finished(&mut self) {

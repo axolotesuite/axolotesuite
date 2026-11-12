@@ -27,7 +27,11 @@ pub struct Colors {
 }
 
 pub fn rgb(hex: u32) -> Color {
-    Color::from_rgb8(((hex >> 16) & 0xff) as u8, ((hex >> 8) & 0xff) as u8, (hex & 0xff) as u8)
+    Color::from_rgb8(
+        ((hex >> 16) & 0xff) as u8,
+        ((hex >> 8) & 0xff) as u8,
+        (hex & 0xff) as u8,
+    )
 }
 
 pub fn with_alpha(c: Color, a: f32) -> Color {
@@ -90,7 +94,12 @@ pub fn colors(theme: &Theme) -> Colors {
 pub fn app_theme(dark_mode: bool) -> Theme {
     let c = if dark_mode { dark() } else { light() };
     Theme::custom(
-        if dark_mode { "Axolote Escuro" } else { "Axolote Claro" }.to_string(),
+        if dark_mode {
+            "Axolote Escuro"
+        } else {
+            "Axolote Claro"
+        }
+        .to_string(),
         theme::Palette {
             background: c.bg,
             text: c.text,
@@ -115,9 +124,16 @@ pub fn card(theme: &Theme) -> container::Appearance {
     container::Appearance {
         text_color: None,
         background: Some(Background::Color(c.surface)),
-        border: Border { color: c.border, width: 1.0, radius: radius(12.0) },
+        border: Border {
+            color: c.border,
+            width: 1.0,
+            radius: radius(12.0),
+        },
         shadow: Shadow {
-            color: Color { a: if is_dark(theme) { 0.40 } else { 0.06 }, ..Color::BLACK },
+            color: Color {
+                a: if is_dark(theme) { 0.40 } else { 0.06 },
+                ..Color::BLACK
+            },
             offset: Vector::new(0.0, 3.0),
             blur_radius: 12.0,
         },
@@ -136,7 +152,10 @@ pub fn bento_card(theme: &Theme) -> container::Appearance {
             radius: radius(12.0),
         },
         shadow: Shadow {
-            color: Color { a: if is_dark(theme) { 0.45 } else { 0.08 }, ..Color::BLACK },
+            color: Color {
+                a: if is_dark(theme) { 0.45 } else { 0.08 },
+                ..Color::BLACK
+            },
             offset: Vector::new(0.0, 4.0),
             blur_radius: 16.0,
         },
@@ -148,7 +167,11 @@ pub fn inner_box(theme: &Theme) -> container::Appearance {
     let c = colors(theme);
     container::Appearance {
         text_color: None,
-        background: Some(Background::Color(if is_dark(theme) { rgb(0x0e0e15) } else { rgb(0xf1f1f8) })),
+        background: Some(Background::Color(if is_dark(theme) {
+            rgb(0x0e0e15)
+        } else {
+            rgb(0xf1f1f8)
+        })),
         border: Border {
             color: with_alpha(c.border, 0.70),
             width: 1.0,
@@ -163,7 +186,11 @@ pub fn dropzone_box(theme: &Theme) -> container::Appearance {
     let c = colors(theme);
     container::Appearance {
         text_color: None,
-        background: Some(Background::Color(if is_dark(theme) { rgb(0x0e0e15) } else { rgb(0xf5f5fb) })),
+        background: Some(Background::Color(if is_dark(theme) {
+            rgb(0x0e0e15)
+        } else {
+            rgb(0xf5f5fb)
+        })),
         border: Border {
             color: with_alpha(c.primary, if is_dark(theme) { 0.35 } else { 0.20 }),
             width: 1.0,
@@ -225,7 +252,11 @@ pub fn hero(theme: &Theme) -> container::Appearance {
     container::Appearance {
         text_color: None,
         background: Some(Background::Color(c.primary_soft)),
-        border: Border { color: with_alpha(c.primary, 0.45), width: 1.0, radius: radius(16.0) },
+        border: Border {
+            color: with_alpha(c.primary, 0.45),
+            width: 1.0,
+            radius: radius(16.0),
+        },
         shadow: Shadow::default(),
     }
 }
@@ -236,7 +267,11 @@ pub fn help_box(theme: &Theme) -> container::Appearance {
     container::Appearance {
         text_color: None,
         background: Some(Background::Color(with_alpha(c.accent, 0.08))),
-        border: Border { color: with_alpha(c.accent, 0.35), width: 1.0, radius: radius(14.0) },
+        border: Border {
+            color: with_alpha(c.accent, 0.35),
+            width: 1.0,
+            radius: radius(14.0),
+        },
         shadow: Shadow::default(),
     }
 }
@@ -246,7 +281,11 @@ pub fn sidebar(theme: &Theme) -> container::Appearance {
     container::Appearance {
         text_color: None,
         background: Some(Background::Color(c.sidebar)),
-        border: Border { color: c.border, width: 1.0, radius: radius(0.0) },
+        border: Border {
+            color: c.border,
+            width: 1.0,
+            radius: radius(0.0),
+        },
         shadow: Shadow::default(),
     }
 }
@@ -266,7 +305,11 @@ pub fn list_row(theme: &Theme) -> container::Appearance {
     container::Appearance {
         text_color: None,
         background: Some(Background::Color(c.surface2)),
-        border: Border { color: Color::TRANSPARENT, width: 0.0, radius: radius(10.0) },
+        border: Border {
+            color: Color::TRANSPARENT,
+            width: 0.0,
+            radius: radius(10.0),
+        },
         shadow: Shadow::default(),
     }
 }
@@ -284,7 +327,11 @@ pub fn banner(kind: BannerKind) -> impl Fn(&Theme) -> container::Appearance {
         container::Appearance {
             text_color: None,
             background: Some(Background::Color(with_alpha(base, 0.12))),
-            border: Border { color: with_alpha(base, 0.55), width: 1.0, radius: radius(12.0) },
+            border: Border {
+                color: with_alpha(base, 0.55),
+                width: 1.0,
+                radius: radius(12.0),
+            },
             shadow: Shadow::default(),
         }
     }
@@ -295,7 +342,11 @@ pub fn badge(color: Color) -> impl Fn(&Theme) -> container::Appearance {
     move |_theme: &Theme| container::Appearance {
         text_color: Some(color),
         background: Some(Background::Color(with_alpha(color, 0.15))),
-        border: Border { color: with_alpha(color, 0.4), width: 1.0, radius: radius(999.0) },
+        border: Border {
+            color: with_alpha(color, 0.4),
+            width: 1.0,
+            radius: radius(999.0),
+        },
         shadow: Shadow::default(),
     }
 }
@@ -305,7 +356,11 @@ pub fn icon_tile(color: Color) -> impl Fn(&Theme) -> container::Appearance {
     move |_theme: &Theme| container::Appearance {
         text_color: None,
         background: Some(Background::Color(with_alpha(color, 0.16))),
-        border: Border { color: Color::TRANSPARENT, width: 0.0, radius: radius(12.0) },
+        border: Border {
+            color: Color::TRANSPARENT,
+            width: 0.0,
+            radius: radius(12.0),
+        },
         shadow: Shadow::default(),
     }
 }
@@ -315,7 +370,11 @@ pub fn solid_box(color: Color, radius_px: f32) -> impl Fn(&Theme) -> container::
     move |_theme: &Theme| container::Appearance {
         text_color: None,
         background: Some(Background::Color(color)),
-        border: Border { color: Color::TRANSPARENT, width: 0.0, radius: radius(radius_px) },
+        border: Border {
+            color: Color::TRANSPARENT,
+            width: 0.0,
+            radius: radius(radius_px),
+        },
         shadow: Shadow::default(),
     }
 }
@@ -327,7 +386,11 @@ pub fn active_pill(pulse: f32) -> impl Fn(&Theme) -> container::Appearance {
         container::Appearance {
             text_color: None,
             background: Some(Background::Color(c.accent)),
-            border: Border { color: c.primary_hover, width: 0.0, radius: radius(999.0) },
+            border: Border {
+                color: c.primary_hover,
+                width: 0.0,
+                radius: radius(999.0),
+            },
             shadow: Shadow {
                 color: with_alpha(c.accent, 0.55 + 0.35 * pulse),
                 offset: Vector::new(0.0, 0.0),
@@ -383,7 +446,11 @@ impl button::StyleSheet for ButtonStyle {
             Btn::Primary => button::Appearance {
                 background: Some(Background::Color(c.primary)),
                 text_color: Color::WHITE,
-                border: Border { color: c.primary, width: 1.0, radius: r },
+                border: Border {
+                    color: c.primary,
+                    width: 1.0,
+                    radius: r,
+                },
                 shadow: Shadow {
                     color: with_alpha(c.primary, 0.35),
                     offset: Vector::new(0.0, 2.0),
@@ -394,19 +461,31 @@ impl button::StyleSheet for ButtonStyle {
             Btn::Secondary => button::Appearance {
                 background: Some(Background::Color(c.surface2)),
                 text_color: c.text,
-                border: Border { color: c.border, width: 1.0, radius: r },
+                border: Border {
+                    color: c.border,
+                    width: 1.0,
+                    radius: r,
+                },
                 ..Default::default()
             },
             Btn::Danger => button::Appearance {
                 background: Some(Background::Color(with_alpha(c.danger, 0.12))),
                 text_color: c.danger,
-                border: Border { color: with_alpha(c.danger, 0.5), width: 1.0, radius: r },
+                border: Border {
+                    color: with_alpha(c.danger, 0.5),
+                    width: 1.0,
+                    radius: r,
+                },
                 ..Default::default()
             },
             Btn::Ghost => button::Appearance {
                 background: None,
                 text_color: c.muted,
-                border: Border { color: Color::TRANSPARENT, width: 0.0, radius: r },
+                border: Border {
+                    color: Color::TRANSPARENT,
+                    width: 0.0,
+                    radius: r,
+                },
                 ..Default::default()
             },
             Btn::Nav(active) => button::Appearance {
@@ -417,7 +496,11 @@ impl button::StyleSheet for ButtonStyle {
                 },
                 text_color: if active { Color::WHITE } else { c.muted },
                 border: Border {
-                    color: if active { c.primary } else { Color::TRANSPARENT },
+                    color: if active {
+                        c.primary
+                    } else {
+                        Color::TRANSPARENT
+                    },
                     width: 1.0,
                     radius: radius(6.0),
                 },
@@ -433,7 +516,11 @@ impl button::StyleSheet for ButtonStyle {
                 shadow_offset: Vector::default(),
             },
             Btn::Tab(active) => button::Appearance {
-                background: Some(Background::Color(if active { c.primary } else { c.surface2 })),
+                background: Some(Background::Color(if active {
+                    c.primary
+                } else {
+                    c.surface2
+                })),
                 text_color: if active { Color::WHITE } else { c.muted },
                 border: Border {
                     color: if active { c.primary } else { c.border },
@@ -445,9 +532,16 @@ impl button::StyleSheet for ButtonStyle {
             Btn::Tile => button::Appearance {
                 background: Some(Background::Color(c.surface)),
                 text_color: c.text,
-                border: Border { color: c.border, width: 1.0, radius: radius(14.0) },
+                border: Border {
+                    color: c.border,
+                    width: 1.0,
+                    radius: radius(14.0),
+                },
                 shadow: Shadow {
-                    color: Color { a: if is_dark(theme) { 0.3 } else { 0.05 }, ..Color::BLACK },
+                    color: Color {
+                        a: if is_dark(theme) { 0.3 } else { 0.05 },
+                        ..Color::BLACK
+                    },
                     offset: Vector::new(0.0, 2.0),
                     blur_radius: 8.0,
                 },
@@ -456,13 +550,21 @@ impl button::StyleSheet for ButtonStyle {
             Btn::Key => button::Appearance {
                 background: Some(Background::Color(c.surface2)),
                 text_color: c.text,
-                border: Border { color: c.border, width: 1.0, radius: r },
+                border: Border {
+                    color: c.border,
+                    width: 1.0,
+                    radius: r,
+                },
                 ..Default::default()
             },
             Btn::KeyOp => button::Appearance {
                 background: Some(Background::Color(c.primary_soft)),
                 text_color: c.primary_hover,
-                border: Border { color: with_alpha(c.primary, 0.4), width: 1.0, radius: r },
+                border: Border {
+                    color: with_alpha(c.primary, 0.4),
+                    width: 1.0,
+                    radius: r,
+                },
                 ..Default::default()
             },
         }
@@ -474,11 +576,17 @@ impl button::StyleSheet for ButtonStyle {
         match self.0 {
             Btn::Primary => button::Appearance {
                 background: Some(Background::Color(c.primary_hover)),
-                border: Border { color: c.primary_hover, ..base.border },
+                border: Border {
+                    color: c.primary_hover,
+                    ..base.border
+                },
                 ..base
             },
             Btn::Secondary | Btn::Key => button::Appearance {
-                border: Border { color: c.primary, ..base.border },
+                border: Border {
+                    color: c.primary,
+                    ..base.border
+                },
                 ..base
             },
             Btn::Danger => button::Appearance {
@@ -498,7 +606,11 @@ impl button::StyleSheet for ButtonStyle {
                 })),
                 text_color: Color::WHITE,
                 border: Border {
-                    color: if active { c.accent } else { with_alpha(c.primary, 0.55) },
+                    color: if active {
+                        c.accent
+                    } else {
+                        with_alpha(c.primary, 0.55)
+                    },
                     width: 1.5,
                     ..base.border
                 },
@@ -511,11 +623,17 @@ impl button::StyleSheet for ButtonStyle {
             },
             Btn::Tab(active) => button::Appearance {
                 text_color: if active { Color::WHITE } else { c.text },
-                border: Border { color: c.primary, ..base.border },
+                border: Border {
+                    color: c.primary,
+                    ..base.border
+                },
                 ..base
             },
             Btn::Tile => button::Appearance {
-                border: Border { color: c.primary, ..base.border },
+                border: Border {
+                    color: c.primary,
+                    ..base.border
+                },
                 shadow: Shadow {
                     color: with_alpha(c.primary, 0.25),
                     offset: Vector::new(0.0, 4.0),
@@ -532,7 +650,10 @@ impl button::StyleSheet for ButtonStyle {
 
     fn pressed(&self, theme: &Theme) -> button::Appearance {
         let base = self.hovered(theme);
-        button::Appearance { shadow: Shadow::default(), ..base }
+        button::Appearance {
+            shadow: Shadow::default(),
+            ..base
+        }
     }
 
     fn disabled(&self, theme: &Theme) -> button::Appearance {
@@ -544,7 +665,10 @@ impl button::StyleSheet for ButtonStyle {
                 other => other,
             }),
             text_color: with_alpha(base.text_color, 0.45),
-            border: Border { color: with_alpha(c.border, 0.5), ..base.border },
+            border: Border {
+                color: with_alpha(c.border, 0.5),
+                ..base.border
+            },
             shadow: Shadow::default(),
             ..base
         }
@@ -568,7 +692,11 @@ impl text_input::StyleSheet for InputStyle {
         let c = colors(theme);
         text_input::Appearance {
             background: Background::Color(c.surface2),
-            border: Border { color: c.border, width: 1.0, radius: radius(10.0) },
+            border: Border {
+                color: c.border,
+                width: 1.0,
+                radius: radius(10.0),
+            },
             icon_color: c.muted,
         }
     }
@@ -576,7 +704,11 @@ impl text_input::StyleSheet for InputStyle {
     fn focused(&self, theme: &Theme) -> text_input::Appearance {
         let c = colors(theme);
         text_input::Appearance {
-            border: Border { color: c.primary, width: 1.5, radius: radius(10.0) },
+            border: Border {
+                color: c.primary,
+                width: 1.5,
+                radius: radius(10.0),
+            },
             ..self.active(theme)
         }
     }
@@ -584,7 +716,11 @@ impl text_input::StyleSheet for InputStyle {
     fn hovered(&self, theme: &Theme) -> text_input::Appearance {
         let c = colors(theme);
         text_input::Appearance {
-            border: Border { color: with_alpha(c.primary, 0.6), width: 1.0, radius: radius(10.0) },
+            border: Border {
+                color: with_alpha(c.primary, 0.6),
+                width: 1.0,
+                radius: radius(10.0),
+            },
             ..self.active(theme)
         }
     }

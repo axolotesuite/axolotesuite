@@ -29,10 +29,14 @@ impl Rule {
 
     pub fn description(&self) -> &'static str {
         match self {
-            Rule::Replace => "Troca um trecho do nome por outro (ou apaga se deixar o segundo campo vazio).",
+            Rule::Replace => {
+                "Troca um trecho do nome por outro (ou apaga se deixar o segundo campo vazio)."
+            }
             Rule::Prefix => "Adiciona um texto no início de cada nome de arquivo.",
             Rule::Suffix => "Adiciona um texto no final do nome (antes da extensão .jpg, .pdf...).",
-            Rule::Number => "Numera os arquivos em sequência: 01, 02, 03... com um nome base opcional.",
+            Rule::Number => {
+                "Numera os arquivos em sequência: 01, 02, 03... com um nome base opcional."
+            }
             Rule::Uppercase => "Converte todo o nome do arquivo para LETRAS MAIÚSCULAS.",
             Rule::Lowercase => "Converte todo o nome do arquivo para letras minúsculas.",
         }
@@ -62,7 +66,14 @@ pub struct PreviewItem {
 }
 
 /// Calcula como cada arquivo se chamará após aplicar a regra.
-pub fn compute_new_name(old_name: &str, rule: Rule, find: &str, value: &str, index: usize, total: usize) -> String {
+pub fn compute_new_name(
+    old_name: &str,
+    rule: Rule,
+    find: &str,
+    value: &str,
+    index: usize,
+    total: usize,
+) -> String {
     let p = Path::new(old_name);
     let stem = p.file_stem().and_then(|s| s.to_str()).unwrap_or(old_name);
     let ext = p.extension().and_then(|e| e.to_str()).unwrap_or("");
@@ -91,7 +102,11 @@ pub fn compute_new_name(old_name: &str, rule: Rule, find: &str, value: &str, ind
         Rule::Lowercase => stem.to_lowercase(),
     };
 
-    let clean_stem = if new_stem.trim().is_empty() { stem.to_string() } else { new_stem };
+    let clean_stem = if new_stem.trim().is_empty() {
+        stem.to_string()
+    } else {
+        new_stem
+    };
     if ext.is_empty() {
         clean_stem
     } else {
@@ -109,15 +124,28 @@ pub fn preview(files: &[PathBuf], rule: Rule, find: &str, value: &str) -> Vec<Pr
             let old_name = crate::shared::ui::file_name(path);
             let new_name = compute_new_name(&old_name, rule, find, value, i, total);
             let changed = old_name != new_name;
-            PreviewItem { original_path: path.clone(), old_name, new_name, changed }
+            PreviewItem {
+                original_path: path.clone(),
+                old_name,
+                new_name,
+                changed,
+            }
         })
         .collect()
 }
 
 /// Executa a renomeação nos arquivos reais, evitando sobrescritas.
-pub fn execute(files: Vec<PathBuf>, rule: Rule, find: String, value: String) -> (OperationResult, Vec<PathBuf>) {
+pub fn execute(
+    files: Vec<PathBuf>,
+    rule: Rule,
+    find: String,
+    value: String,
+) -> (OperationResult, Vec<PathBuf>) {
     if files.is_empty() {
-        return (OperationResult::err("Adicione pelo menos um arquivo antes de renomear."), files);
+        return (
+            OperationResult::err("Adicione pelo menos um arquivo antes de renomear."),
+            files,
+        );
     }
     let items = preview(&files, rule, &find, &value);
     let mut renamed = 0usize;
@@ -141,11 +169,19 @@ pub fn execute(files: Vec<PathBuf>, rule: Rule, find: String, value: String) -> 
         // Se for apenas mudança de maiúsculas/minúsculas do mesmo caminho no Windows,
         // permitimos renomear diretamente; caso contrário garantimos caminho único.
         let same_ci = item.old_name.eq_ignore_ascii_case(&item.new_name);
-        let target = if same_ci { desired } else { paths::unique_path(desired) };
+        let target = if same_ci {
+            desired
+        } else {
+            paths::unique_path(desired)
+        };
         match fs::rename(&item.original_path, &target) {
             Ok(_) => {
                 renamed += 1;
-                details.push(format!("{}  →  {}", item.old_name, crate::shared::ui::file_name(&target)));
+                details.push(format!(
+                    "{}  →  {}",
+                    item.old_name,
+                    crate::shared::ui::file_name(&target)
+                ));
                 updated_paths.push(target);
             }
             Err(e) => {
@@ -156,9 +192,11 @@ pub fn execute(files: Vec<PathBuf>, rule: Rule, find: String, value: String) -> 
     }
 
     let mut res = if renamed > 0 {
-        OperationResult::ok(format!("{renamed} arquivo(s) renomeado(s) com sucesso.")).with_details(details)
+        OperationResult::ok(format!("{renamed} arquivo(s) renomeado(s) com sucesso."))
+            .with_details(details)
     } else {
-        OperationResult::err("Nenhum arquivo precisava ser alterado com a regra atual.").with_details(details)
+        OperationResult::err("Nenhum arquivo precisava ser alterado com a regra atual.")
+            .with_details(details)
     };
     if let Some(dir) = first_parent {
         res = res.with_output(dir);
@@ -189,9 +227,21 @@ mod tests {
             compute_new_name("foto_antiga.jpg", Rule::Replace, "antiga", "nova", 0, 1),
             "foto_nova.jpg"
         );
-        assert_eq!(compute_new_name("relatorio.pdf", Rule::Prefix, "", "2026_", 0, 1), "2026_relatorio.pdf");
-        assert_eq!(compute_new_name("relatorio.pdf", Rule::Suffix, "", "_final", 0, 1), "relatorio_final.pdf");
-        assert_eq!(compute_new_name("img.png", Rule::Number, "", "ferias", 0, 12), "ferias_01.png");
-        assert_eq!(compute_new_name(" teste.txt", Rule::Uppercase, "", "", 0, 1), " TESTE.txt");
+        assert_eq!(
+            compute_new_name("relatorio.pdf", Rule::Prefix, "", "2026_", 0, 1),
+            "2026_relatorio.pdf"
+        );
+        assert_eq!(
+            compute_new_name("relatorio.pdf", Rule::Suffix, "", "_final", 0, 1),
+            "relatorio_final.pdf"
+        );
+        assert_eq!(
+            compute_new_name("img.png", Rule::Number, "", "ferias", 0, 12),
+            "ferias_01.png"
+        );
+        assert_eq!(
+            compute_new_name(" teste.txt", Rule::Uppercase, "", "", 0, 1),
+            " TESTE.txt"
+        );
     }
 }

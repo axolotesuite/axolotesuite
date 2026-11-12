@@ -18,14 +18,42 @@ pub fn view<'a>(state: &'a State, mandatory: bool, env: &Env) -> Element<'a, Msg
 
     let status_badges = row![
         if is_installed {
-            ui::badge(if is_en { "✓ Installed" } else { "✓ App Instalado" }, c.success)
+            ui::badge(
+                if is_en {
+                    "✓ Installed"
+                } else {
+                    "✓ App Instalado"
+                },
+                c.success,
+            )
         } else {
-            ui::badge(if is_en { "Setup Required" } else { "Instalação Obrigatória" }, c.accent)
+            ui::badge(
+                if is_en {
+                    "Setup Required"
+                } else {
+                    "Instalação Obrigatória"
+                },
+                c.accent,
+            )
         },
         if ffmpeg_ok {
-            ui::badge(if is_en { "✓ FFmpeg Ready" } else { "✓ FFmpeg Instalado" }, c.success)
+            ui::badge(
+                if is_en {
+                    "✓ FFmpeg Ready"
+                } else {
+                    "✓ FFmpeg Instalado"
+                },
+                c.success,
+            )
         } else {
-            ui::badge(if is_en { "⬇ Auto FFmpeg Pending" } else { "⬇ FFmpeg Obrigatório Pendente" }, c.warning)
+            ui::badge(
+                if is_en {
+                    "⬇ Auto FFmpeg Pending"
+                } else {
+                    "⬇ FFmpeg Obrigatório Pendente"
+                },
+                c.warning,
+            )
         },
     ]
     .spacing(8)
@@ -35,11 +63,23 @@ pub fn view<'a>(state: &'a State, mandatory: bool, env: &Env) -> Element<'a, Msg
         env,
         if is_installed { "🗑" } else { "💿" },
         if mandatory {
-            if is_en { "Axolote Suite Setup & Dependencies" } else { "Instalador Obrigatório — Axolote Suite Setup" }
+            if is_en {
+                "Axolote Suite Setup & Dependencies"
+            } else {
+                "Instalador Obrigatório — Axolote Suite Setup"
+            }
         } else if is_installed {
-            if is_en { "Uninstall & Cleanup Workstation" } else { "Desinstalação & Limpeza do Axolote Suite" }
+            if is_en {
+                "Uninstall & Cleanup Workstation"
+            } else {
+                "Desinstalação & Limpeza do Axolote Suite"
+            }
         } else {
-            if is_en { "Installer & Dependencies (Setup)" } else { "Instalador & Central de Dependências (Setup)" }
+            if is_en {
+                "Installer & Dependencies (Setup)"
+            } else {
+                "Instalador & Central de Dependências (Setup)"
+            }
         },
         if is_installed {
             if is_en {
@@ -61,15 +101,29 @@ pub fn view<'a>(state: &'a State, mandatory: bool, env: &Env) -> Element<'a, Msg
 
     if !is_installed {
         mode_bar = mode_bar.push(ui::btn(
-            if is_en { "🚀  Setup Wizard" } else { "🚀  Assistente de Instalação (Setup)" },
-            Btn::Tab(!matches!(state.step, WizardStep::UninstallConfirm | WizardStep::Uninstalled)),
+            if is_en {
+                "🚀  Setup Wizard"
+            } else {
+                "🚀  Assistente de Instalação (Setup)"
+            },
+            Btn::Tab(!matches!(
+                state.step,
+                WizardStep::UninstallConfirm | WizardStep::Uninstalled
+            )),
             Some(Msg::GoToStep(WizardStep::Welcome)),
         ));
     }
 
     mode_bar = mode_bar.push(ui::btn(
-        if is_en { "💥  Purge Everything" } else { "💥  Apagar Tudo do Computador" },
-        Btn::Tab(matches!(state.step, WizardStep::UninstallConfirm | WizardStep::Uninstalled)),
+        if is_en {
+            "💥  Purge Everything"
+        } else {
+            "💥  Apagar Tudo do Computador"
+        },
+        Btn::Tab(matches!(
+            state.step,
+            WizardStep::UninstallConfirm | WizardStep::Uninstalled
+        )),
         Some(Msg::GoToStep(WizardStep::UninstallConfirm)),
     ));
 
@@ -77,7 +131,11 @@ pub fn view<'a>(state: &'a State, mandatory: bool, env: &Env) -> Element<'a, Msg
 
     if !mandatory {
         mode_bar = mode_bar.push(ui::btn(
-            if is_en { "🏠  Back to Tools →" } else { "🏠  Voltar para as Ferramentas →" },
+            if is_en {
+                "🏠  Back to Tools →"
+            } else {
+                "🏠  Voltar para as Ferramentas →"
+            },
             Btn::Ghost,
             Some(Msg::FinishAndGoHome),
         ));
@@ -96,7 +154,14 @@ pub fn view<'a>(state: &'a State, mandatory: bool, env: &Env) -> Element<'a, Msg
         .width(Length::Fill)
         .center_x();
 
-    ui::page(env, vec![header, mode_bar.spacing(10).align_items(Alignment::Center).into(), centered.into()])
+    ui::page(
+        env,
+        vec![
+            header,
+            mode_bar.spacing(10).align_items(Alignment::Center).into(),
+            centered.into(),
+        ],
+    )
 }
 
 fn step_indicator<'a>(current: u8, env: &Env) -> Element<'a, Msg> {
@@ -172,7 +237,10 @@ fn step_welcome<'a>(state: &'a State, mandatory: bool, env: &Env) -> Element<'a,
     .align_items(Alignment::Center);
 
     if state.ffmpeg_busy {
-        content = content.push(ui::busy(env, "Baixando e extraindo o FFmpeg automaticamente"));
+        content = content.push(ui::busy(
+            env,
+            "Baixando e extraindo o FFmpeg automaticamente",
+        ));
     }
     if let Some(res) = &state.result {
         content = content.push(ui::result_banner(env, res, None));
@@ -235,21 +303,35 @@ fn step_location<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     .size(18)
     .text_size(14);
 
-    let chk_desktop = checkbox("Criar atalho na Área de Trabalho (Desktop)", state.create_desktop_shortcut)
-        .on_toggle(Msg::ToggleDesktopShortcut)
-        .size(18)
-        .text_size(14);
+    let chk_desktop = checkbox(
+        "Criar atalho na Área de Trabalho (Desktop)",
+        state.create_desktop_shortcut,
+    )
+    .on_toggle(Msg::ToggleDesktopShortcut)
+    .size(18)
+    .text_size(14);
 
-    let chk_start = checkbox("Criar pasta e atalho no Menu Iniciar do Windows", state.create_start_menu_shortcut)
-        .on_toggle(Msg::ToggleStartMenuShortcut)
-        .size(18)
-        .text_size(14);
+    let chk_start = checkbox(
+        "Criar pasta e atalho no Menu Iniciar do Windows",
+        state.create_start_menu_shortcut,
+    )
+    .on_toggle(Msg::ToggleStartMenuShortcut)
+    .size(18)
+    .text_size(14);
 
     let nav_btns = ui::actions(
         env,
         vec![
-            act("‹  Voltar", Btn::Secondary, Some(Msg::GoToStep(WizardStep::Welcome))),
-            act("🚀  Instalar Tudo Agora", Btn::Primary, Some(Msg::StartInstall)),
+            act(
+                "‹  Voltar",
+                Btn::Secondary,
+                Some(Msg::GoToStep(WizardStep::Welcome)),
+            ),
+            act(
+                "🚀  Instalar Tudo Agora",
+                Btn::Primary,
+                Some(Msg::StartInstall),
+            ),
         ],
     );
 
@@ -300,10 +382,13 @@ fn step_installing<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
 
 fn step_finished<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     let c = env.c();
-    let chk_launch = checkbox("Abrir a Central de Ferramentas do Axolote Suite ao concluir", state.launch_after_finish)
-        .on_toggle(Msg::ToggleLaunchAfter)
-        .size(18)
-        .text_size(14);
+    let chk_launch = checkbox(
+        "Abrir a Central de Ferramentas do Axolote Suite ao concluir",
+        state.launch_after_finish,
+    )
+    .on_toggle(Msg::ToggleLaunchAfter)
+    .size(18)
+    .text_size(14);
 
     let mut col = column![
         step_indicator(4, env),
@@ -327,12 +412,24 @@ fn step_finished<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     col = col.push(ui::actions(
         env,
         vec![
-            act("🚀  Concluir e Abrir Axolote Suite", Btn::Primary, Some(Msg::FinishAndGoHome)),
-            act("📂  Abrir pasta instalada", Btn::Secondary, Some(Msg::OpenInstalledFolder)),
+            act(
+                "🚀  Concluir e Abrir Axolote Suite",
+                Btn::Primary,
+                Some(Msg::FinishAndGoHome),
+            ),
+            act(
+                "📂  Abrir pasta instalada",
+                Btn::Secondary,
+                Some(Msg::OpenInstalledFolder),
+            ),
         ],
     ));
 
-    container(col).padding(28).width(Length::Fill).style(theme::hero).into()
+    container(col)
+        .padding(28)
+        .width(Length::Fill)
+        .style(theme::hero)
+        .into()
 }
 
 // ---------------------------------------------------------------------------
@@ -345,7 +442,11 @@ fn step_uninstall<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
 
     let dir_field = ui::field(
         env,
-        if is_en { "Installation directory" } else { "Local da instalação a remover" },
+        if is_en {
+            "Installation directory"
+        } else {
+            "Local da instalação a remover"
+        },
         if is_en {
             "Removes installed executable, FFmpeg, application icon, and shortcuts from Desktop and Start Menu."
         } else {
@@ -353,10 +454,18 @@ fn step_uninstall<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         },
         ui::path_field(
             env,
-            if is_en { "Folder where Axolote Suite is installed" } else { "Pasta onde o Axolote Suite está instalado" },
+            if is_en {
+                "Folder where Axolote Suite is installed"
+            } else {
+                "Pasta onde o Axolote Suite está instalado"
+            },
             &state.install_dir,
             Msg::InstallDirChanged,
-            if is_en { "📂  Browse…" } else { "📂  Procurar…" },
+            if is_en {
+                "📂  Browse…"
+            } else {
+                "📂  Procurar…"
+            },
             Msg::BrowseInstallDir,
         ),
     );
@@ -377,17 +486,29 @@ fn step_uninstall<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         env,
         vec![
             act(
-                if is_en { "💥  APAGAR TUDO DO COMPUTADOR" } else { "💥  APAGAR TUDO DO COMPUTADOR" },
+                if is_en {
+                    "💥  DELETE EVERYTHING FROM PC"
+                } else {
+                    "💥  APAGAR TUDO DO COMPUTADOR"
+                },
                 Btn::Danger,
                 (!state.purge_busy).then_some(Msg::PurgeEverything),
             ),
             act(
-                if is_en { "🗑  Normal Uninstall (Keep Notes)" } else { "🗑  Desinstalação Normal (Manter Notas)" },
+                if is_en {
+                    "🗑  Normal Uninstall (Keep Notes)"
+                } else {
+                    "🗑  Desinstalação Normal (Manter Notas)"
+                },
                 Btn::Secondary,
                 (!state.purge_busy).then_some(Msg::StartUninstall),
             ),
             act(
-                if is_en { "Cancel / Back" } else { "Cancelar / Voltar" },
+                if is_en {
+                    "Cancel / Back"
+                } else {
+                    "Cancelar / Voltar"
+                },
                 Btn::Ghost,
                 Some(Msg::FinishAndGoHome),
             ),
@@ -429,7 +550,14 @@ fn step_uninstall<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     .spacing(16);
 
     if state.purge_busy {
-        content = content.push(ui::busy(env, if is_en { "Purging everything from PC..." } else { "Apagando tudo do computador..." }));
+        content = content.push(ui::busy(
+            env,
+            if is_en {
+                "Purging everything from PC..."
+            } else {
+                "Apagando tudo do computador..."
+            },
+        ));
     }
 
     content = content.push(btns);
@@ -440,12 +568,22 @@ fn step_uninstall<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
 fn step_uninstalled<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     let is_en = env.lang.is_en();
     let mut col = column![
-        ui::strong(if is_en { "Cleanup Completed" } else { "Desinstalação / Limpeza Concluída" }, 22),
-        ui::muted(env, if is_en {
-            "All requested files, shortcuts, and data have been removed from your PC."
-        } else {
-            "Todos os arquivos, atalhos e dados solicitados do Axolote Suite foram removidos."
-        }),
+        ui::strong(
+            if is_en {
+                "Cleanup Completed"
+            } else {
+                "Desinstalação / Limpeza Concluída"
+            },
+            22
+        ),
+        ui::muted(
+            env,
+            if is_en {
+                "All requested files, shortcuts, and data have been removed from your PC."
+            } else {
+                "Todos os arquivos, atalhos e dados solicitados do Axolote Suite foram removidos."
+            }
+        ),
     ]
     .spacing(14);
 
@@ -456,7 +594,11 @@ fn step_uninstalled<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     col = col.push(ui::actions(
         env,
         vec![act(
-            if is_en { "Back to Setup Wizard" } else { "Voltar ao Assistente" },
+            if is_en {
+                "Back to Setup Wizard"
+            } else {
+                "Voltar ao Assistente"
+            },
             Btn::Secondary,
             Some(Msg::GoToStep(WizardStep::Welcome)),
         )],

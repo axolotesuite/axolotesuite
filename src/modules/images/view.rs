@@ -1,7 +1,9 @@
 //! Interface do módulo de Imagens: Revelador de Fotos ao Vivo
 //! (Luz, Cor, Efeitos, Histogramas, Presets, Lote e Redimensionar/Converter).
 
-use iced::widget::{button, checkbox, column, container, image as iced_image, pick_list, row, slider, text};
+use iced::widget::{
+    button, checkbox, column, container, image as iced_image, pick_list, row, slider, text,
+};
 use iced::{Alignment, ContentFit, Element, Length};
 
 use crate::modules::images::develop::Adj;
@@ -16,7 +18,11 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     let header = ui::page_header(
         env,
         "🖼",
-        if is_en { "Photo Studio & Developer" } else { "Estúdio & Revelador de Fotos" },
+        if is_en {
+            "Photo Studio & Developer"
+        } else {
+            "Estúdio & Revelador de Fotos"
+        },
         if is_en {
             "Non-destructive photo editing with live real-time preview, RGB histogram, professional Light, Color, and Effects controls, batch folder sync, and cinema looks."
         } else {
@@ -27,17 +33,29 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
 
     let tabs = row![
         ui::btn(
-            if is_en { "🎨  Pro Developer (Live)" } else { "🎨  Revelador Profissional (Ao Vivo)" },
+            if is_en {
+                "🎨  Pro Developer (Live)"
+            } else {
+                "🎨  Revelador Profissional (Ao Vivo)"
+            },
             Btn::Tab(state.mode == Mode::Editor),
             Some(Msg::ModeChanged(Mode::Editor)),
         ),
         ui::btn(
-            if is_en { "⚡  Batch Sync (Folder)" } else { "⚡  Sincronizar em Lote (Pasta)" },
+            if is_en {
+                "⚡  Batch Sync (Folder)"
+            } else {
+                "⚡  Sincronizar em Lote (Pasta)"
+            },
             Btn::Tab(state.mode == Mode::Batch),
             Some(Msg::ModeChanged(Mode::Batch)),
         ),
         ui::btn(
-            if is_en { "📐  Resize & Formats" } else { "📐  Redimensionar & Formatos" },
+            if is_en {
+                "📐  Resize & Formats"
+            } else {
+                "📐  Redimensionar & Formatos"
+            },
             Btn::Tab(state.mode == Mode::ConvertResize),
             Some(Msg::ModeChanged(Mode::ConvertResize)),
         ),
@@ -99,7 +117,8 @@ fn io_section<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
                 col = col.push(ui::list_row(
                     row![
                         ui::badge(&m.format_label, c.primary),
-                        ui::strong(format!("Original: {} × {} px", m.width, m.height), 14).width(Length::Fill),
+                        ui::strong(format!("Original: {} × {} px", m.width, m.height), 14)
+                            .width(Length::Fill),
                         ui::badge(format!("Peso: {}", human_size(m.size_bytes)), c.accent),
                     ]
                     .spacing(12)
@@ -154,19 +173,39 @@ fn photo_editor_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     let transform_bar = ui::actions(
         env,
         vec![
-            act("↺  Girar 90° Esq.", Btn::Secondary, has_img.then_some(Msg::RotateLeft)),
-            act("↻  Girar 90° Dir.", Btn::Secondary, has_img.then_some(Msg::RotateRight)),
             act(
-                if state.edits.flip_h { "↔  Espelhado H ✓" } else { "↔  Espelhar H" },
+                "↺  Girar 90° Esq.",
+                Btn::Secondary,
+                has_img.then_some(Msg::RotateLeft),
+            ),
+            act(
+                "↻  Girar 90° Dir.",
+                Btn::Secondary,
+                has_img.then_some(Msg::RotateRight),
+            ),
+            act(
+                if state.edits.flip_h {
+                    "↔  Espelhado H ✓"
+                } else {
+                    "↔  Espelhar H"
+                },
                 Btn::Secondary,
                 has_img.then_some(Msg::FlipH),
             ),
             act(
-                if state.edits.flip_v { "↕  Espelhado V ✓" } else { "↕  Espelhar V" },
+                if state.edits.flip_v {
+                    "↕  Espelhado V ✓"
+                } else {
+                    "↕  Espelhar V"
+                },
                 Btn::Secondary,
                 has_img.then_some(Msg::FlipV),
             ),
-            act("🔄  Restaurar original", Btn::Ghost, has_img.then_some(Msg::ResetEdits)),
+            act(
+                "🔄  Restaurar original",
+                Btn::Ghost,
+                has_img.then_some(Msg::ResetEdits),
+            ),
         ],
     );
 
@@ -179,9 +218,13 @@ fn photo_editor_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
                     ui::badge("Ao vivo", c.accent),
                 ]
                 .align_items(Alignment::Center),
-                container(iced_image::Image::new(h.clone()).width(Length::Fill).height(Length::Fixed(60.0)))
-                    .width(Length::Fill)
-                    .style(theme::list_row),
+                container(
+                    iced_image::Image::new(h.clone())
+                        .width(Length::Fill)
+                        .height(Length::Fixed(60.0))
+                )
+                .width(Length::Fill)
+                .style(theme::list_row),
             ]
             .spacing(4),
         )
@@ -189,9 +232,13 @@ fn photo_editor_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         .style(theme::list_row)
         .into()
     } else {
-        container(text("Carregue uma imagem para ver o histograma.").size(12).style(c.muted))
-            .padding(8)
-            .into()
+        container(
+            text("Carregue uma imagem para ver o histograma.")
+                .size(12)
+                .style(c.muted),
+        )
+        .padding(8)
+        .into()
     };
 
     // Recortes
@@ -199,20 +246,28 @@ fn photo_editor_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         .iter()
         .map(|&cr| {
             let active = state.edits.crop == cr;
-            button(container(text(cr.label()).size(12).font(SEMIBOLD)).center_x().width(Length::Fill))
-                .padding([8, 10])
-                .width(Length::Fill)
-                .style(theme::btn(Btn::Tab(active)))
-                .on_press_maybe(has_img.then_some(Msg::CropSelected(cr)))
-                .into()
+            button(
+                container(text(cr.label()).size(12).font(SEMIBOLD))
+                    .center_x()
+                    .width(Length::Fill),
+            )
+            .padding([8, 10])
+            .width(Length::Fill)
+            .style(theme::btn(Btn::Tab(active)))
+            .on_press_maybe(has_img.then_some(Msg::CropSelected(cr)))
+            .into()
         })
         .collect();
     let crops_grid = ui::grid(crop_btns, env.columns(170.0, 3), 8);
 
     let save_btn = button(
-        container(text("💾   Exportar Foto Revelada em Resolução Máxima").size(15).font(ui::BOLD))
-            .center_x()
-            .width(Length::Fill),
+        container(
+            text("💾   Exportar Foto Revelada em Resolução Máxima")
+                .size(15)
+                .font(ui::BOLD),
+        )
+        .center_x()
+        .width(Length::Fill),
     )
     .padding([14, 22])
     .width(Length::Fill)
@@ -247,10 +302,26 @@ fn photo_editor_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
 
     // Abas de ajustes: Luz / Cor / Efeitos / Presets
     let subtabs = row![
-        ui::btn("☀ Luz", Btn::Tab(state.editor_tab == EditorTab::Light), Some(Msg::EditorTabChanged(EditorTab::Light))),
-        ui::btn("🌈 Cor", Btn::Tab(state.editor_tab == EditorTab::Color), Some(Msg::EditorTabChanged(EditorTab::Color))),
-        ui::btn("✨ Efeitos", Btn::Tab(state.editor_tab == EditorTab::Effects), Some(Msg::EditorTabChanged(EditorTab::Effects))),
-        ui::btn("🎬 Presets", Btn::Tab(state.editor_tab == EditorTab::Presets), Some(Msg::EditorTabChanged(EditorTab::Presets))),
+        ui::btn(
+            "☀ Luz",
+            Btn::Tab(state.editor_tab == EditorTab::Light),
+            Some(Msg::EditorTabChanged(EditorTab::Light))
+        ),
+        ui::btn(
+            "🌈 Cor",
+            Btn::Tab(state.editor_tab == EditorTab::Color),
+            Some(Msg::EditorTabChanged(EditorTab::Color))
+        ),
+        ui::btn(
+            "✨ Efeitos",
+            Btn::Tab(state.editor_tab == EditorTab::Effects),
+            Some(Msg::EditorTabChanged(EditorTab::Effects))
+        ),
+        ui::btn(
+            "🎬 Presets",
+            Btn::Tab(state.editor_tab == EditorTab::Presets),
+            Some(Msg::EditorTabChanged(EditorTab::Presets))
+        ),
     ]
     .spacing(6);
 
@@ -261,12 +332,16 @@ fn photo_editor_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
                 .iter()
                 .map(|&f| {
                     let active = state.edits.filter == f;
-                    button(container(text(f.label()).size(12).font(SEMIBOLD)).center_x().width(Length::Fill))
-                        .padding([7, 10])
-                        .width(Length::Fill)
-                        .style(theme::btn(Btn::Tab(active)))
-                        .on_press_maybe(has_img.then_some(Msg::FilterSelected(f)))
-                        .into()
+                    button(
+                        container(text(f.label()).size(12).font(SEMIBOLD))
+                            .center_x()
+                            .width(Length::Fill),
+                    )
+                    .padding([7, 10])
+                    .width(Length::Fill)
+                    .style(theme::btn(Btn::Tab(active)))
+                    .on_press_maybe(has_img.then_some(Msg::FilterSelected(f)))
+                    .into()
                 })
                 .collect();
             let fgrid = ui::grid(filter_btns, env.columns(130.0, 4), 6);
@@ -305,7 +380,10 @@ fn photo_editor_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
                 })
                 .collect();
             column![
-                ui::strong("Looks Fotográficos Prontos (Estilo Lightroom / PhotoCraft)", 13),
+                ui::strong(
+                    "Looks Fotográficos Prontos (Estilo Lightroom / PhotoCraft)",
+                    13
+                ),
                 ui::grid(preset_btns, env.columns(150.0, 2), 8),
             ]
             .spacing(10)
@@ -313,15 +391,13 @@ fn photo_editor_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         }
     };
 
-    let right_col = column![
-        ui::section(
-            env,
-            "🎚",
-            "Ajustes Não Destrutivos",
-            "Mude as abas para ajustar parâmetros finos ou escolher estilos.",
-            column![subtabs, adjustments_panel, save_btn].spacing(14),
-        ),
-    ]
+    let right_col = column![ui::section(
+        env,
+        "🎚",
+        "Ajustes Não Destrutivos",
+        "Mude as abas para ajustar parâmetros finos ou escolher estilos.",
+        column![subtabs, adjustments_panel, save_btn].spacing(14),
+    ),]
     .spacing(14);
 
     ui::two_col(env, left_col.into(), right_col.into())
@@ -339,7 +415,10 @@ fn render_sliders_block<'a>(adjs: &[Adj], state: &'a State, env: &Env) -> Elemen
             column![
                 row![
                     ui::strong(adj.label(), 12).width(Length::Fill),
-                    ui::badge(format!("{:+}", val), if val == 0 { c.muted } else { c.accent }),
+                    ui::badge(
+                        format!("{:+}", val),
+                        if val == 0 { c.muted } else { c.accent }
+                    ),
                 ]
                 .align_items(Alignment::Center),
                 slider(lo..=hi, val, move |v| Msg::AdjChanged(adj, v)),
@@ -350,7 +429,11 @@ fn render_sliders_block<'a>(adjs: &[Adj], state: &'a State, env: &Env) -> Elemen
     }
 
     if !has_img {
-        col = col.push(text("Selecione uma foto para habilitar os controles.").size(12).style(c.muted));
+        col = col.push(
+            text("Selecione uma foto para habilitar os controles.")
+                .size(12)
+                .style(c.muted),
+        );
     }
 
     col.into()
@@ -398,9 +481,13 @@ fn batch_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     );
 
     let run_btn = button(
-        container(text("⚡   Aplicar Edições em Todas as Fotos da Pasta").size(15).font(ui::BOLD))
-            .center_x()
-            .width(Length::Fill),
+        container(
+            text("⚡   Aplicar Edições em Todas as Fotos da Pasta")
+                .size(15)
+                .font(ui::BOLD),
+        )
+        .center_x()
+        .width(Length::Fill),
     )
     .padding([14, 22])
     .width(Length::Fill)
@@ -450,17 +537,43 @@ fn convert_resize_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
 
     let presets = row![
         ui::muted(env, "Escala rápida:"),
-        ui::btn("25%", Btn::Secondary, has_input.then_some(Msg::ScalePreset(25))),
-        ui::btn("50%", Btn::Secondary, has_input.then_some(Msg::ScalePreset(50))),
-        ui::btn("75%", Btn::Secondary, has_input.then_some(Msg::ScalePreset(75))),
-        ui::btn("100%", Btn::Secondary, has_input.then_some(Msg::ScalePreset(100))),
+        ui::btn(
+            "25%",
+            Btn::Secondary,
+            has_input.then_some(Msg::ScalePreset(25))
+        ),
+        ui::btn(
+            "50%",
+            Btn::Secondary,
+            has_input.then_some(Msg::ScalePreset(50))
+        ),
+        ui::btn(
+            "75%",
+            Btn::Secondary,
+            has_input.then_some(Msg::ScalePreset(75))
+        ),
+        ui::btn(
+            "100%",
+            Btn::Secondary,
+            has_input.then_some(Msg::ScalePreset(100))
+        ),
     ]
     .spacing(8)
     .align_items(Alignment::Center);
 
     let dims_row: Element<'a, Msg> = {
-        let w = ui::field(env, "Nova largura (px)", "", ui::input("Ex.: 1920", &state.width, Msg::WidthChanged));
-        let h = ui::field(env, "Nova altura (px)", "", ui::input("Ex.: 1080", &state.height, Msg::HeightChanged));
+        let w = ui::field(
+            env,
+            "Nova largura (px)",
+            "",
+            ui::input("Ex.: 1920", &state.width, Msg::WidthChanged),
+        );
+        let h = ui::field(
+            env,
+            "Nova altura (px)",
+            "",
+            ui::input("Ex.: 1080", &state.height, Msg::HeightChanged),
+        );
         if env.narrow() {
             column![w, h].spacing(10).into()
         } else {
@@ -468,10 +581,13 @@ fn convert_resize_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         }
     };
 
-    let aspect_chk = checkbox("Manter proporção original automaticamente", state.keep_aspect)
-        .on_toggle(Msg::KeepAspectToggled)
-        .size(18)
-        .text_size(13);
+    let aspect_chk = checkbox(
+        "Manter proporção original automaticamente",
+        state.keep_aspect,
+    )
+    .on_toggle(Msg::KeepAspectToggled)
+    .size(18)
+    .text_size(13);
 
     let resize_card = ui::section(
         env,
@@ -482,7 +598,14 @@ fn convert_resize_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
             presets,
             dims_row,
             aspect_chk,
-            ui::actions(env, vec![act("📐  Redimensionar agora", Btn::Primary, has_input.then_some(Msg::ResizeRun))]),
+            ui::actions(
+                env,
+                vec![act(
+                    "📐  Redimensionar agora",
+                    Btn::Primary,
+                    has_input.then_some(Msg::ResizeRun)
+                )]
+            ),
         ]
         .spacing(12),
     );
@@ -530,7 +653,14 @@ fn convert_resize_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
             ]
             .align_items(Alignment::Center),
             q_slider,
-            ui::actions(env, vec![act("✨  Comprimir imagem agora", Btn::Primary, has_input.then_some(Msg::CompressRun))]),
+            ui::actions(
+                env,
+                vec![act(
+                    "✨  Comprimir imagem agora",
+                    Btn::Primary,
+                    has_input.then_some(Msg::CompressRun)
+                )]
+            ),
         ]
         .spacing(12),
     );
@@ -551,7 +681,9 @@ fn convert_resize_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
             "Use os botões 25%, 50%, 75% para reduzir fotos pesadas de celular rapidamente.",
             "Converta qualquer imagem para ícone (.ico) de até 256x256 com proporção ajustada.",
         ],
-        Some("Para revelar exposição, sombras, nitidez e cores, use a aba 'Revelador Profissional'."),
+        Some(
+            "Para revelar exposição, sombras, nitidez e cores, use a aba 'Revelador Profissional'.",
+        ),
     );
 
     ui::two_col(env, main_col.into(), side)

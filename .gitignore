@@ -5,3 +5,4 @@ axolote_config.json
 axolote_history.json
 dist/
 *.exe
+SHA256SUMS.txt

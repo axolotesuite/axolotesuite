@@ -1,6 +1,8 @@
 //! Interface do módulo de Vídeo: Editor Rápido de Vídeo + Conversor/Compressor.
 
-use iced::widget::{button, checkbox, column, container, image as iced_image, pick_list, row, slider, text};
+use iced::widget::{
+    button, checkbox, column, container, image as iced_image, pick_list, row, slider, text,
+};
 use iced::{Alignment, ContentFit, Element, Length};
 
 use crate::modules::video::service::{CanvasAspect, SpeedPreset, VideoFormat, VideoLook};
@@ -60,7 +62,10 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         ]
         .spacing(10);
         if state.downloading_ffmpeg {
-            ff_col = ff_col.push(ui::busy(env, "Baixando e instalando o FFmpeg automaticamente"));
+            ff_col = ff_col.push(ui::busy(
+                env,
+                "Baixando e instalando o FFmpeg automaticamente",
+            ));
         }
         items.push(ui::section(
             env,
@@ -173,13 +178,25 @@ fn video_editor_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     let transform_row = ui::actions(
         env,
         vec![
-            act("↻  Girar 90°", Btn::Secondary, can_run.then_some(Msg::RotateVideo)),
             act(
-                if state.edit.flip_h { "↔  Espelhado ✓" } else { "↔  Espelhar Horizontal" },
+                "↻  Girar 90°",
+                Btn::Secondary,
+                can_run.then_some(Msg::RotateVideo),
+            ),
+            act(
+                if state.edit.flip_h {
+                    "↔  Espelhado ✓"
+                } else {
+                    "↔  Espelhar Horizontal"
+                },
                 Btn::Secondary,
                 can_run.then_some(Msg::FlipVideoH),
             ),
-            act("🖼  Atualizar Quadro", Btn::Secondary, can_run.then_some(Msg::RefreshPreviewFrame)),
+            act(
+                "🖼  Atualizar Quadro",
+                Btn::Secondary,
+                can_run.then_some(Msg::RefreshPreviewFrame),
+            ),
             act("🔄  Zerar Edições", Btn::Ghost, Some(Msg::ResetVideoEdits)),
         ],
     );
@@ -190,7 +207,11 @@ fn video_editor_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
             env,
             "⏱ Cortar Início (De)",
             "Deixe vazio para começar do início (00:00:00).",
-            ui::input("Ex.: 00:00:05", &state.edit.start_time, Msg::StartTimeChanged),
+            ui::input(
+                "Ex.: 00:00:05",
+                &state.edit.start_time,
+                Msg::StartTimeChanged,
+            ),
         );
         let end = ui::field(
             env,
@@ -210,12 +231,16 @@ fn video_editor_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         .iter()
         .map(|&sp| {
             let active = state.edit.speed == sp;
-            button(container(text(sp.label()).size(12).font(SEMIBOLD)).center_x().width(Length::Fill))
-                .padding([9, 10])
-                .width(Length::Fill)
-                .style(theme::btn(Btn::Tab(active)))
-                .on_press(Msg::SpeedSelected(sp))
-                .into()
+            button(
+                container(text(sp.label()).size(12).font(SEMIBOLD))
+                    .center_x()
+                    .width(Length::Fill),
+            )
+            .padding([9, 10])
+            .width(Length::Fill)
+            .style(theme::btn(Btn::Tab(active)))
+            .on_press(Msg::SpeedSelected(sp))
+            .into()
         })
         .collect();
     let speed_grid = ui::grid(speed_btns, env.columns(145.0, 3), 8);
@@ -225,12 +250,16 @@ fn video_editor_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         .iter()
         .map(|&a| {
             let active = state.edit.aspect == a;
-            button(container(text(a.label()).size(12).font(SEMIBOLD)).center_x().width(Length::Fill))
-                .padding([9, 10])
-                .width(Length::Fill)
-                .style(theme::btn(Btn::Tab(active)))
-                .on_press(Msg::AspectSelected(a))
-                .into()
+            button(
+                container(text(a.label()).size(12).font(SEMIBOLD))
+                    .center_x()
+                    .width(Length::Fill),
+            )
+            .padding([9, 10])
+            .width(Length::Fill)
+            .style(theme::btn(Btn::Tab(active)))
+            .on_press(Msg::AspectSelected(a))
+            .into()
         })
         .collect();
     let aspect_grid = ui::grid(aspect_btns, env.columns(180.0, 2), 8);
@@ -240,12 +269,16 @@ fn video_editor_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         .iter()
         .map(|&l| {
             let active = state.edit.look == l;
-            button(container(text(l.label()).size(12).font(SEMIBOLD)).center_x().width(Length::Fill))
-                .padding([9, 10])
-                .width(Length::Fill)
-                .style(theme::btn(Btn::Tab(active)))
-                .on_press(Msg::LookSelected(l))
-                .into()
+            button(
+                container(text(l.label()).size(12).font(SEMIBOLD))
+                    .center_x()
+                    .width(Length::Fill),
+            )
+            .padding([9, 10])
+            .width(Length::Fill)
+            .style(theme::btn(Btn::Tab(active)))
+            .on_press(Msg::LookSelected(l))
+            .into()
         })
         .collect();
     let look_grid = ui::grid(look_btns, env.columns(130.0, 3), 8);
@@ -253,13 +286,27 @@ fn video_editor_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     // Áudio e Volume
     let audio_box = ui::list_row(
         column![
-            checkbox("🔇 Remover todo o áudio do vídeo (Deixar Mudo)", state.edit.mute_audio)
-                .on_toggle(Msg::MuteToggled)
-                .size(18)
-                .text_size(13),
+            checkbox(
+                "🔇 Remover todo o áudio do vídeo (Deixar Mudo)",
+                state.edit.mute_audio
+            )
+            .on_toggle(Msg::MuteToggled)
+            .size(18)
+            .text_size(13),
             row![
-                ui::strong(format!("🔊 Volume da faixa de áudio: {}%", state.edit.volume_pct), 13).width(Length::Fill),
-                ui::badge(if state.edit.volume_pct > 100 { "Amplificado" } else { "Normal" }, c.accent),
+                ui::strong(
+                    format!("🔊 Volume da faixa de áudio: {}%", state.edit.volume_pct),
+                    13
+                )
+                .width(Length::Fill),
+                ui::badge(
+                    if state.edit.volume_pct > 100 {
+                        "Amplificado"
+                    } else {
+                        "Normal"
+                    },
+                    c.accent
+                ),
             ]
             .align_items(Alignment::Center),
             slider(0..=200, state.edit.volume_pct, Msg::VolumeChanged),
@@ -268,9 +315,13 @@ fn video_editor_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     );
 
     let export_btn = button(
-        container(text("🎬   Renderizar e Exportar Vídeo Editado (MP4 H.264)").size(15).font(ui::BOLD))
-            .center_x()
-            .width(Length::Fill),
+        container(
+            text("🎬   Renderizar e Exportar Vídeo Editado (MP4 H.264)")
+                .size(15)
+                .font(ui::BOLD),
+        )
+        .center_x()
+        .width(Length::Fill),
     )
     .padding([14, 22])
     .width(Length::Fill)
@@ -346,7 +397,10 @@ fn convert_compress_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
             ui::actions(
                 env,
                 vec![act(
-                    format!("🔄  Converter vídeo para {}", state.format.ext().to_uppercase()),
+                    format!(
+                        "🔄  Converter vídeo para {}",
+                        state.format.ext().to_uppercase()
+                    ),
                     Btn::Primary,
                     can_run.then_some(Msg::ConvertRun),
                 )],

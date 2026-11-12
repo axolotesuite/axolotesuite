@@ -15,7 +15,8 @@ pub enum LanguageMode {
 }
 
 impl LanguageMode {
-    pub const ALL: &'static [LanguageMode] = &[LanguageMode::Auto, LanguageMode::PtBr, LanguageMode::EnUs];
+    pub const ALL: &'static [LanguageMode] =
+        &[LanguageMode::Auto, LanguageMode::PtBr, LanguageMode::EnUs];
 
     pub fn label(&self) -> &'static str {
         match self {

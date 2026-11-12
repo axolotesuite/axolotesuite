@@ -48,7 +48,10 @@ pub fn unique_path(path: PathBuf) -> PathBuf {
         return path;
     }
     let parent = path.parent().map(|p| p.to_path_buf()).unwrap_or_default();
-    let stem = path.file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_default();
+    let stem = path
+        .file_stem()
+        .map(|s| s.to_string_lossy().to_string())
+        .unwrap_or_default();
     let ext = path.extension().map(|e| e.to_string_lossy().to_string());
     for i in 2.. {
         let name = match &ext {
@@ -64,12 +67,24 @@ pub fn unique_path(path: PathBuf) -> PathBuf {
 }
 
 /// Monta o caminho de saída `pasta/nome_sufixo.ext`, sem sobrescrever nada.
-pub fn output_path(input: &std::path::Path, out_dir: Option<&std::path::Path>, suffix: &str, ext: &str) -> PathBuf {
+pub fn output_path(
+    input: &std::path::Path,
+    out_dir: Option<&std::path::Path>,
+    suffix: &str,
+    ext: &str,
+) -> PathBuf {
     let dir = out_dir
         .map(|d| d.to_path_buf())
         .or_else(|| input.parent().map(|p| p.to_path_buf()))
         .unwrap_or_default();
-    let stem = input.file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_else(|| "arquivo".into());
-    let name = if suffix.is_empty() { format!("{stem}.{ext}") } else { format!("{stem}_{suffix}.{ext}") };
+    let stem = input
+        .file_stem()
+        .map(|s| s.to_string_lossy().to_string())
+        .unwrap_or_else(|| "arquivo".into());
+    let name = if suffix.is_empty() {
+        format!("{stem}.{ext}")
+    } else {
+        format!("{stem}_{suffix}.{ext}")
+    };
     unique_path(dir.join(name))
 }

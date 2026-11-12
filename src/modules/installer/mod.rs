@@ -84,7 +84,9 @@ impl State {
     }
 
     pub fn is_installed(&self) -> bool {
-        Path::new(self.install_dir.trim()).join("axolote_suite.exe").is_file()
+        Path::new(self.install_dir.trim())
+            .join("axolote_suite.exe")
+            .is_file()
     }
 
     pub fn is_ffmpeg_ready(&self) -> bool {
@@ -99,7 +101,9 @@ impl State {
             }
             Msg::InstallDirChanged(s) => self.install_dir = s,
             Msg::BrowseInstallDir => {
-                if let Some(d) = system::pick_folder("Escolha a pasta onde o Axolote Suite será instalado") {
+                if let Some(d) =
+                    system::pick_folder("Escolha a pasta onde o Axolote Suite será instalado")
+                {
                     self.install_dir = d.join("Axolote Suite").display().to_string();
                 }
             }
@@ -122,7 +126,9 @@ impl State {
                 let start_menu = self.create_start_menu_shortcut;
                 let dl_ffmpeg = self.download_ffmpeg;
                 return Command::perform(
-                    system::run_blocking(move || perform_install(target_dir, desktop, start_menu, dl_ffmpeg)),
+                    system::run_blocking(move || {
+                        perform_install(target_dir, desktop, start_menu, dl_ffmpeg)
+                    }),
                     Msg::InstallFinished,
                 );
             }
@@ -139,10 +145,14 @@ impl State {
                 self.result = None;
                 let dest_bin = PathBuf::from(self.install_dir.trim()).join("bin");
                 return Command::perform(
-                    system::run_blocking(move || match system::ensure_ffmpeg_installed(&dest_bin) {
-                        Ok(p) => OperationResult::ok("Dependência FFmpeg baixada e ativada com sucesso!")
+                    system::run_blocking(move || {
+                        match system::ensure_ffmpeg_installed(&dest_bin) {
+                            Ok(p) => OperationResult::ok(
+                                "Dependência FFmpeg baixada e ativada com sucesso!",
+                            )
                             .with_detail(format!("Local do FFmpeg: {}", p.display())),
-                        Err(e) => OperationResult::err(e),
+                            Err(e) => OperationResult::err(e),
+                        }
                     }),
                     Msg::DownloadFfmpegFinished,
                 );
@@ -231,7 +241,10 @@ fn perform_install(
         let bin_dir = target_dir.join("bin");
         match system::ensure_ffmpeg_installed(&bin_dir) {
             Ok(ff_path) => {
-                details.push(format!("✓ Motor multimídia FFmpeg pronto ({})", ff_path.display()));
+                details.push(format!(
+                    "✓ Motor multimídia FFmpeg pronto ({})",
+                    ff_path.display()
+                ));
             }
             Err(e) => {
                 details.push(format!("⚠ Aviso FFmpeg: {e}"));
@@ -242,7 +255,12 @@ fn perform_install(
     if desktop_lnk {
         if let Some(desktop) = user_desktop_dir() {
             let lnk = desktop.join("Axolote Suite.lnk");
-            if create_windows_shortcut(&lnk, &dest_exe, &icon_path, "Axolote Suite — Central de Ferramentas") {
+            if create_windows_shortcut(
+                &lnk,
+                &dest_exe,
+                &icon_path,
+                "Axolote Suite — Central de Ferramentas",
+            ) {
                 details.push("✓ Atalho criado na Área de Trabalho".into());
             }
         }
@@ -270,9 +288,11 @@ fn perform_install(
     register_uninstaller_hkcu(&target_dir, &dest_exe, &icon_path);
     details.push("✓ Registrado em Aplicativos Instalados do Windows".into());
 
-    OperationResult::ok("O Axolote Suite e suas dependências essenciais foram instalados com sucesso!")
-        .with_details(details)
-        .with_output(target_dir)
+    OperationResult::ok(
+        "O Axolote Suite e suas dependências essenciais foram instalados com sucesso!",
+    )
+    .with_details(details)
+    .with_output(target_dir)
 }
 
 fn perform_uninstall(target_dir: PathBuf, remove_user_data: bool) -> OperationResult {
@@ -312,7 +332,8 @@ fn perform_uninstall(target_dir: PathBuf, remove_user_data: bool) -> OperationRe
     if remove_user_data {
         let data = paths::data_dir();
         if data.exists() && fs::remove_dir_all(&data).is_ok() {
-            details.push("✓ Configurações, notas, histórico e binários em %APPDATA% apagados".into());
+            details
+                .push("✓ Configurações, notas, histórico e binários em %APPDATA% apagados".into());
         }
     } else {
         details.push("ℹ Suas notas e configurações pessoais foram preservadas.".into());
@@ -353,7 +374,9 @@ pub fn perform_purge_everything(install_dir: PathBuf) -> OperationResult {
     let data = paths::data_dir();
     if data.exists() {
         let _ = fs::remove_dir_all(&data);
-        details.push("✓ Todos os dados, configurações, histórico e notas em %APPDATA% apagados".into());
+        details.push(
+            "✓ Todos os dados, configurações, histórico e notas em %APPDATA% apagados".into(),
+        );
     }
 
     // 4. Pasta de instalação (com verificação rigorosa de segurança de diretório)
@@ -366,7 +389,10 @@ pub fn perform_purge_everything(install_dir: PathBuf) -> OperationResult {
 
         if is_running_from_install {
             schedule_self_delete(&install_dir);
-            details.push(format!("✓ Pasta de instalação ({}) agendada para exclusão completa", install_dir.display()));
+            details.push(format!(
+                "✓ Pasta de instalação ({}) agendada para exclusão completa",
+                install_dir.display()
+            ));
         } else {
             // Remove apenas arquivos conhecidos do aplicativo antes de apagar a pasta
             let _ = fs::remove_file(install_dir.join("axolote_suite.exe"));
@@ -374,14 +400,22 @@ pub fn perform_purge_everything(install_dir: PathBuf) -> OperationResult {
             let _ = fs::remove_dir_all(install_dir.join("bin"));
             let _ = fs::remove_dir_all(install_dir.join("assets"));
             let _ = fs::remove_dir(&install_dir);
-            details.push(format!("✓ Pasta de instalação ({}) apagada com segurança", install_dir.display()));
+            details.push(format!(
+                "✓ Pasta de instalação ({}) apagada com segurança",
+                install_dir.display()
+            ));
         }
     } else if install_dir.exists() {
-        details.push("⚠ Pasta informada não corresponde ao padrão do Axolote Suite; mantida por segurança.".into());
+        details.push(
+            "⚠ Pasta informada não corresponde ao padrão do Axolote Suite; mantida por segurança."
+                .into(),
+        );
     }
 
-    OperationResult::ok("Limpeza Completa Realizada: Tudo do Axolote Suite foi apagado do computador.")
-        .with_details(details)
+    OperationResult::ok(
+        "Limpeza Completa Realizada: Tudo do Axolote Suite foi apagado do computador.",
+    )
+    .with_details(details)
 }
 
 fn user_desktop_dir() -> Option<PathBuf> {
@@ -389,14 +423,21 @@ fn user_desktop_dir() -> Option<PathBuf> {
 }
 
 fn user_start_menu_dir() -> Option<PathBuf> {
-    env::var_os("APPDATA").map(|p| PathBuf::from(p).join("Microsoft\\Windows\\Start Menu\\Programs"))
+    env::var_os("APPDATA")
+        .map(|p| PathBuf::from(p).join("Microsoft\\Windows\\Start Menu\\Programs"))
 }
 
 fn create_windows_shortcut(lnk: &Path, target: &Path, icon: &Path, desc: &str) -> bool {
     create_windows_shortcut_with_args(lnk, target, "", icon, desc)
 }
 
-fn create_windows_shortcut_with_args(lnk: &Path, target: &Path, args: &str, icon: &Path, desc: &str) -> bool {
+fn create_windows_shortcut_with_args(
+    lnk: &Path,
+    target: &Path,
+    args: &str,
+    icon: &Path,
+    desc: &str,
+) -> bool {
     let ps = format!(
         "$s=(New-Object -COM WScript.Shell).CreateShortcut('{}');$s.TargetPath='{}';$s.Arguments='{}';$s.IconLocation='{}';$s.Description='{}';$s.Save()",
         lnk.display().to_string().replace('\'', "''"),
@@ -431,7 +472,9 @@ fn register_uninstaller_hkcu(install_dir: &Path, exe: &Path, icon: &Path) {
 
 fn unregister_hkcu() {
     let key = r"HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\AxoloteSuite";
-    let _ = system::hidden_command("reg").args(["delete", key, "/f"]).status();
+    let _ = system::hidden_command("reg")
+        .args(["delete", key, "/f"])
+        .status();
 }
 
 fn is_safe_install_dir(dir: &Path) -> bool {

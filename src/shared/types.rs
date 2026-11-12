@@ -19,11 +19,21 @@ pub struct OperationResult {
 
 impl OperationResult {
     pub fn ok(title: impl Into<String>) -> Self {
-        Self { success: true, title: title.into(), details: Vec::new(), output: None }
+        Self {
+            success: true,
+            title: title.into(),
+            details: Vec::new(),
+            output: None,
+        }
     }
 
     pub fn err(title: impl Into<String>) -> Self {
-        Self { success: false, title: title.into(), details: Vec::new(), output: None }
+        Self {
+            success: false,
+            title: title.into(),
+            details: Vec::new(),
+            output: None,
+        }
     }
 
     pub fn with_details(mut self, details: Vec<String>) -> Self {

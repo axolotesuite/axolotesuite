@@ -21,9 +21,13 @@ pub fn view<'a>(state: &'a State, settings: &Settings, env: &Env) -> Element<'a,
         None,
     );
 
-    let lang_picker = pick_list(LanguageMode::ALL, Some(settings.language), Msg::LanguageChanged)
-        .padding([9, 12])
-        .width(Length::Fill);
+    let lang_picker = pick_list(
+        LanguageMode::ALL,
+        Some(settings.language),
+        Msg::LanguageChanged,
+    )
+    .padding([9, 12])
+    .width(Length::Fill);
 
     let lang_field = ui::field(
         env,
@@ -48,7 +52,11 @@ pub fn view<'a>(state: &'a State, settings: &Settings, env: &Env) -> Element<'a,
     .size(18)
     .text_size(14);
 
-    let hist_slider = slider(20..=500, settings.max_history as u32, Msg::MaxHistoryChanged);
+    let hist_slider = slider(
+        20..=500,
+        settings.max_history as u32,
+        Msg::MaxHistoryChanged,
+    );
 
     let prefs_card = ui::section(
         env,
@@ -78,8 +86,16 @@ pub fn view<'a>(state: &'a State, settings: &Settings, env: &Env) -> Element<'a,
             ui::actions(
                 env,
                 vec![
-                    act(env.t(TextKey::OpenDataFolderBtn), Btn::Secondary, Some(Msg::OpenDataFolder)),
-                    act(env.t(TextKey::RestoreDefaultsBtn), Btn::Ghost, Some(Msg::ResetDefaults)),
+                    act(
+                        env.t(TextKey::OpenDataFolderBtn),
+                        Btn::Secondary,
+                        Some(Msg::OpenDataFolder)
+                    ),
+                    act(
+                        env.t(TextKey::RestoreDefaultsBtn),
+                        Btn::Ghost,
+                        Some(Msg::ResetDefaults)
+                    ),
                 ],
             ),
         ]
@@ -96,7 +112,11 @@ pub fn view<'a>(state: &'a State, settings: &Settings, env: &Env) -> Element<'a,
         env,
         "🔒",
         env.t(TextKey::PrivacySectionTitle),
-        if env.lang.is_en() { "Your files and notes never leave your personal computer." } else { "Seus arquivos e notas nunca saem do seu computador." },
+        if env.lang.is_en() {
+            "Your files and notes never leave your personal computer."
+        } else {
+            "Seus arquivos e notas nunca saem do seu computador."
+        },
         column![
             text(env.t(TextKey::PrivacyNotice1)).size(13),
             text(env.t(TextKey::PrivacyNotice2)).size(13),

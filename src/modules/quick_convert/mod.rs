@@ -162,7 +162,9 @@ impl State {
             }
             Msg::OutDirChanged(s) => self.custom_out_dir = s,
             Msg::BrowseOutDir => {
-                if let Some(d) = system::pick_folder("Escolha a pasta de saída (ou deixe em branco para salvar ao lado do original)") {
+                if let Some(d) = system::pick_folder(
+                    "Escolha a pasta de saída (ou deixe em branco para salvar ao lado do original)",
+                ) {
                     self.custom_out_dir = d.display().to_string();
                 }
             }
@@ -204,7 +206,9 @@ impl State {
         self.busy = true;
         self.result = None;
         Command::perform(
-            system::run_blocking(move || service::execute_wheel_conversion(files, cat, target, out_dir, strip)),
+            system::run_blocking(move || {
+                service::execute_wheel_conversion(files, cat, target, out_dir, strip)
+            }),
             move |r| Msg::Done(id, r),
         )
     }

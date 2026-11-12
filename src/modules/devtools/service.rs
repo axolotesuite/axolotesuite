@@ -160,8 +160,11 @@ pub fn render_color_swatch(r: u8, g: u8, b: u8, w: u32, h: u32) -> Vec<u8> {
     buf
 }
 
+/// Cor dominante extraída: `(hex, (r, g, b), percentual)`.
+pub type PaletteColor = (String, (u8, u8, u8), u32);
+
 /// Extrai as 6 cores dominantes de uma imagem por quantização de histograma RGB.
-pub fn extract_image_palette(path: &Path) -> Result<Vec<(String, (u8, u8, u8), u32)>, String> {
+pub fn extract_image_palette(path: &Path) -> Result<Vec<PaletteColor>, String> {
     let img = image::open(path).map_err(|e| format!("Erro ao abrir imagem: {e}"))?;
     let small = img.thumbnail(96, 96);
     let mut buckets = std::collections::HashMap::<(u8, u8, u8), (u64, u64, u64, u32)>::new();
@@ -181,7 +184,7 @@ pub fn extract_image_palette(path: &Path) -> Result<Vec<(String, (u8, u8, u8), u
 
     let total_pixels: u32 = buckets.values().map(|v| v.3).sum::<u32>().max(1);
     let mut sorted: Vec<_> = buckets.into_values().collect();
-    sorted.sort_by(|a, b| b.3.cmp(&a.3));
+    sorted.sort_by_key(|a| std::cmp::Reverse(a.3));
 
     let mut out = Vec::new();
     for (sr, sg, sb, count) in sorted.into_iter().take(6) {
@@ -223,7 +226,11 @@ pub fn generate_passwords(
         });
     }
     if digits {
-        pool.push_str(if avoid_ambiguous { "23456789" } else { "0123456789" });
+        pool.push_str(if avoid_ambiguous {
+            "23456789"
+        } else {
+            "0123456789"
+        });
     }
     if symbols {
         pool.push_str("!@#$%^&*()-_=+[]{};:,.<>?");

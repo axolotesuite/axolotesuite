@@ -18,8 +18,16 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     );
 
     let tabs = row![
-        ui::btn("📂  Extrair / Ver conteúdo de um ZIP", Btn::Tab(state.mode == Mode::Extract), Some(Msg::ModeChanged(Mode::Extract))),
-        ui::btn("📦  Criar novo arquivo ZIP", Btn::Tab(state.mode == Mode::Create), Some(Msg::ModeChanged(Mode::Create))),
+        ui::btn(
+            "📂  Extrair / Ver conteúdo de um ZIP",
+            Btn::Tab(state.mode == Mode::Extract),
+            Some(Msg::ModeChanged(Mode::Extract))
+        ),
+        ui::btn(
+            "📦  Criar novo arquivo ZIP",
+            Btn::Tab(state.mode == Mode::Create),
+            Some(Msg::ModeChanged(Mode::Create))
+        ),
     ]
     .spacing(10)
     .align_items(Alignment::Center);
@@ -40,21 +48,43 @@ fn extract_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         env,
         "Arquivo ZIP de entrada",
         "Escolha o arquivo .zip que você quer abrir ou descomprimir.",
-        ui::path_field(env, "Ex.: C:\\Users\\voce\\Downloads\\documentos.zip", &state.zip_path, Msg::ZipPathChanged, "📂  Escolher .zip…", Msg::BrowseZip),
+        ui::path_field(
+            env,
+            "Ex.: C:\\Users\\voce\\Downloads\\documentos.zip",
+            &state.zip_path,
+            Msg::ZipPathChanged,
+            "📂  Escolher .zip…",
+            Msg::BrowseZip,
+        ),
     );
 
     let dest_field = ui::field(
         env,
         "Pasta de destino da extração",
         "Se deixar em branco, será criada uma pasta com o mesmo nome do arquivo ZIP.",
-        ui::path_field(env, "Ex.: C:\\Users\\voce\\Downloads\\documentos", &state.dest_dir, Msg::DestDirChanged, "📁  Escolher pasta…", Msg::BrowseDest),
+        ui::path_field(
+            env,
+            "Ex.: C:\\Users\\voce\\Downloads\\documentos",
+            &state.dest_dir,
+            Msg::DestDirChanged,
+            "📁  Escolher pasta…",
+            Msg::BrowseDest,
+        ),
     );
 
     let btns = ui::actions(
         env,
         vec![
-            act("🔍  Listar conteúdo do ZIP", Btn::Secondary, (has_zip && !state.busy).then_some(Msg::InspectZip)),
-            act("📤  Extrair arquivos agora", Btn::Primary, (has_zip && !state.busy).then_some(Msg::ExtractRun)),
+            act(
+                "🔍  Listar conteúdo do ZIP",
+                Btn::Secondary,
+                (has_zip && !state.busy).then_some(Msg::InspectZip),
+            ),
+            act(
+                "📤  Extrair arquivos agora",
+                Btn::Primary,
+                (has_zip && !state.busy).then_some(Msg::ExtractRun),
+            ),
         ],
     );
 
@@ -69,8 +99,12 @@ fn extract_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
             Ok(list) => {
                 let total_uncompressed: u64 = list.iter().map(|e| e.size).sum();
                 let mut col = column![row![
-                    ui::strong(format!("Conteúdo do ZIP ({} item(ns))", list.len()), 15).width(Length::Fill),
-                    ui::badge(format!("Total: {}", human_size(total_uncompressed)), c.accent),
+                    ui::strong(format!("Conteúdo do ZIP ({} item(ns))", list.len()), 15)
+                        .width(Length::Fill),
+                    ui::badge(
+                        format!("Total: {}", human_size(total_uncompressed)),
+                        c.accent
+                    ),
                 ]
                 .align_items(Alignment::Center)]
                 .spacing(6);
@@ -79,7 +113,9 @@ fn extract_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
                     let icon = if item.is_dir { "📁" } else { "📄" };
                     col = col.push(ui::list_row(
                         row![
-                            text(format!("{icon}  {}", item.name)).size(13).width(Length::Fill),
+                            text(format!("{icon}  {}", item.name))
+                                .size(13)
+                                .width(Length::Fill),
                             ui::muted(env, human_size(item.size)),
                         ]
                         .spacing(10)
@@ -87,7 +123,10 @@ fn extract_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
                     ));
                 }
                 if list.len() > 50 {
-                    col = col.push(ui::muted(env, format!("… e mais {} item(ns) dentro do arquivo.", list.len() - 50)));
+                    col = col.push(ui::muted(
+                        env,
+                        format!("… e mais {} item(ns) dentro do arquivo.", list.len() - 50),
+                    ));
                 }
                 body = body.push(col);
             }
@@ -125,13 +164,22 @@ fn extract_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
 
 fn create_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     let c = env.c();
-    let can_create = !state.sources.is_empty() && !state.output_zip.trim().is_empty() && !state.busy;
+    let can_create =
+        !state.sources.is_empty() && !state.output_zip.trim().is_empty() && !state.busy;
 
     let add_btns = ui::actions(
         env,
         vec![
-            act("➕  Adicionar arquivos…", Btn::Primary, (!state.busy).then_some(Msg::AddFiles)),
-            act("📁  Adicionar pasta inteira…", Btn::Secondary, (!state.busy).then_some(Msg::AddFolder)),
+            act(
+                "➕  Adicionar arquivos…",
+                Btn::Primary,
+                (!state.busy).then_some(Msg::AddFiles),
+            ),
+            act(
+                "📁  Adicionar pasta inteira…",
+                Btn::Secondary,
+                (!state.busy).then_some(Msg::AddFolder),
+            ),
             act(
                 "🗑  Limpar lista",
                 Btn::Ghost,
@@ -140,9 +188,11 @@ fn create_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         ],
     );
 
-    let mut list_col = column![row![
-        ui::strong(format!("Itens para compactar ({})", state.sources.len()), 15).width(Length::Fill),
-    ]]
+    let mut list_col = column![row![ui::strong(
+        format!("Itens para compactar ({})", state.sources.len()),
+        15
+    )
+    .width(Length::Fill),]]
     .spacing(6);
 
     if state.sources.is_empty() {
@@ -159,12 +209,17 @@ fn create_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
             let kind_badge = if is_dir {
                 ui::badge("Pasta completa", c.primary)
             } else {
-                let sz = std::fs::metadata(p).map(|m| human_size(m.len())).unwrap_or_default();
+                let sz = std::fs::metadata(p)
+                    .map(|m| human_size(m.len()))
+                    .unwrap_or_default();
                 ui::badge(sz, c.muted)
             };
             list_col = list_col.push(ui::list_row(
                 row![
-                    text(format!("{icon}  {}", p.display())).size(13).font(SEMIBOLD).width(Length::Fill),
+                    text(format!("{icon}  {}", p.display()))
+                        .size(13)
+                        .font(SEMIBOLD)
+                        .width(Length::Fill),
                     kind_badge,
                     ui::btn("✕", Btn::Ghost, Some(Msg::RemoveSource(i))),
                 ]
@@ -188,7 +243,14 @@ fn create_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         ),
     );
 
-    let create_btn = ui::actions(env, vec![act("🗜  Criar arquivo ZIP agora", Btn::Primary, can_create.then_some(Msg::CreateRun))]);
+    let create_btn = ui::actions(
+        env,
+        vec![act(
+            "🗜  Criar arquivo ZIP agora",
+            Btn::Primary,
+            can_create.then_some(Msg::CreateRun),
+        )],
+    );
 
     let mut body = column![add_btns, list_col, out_field, create_btn].spacing(16);
 

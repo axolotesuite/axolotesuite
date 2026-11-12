@@ -110,7 +110,9 @@ pub fn inspect(path: &Path) -> Vec<String> {
 
 pub fn convert(input: PathBuf, output: PathBuf, fmt: AudioFormat) -> OperationResult {
     let Some(ff) = system::find_ffmpeg() else {
-        return OperationResult::err("FFmpeg não encontrado. Instale o FFmpeg para converter áudios.");
+        return OperationResult::err(
+            "FFmpeg não encontrado. Instale o FFmpeg para converter áudios.",
+        );
     };
     if !input.is_file() {
         return OperationResult::err("Arquivo de entrada não encontrado.");
@@ -124,9 +126,13 @@ pub fn convert(input: PathBuf, output: PathBuf, fmt: AudioFormat) -> OperationRe
     match system::run_ffmpeg(&ff, &args) {
         Ok(()) => {
             let sz = fs::metadata(&output).map(|m| m.len()).unwrap_or(0);
-            OperationResult::ok(format!("Áudio convertido para {} ({})", fmt.ext().to_uppercase(), human_size(sz)))
-                .with_detail(format!("Salvo em: {}", output.display()))
-                .with_output(output)
+            OperationResult::ok(format!(
+                "Áudio convertido para {} ({})",
+                fmt.ext().to_uppercase(),
+                human_size(sz)
+            ))
+            .with_detail(format!("Salvo em: {}", output.display()))
+            .with_output(output)
         }
         Err(e) => OperationResult::err("Não foi possível converter o áudio.").with_detail(e),
     }
@@ -134,7 +140,9 @@ pub fn convert(input: PathBuf, output: PathBuf, fmt: AudioFormat) -> OperationRe
 
 pub fn extract_from_video(video: PathBuf, output: PathBuf, fmt: AudioFormat) -> OperationResult {
     let Some(ff) = system::find_ffmpeg() else {
-        return OperationResult::err("FFmpeg não encontrado. Instale o FFmpeg para extrair áudio de vídeos.");
+        return OperationResult::err(
+            "FFmpeg não encontrado. Instale o FFmpeg para extrair áudio de vídeos.",
+        );
     };
     if !video.is_file() {
         return OperationResult::err("Arquivo de vídeo não encontrado.");
@@ -156,13 +164,17 @@ pub fn extract_from_video(video: PathBuf, output: PathBuf, fmt: AudioFormat) -> 
             .with_detail(format!("Salvo em: {}", output.display()))
             .with_output(output)
         }
-        Err(e) => OperationResult::err("Não foi possível extrair o áudio deste vídeo.").with_detail(e),
+        Err(e) => {
+            OperationResult::err("Não foi possível extrair o áudio deste vídeo.").with_detail(e)
+        }
     }
 }
 
 pub fn compress(input: PathBuf, output: PathBuf, bitrate: Bitrate) -> OperationResult {
     let Some(ff) = system::find_ffmpeg() else {
-        return OperationResult::err("FFmpeg não encontrado. Instale o FFmpeg para comprimir áudios.");
+        return OperationResult::err(
+            "FFmpeg não encontrado. Instale o FFmpeg para comprimir áudios.",
+        );
     };
     if !input.is_file() {
         return OperationResult::err("Arquivo de áudio não encontrado.");

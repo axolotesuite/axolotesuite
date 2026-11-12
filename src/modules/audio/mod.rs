@@ -87,11 +87,19 @@ impl State {
             }
             Msg::InputChanged(s) => {
                 let p = PathBuf::from(s.trim());
-                self.info_lines = if p.is_file() { service::inspect(&p) } else { Vec::new() };
+                self.info_lines = if p.is_file() {
+                    service::inspect(&p)
+                } else {
+                    Vec::new()
+                };
                 self.input = s;
             }
             Msg::BrowseInput => {
-                if let Some(p) = system::pick_file("Escolha um arquivo de áudio ou vídeo", "Áudio e Vídeo", AUDIO_VIDEO_EXTS) {
+                if let Some(p) = system::pick_file(
+                    "Escolha um arquivo de áudio ou vídeo",
+                    "Áudio e Vídeo",
+                    AUDIO_VIDEO_EXTS,
+                ) {
                     self.info_lines = service::inspect(&p);
                     self.input = p.display().to_string();
                     self.result = None;
@@ -100,7 +108,12 @@ impl State {
             Msg::OutputChanged(s) => self.output = s,
             Msg::BrowseOutput => {
                 let ext = self.format.ext();
-                if let Some(p) = system::save_file("Onde salvar o áudio", &format!("audio_convertido.{ext}"), "Áudio", &[ext]) {
+                if let Some(p) = system::save_file(
+                    "Onde salvar o áudio",
+                    &format!("audio_convertido.{ext}"),
+                    "Áudio",
+                    &[ext],
+                ) {
                     self.output = p.display().to_string();
                 }
             }
@@ -111,16 +124,25 @@ impl State {
                 let input = PathBuf::from(self.input.trim());
                 let fmt = self.format;
                 let out = self.resolve_output(&input, "convertido", fmt.ext());
-                let id = ctx.start_job(MODULE, &format!("Converter áudio para {}", fmt.ext().to_uppercase()));
+                let id = ctx.start_job(
+                    MODULE,
+                    &format!("Converter áudio para {}", fmt.ext().to_uppercase()),
+                );
                 self.busy = true;
                 self.result = None;
-                return Command::perform(system::run_blocking(move || service::convert(input, out, fmt)), move |r| Msg::Done(id, r));
+                return Command::perform(
+                    system::run_blocking(move || service::convert(input, out, fmt)),
+                    move |r| Msg::Done(id, r),
+                );
             }
             Msg::ExtractRun => {
                 let input = PathBuf::from(self.input.trim());
                 let fmt = self.format;
                 let out = self.resolve_output(&input, "audio_extraido", fmt.ext());
-                let id = ctx.start_job(MODULE, &format!("Extrair áudio ({})", fmt.ext().to_uppercase()));
+                let id = ctx.start_job(
+                    MODULE,
+                    &format!("Extrair áudio ({})", fmt.ext().to_uppercase()),
+                );
                 self.busy = true;
                 self.result = None;
                 return Command::perform(
@@ -135,7 +157,10 @@ impl State {
                 let id = ctx.start_job(MODULE, &format!("Comprimir áudio ({})", br.arg()));
                 self.busy = true;
                 self.result = None;
-                return Command::perform(system::run_blocking(move || service::compress(input, out, br)), move |r| Msg::Done(id, r));
+                return Command::perform(
+                    system::run_blocking(move || service::compress(input, out, br)),
+                    move |r| Msg::Done(id, r),
+                );
             }
             Msg::Done(id, res) => {
                 ctx.finish_job(id, &res);

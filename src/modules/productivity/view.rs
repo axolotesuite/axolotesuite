@@ -48,19 +48,27 @@ fn tabs_bar<'a>(state: &State, env: &Env) -> Element<'a, Msg> {
         let btns: Vec<Element<'a, Msg>> = items
             .into_iter()
             .map(|(label, tab)| {
-                button(container(text(label).size(13).font(SEMIBOLD)).center_x().width(Length::Fill))
-                    .padding([10, 14])
-                    .width(Length::Fill)
-                    .style(theme::btn(Btn::Tab(state.tab == tab)))
-                    .on_press(Msg::TabSelected(tab))
-                    .into()
+                button(
+                    container(text(label).size(13).font(SEMIBOLD))
+                        .center_x()
+                        .width(Length::Fill),
+                )
+                .padding([10, 14])
+                .width(Length::Fill)
+                .style(theme::btn(Btn::Tab(state.tab == tab)))
+                .on_press(Msg::TabSelected(tab))
+                .into()
             })
             .collect();
         ui::grid(btns, 2, 8)
     } else {
         let mut r = row![].spacing(10).align_items(Alignment::Center);
         for (label, tab) in items {
-            r = r.push(ui::btn(label, Btn::Tab(state.tab == tab), Some(Msg::TabSelected(tab))));
+            r = r.push(ui::btn(
+                label,
+                Btn::Tab(state.tab == tab),
+                Some(Msg::TabSelected(tab)),
+            ));
         }
         r.into()
     }
@@ -109,7 +117,11 @@ fn notes_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     }
 
     list_col = list_col.push(Space::with_height(4));
-    list_col = list_col.push(ui::btn("📂  Abrir pasta de notas no Explorer", Btn::Ghost, Some(Msg::OpenNotesFolder)));
+    list_col = list_col.push(ui::btn(
+        "📂  Abrir pasta de notas no Explorer",
+        Btn::Ghost,
+        Some(Msg::OpenNotesFolder),
+    ));
 
     let side = column![
         ui::card(env, list_col),
@@ -167,7 +179,11 @@ fn notes_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     }
 
     let mut main_col = column![
-        row![ui::strong("Editor de Texto", 17).width(Length::Fill), status_badge].align_items(Alignment::Center),
+        row![
+            ui::strong("Editor de Texto", 17).width(Length::Fill),
+            status_badge
+        ]
+        .align_items(Alignment::Center),
         name_field,
         editor_field,
         ui::actions(env, action_items),
@@ -182,8 +198,16 @@ fn notes_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
                         .size(13)
                         .style(c.danger)
                         .width(Length::Fill),
-                    ui::btn("Sim, excluir", Btn::Danger, Some(Msg::NoteDeleteConfirm(true))),
-                    ui::btn("Cancelar", Btn::Secondary, Some(Msg::NoteDeleteConfirm(false))),
+                    ui::btn(
+                        "Sim, excluir",
+                        Btn::Danger,
+                        Some(Msg::NoteDeleteConfirm(true))
+                    ),
+                    ui::btn(
+                        "Cancelar",
+                        Btn::Secondary,
+                        Some(Msg::NoteDeleteConfirm(false))
+                    ),
                 ]
                 .spacing(10)
                 .align_items(Alignment::Center),
@@ -214,26 +238,41 @@ fn tasks_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     let pending_count = total.saturating_sub(done_count);
 
     let add_row: Element<'a, Msg> = {
-        let inp = ui::input("Digite uma nova tarefa (ex.: Enviar relatório até sexta)...", &state.new_task, Msg::TaskInput)
-            .on_submit(Msg::TaskAdd)
-            .width(Length::Fill);
+        let inp = ui::input(
+            "Digite uma nova tarefa (ex.: Enviar relatório até sexta)...",
+            &state.new_task,
+            Msg::TaskInput,
+        )
+        .on_submit(Msg::TaskAdd)
+        .width(Length::Fill);
         let can_add = !state.new_task.trim().is_empty();
         if env.narrow() {
             column![
                 inp,
-                button(container(text("➕  Adicionar tarefa").size(14).font(SEMIBOLD)).center_x().width(Length::Fill))
-                    .padding([11, 18])
-                    .width(Length::Fill)
-                    .style(theme::btn(Btn::Primary))
-                    .on_press_maybe(can_add.then_some(Msg::TaskAdd)),
+                button(
+                    container(text("➕  Adicionar tarefa").size(14).font(SEMIBOLD))
+                        .center_x()
+                        .width(Length::Fill)
+                )
+                .padding([11, 18])
+                .width(Length::Fill)
+                .style(theme::btn(Btn::Primary))
+                .on_press_maybe(can_add.then_some(Msg::TaskAdd)),
             ]
             .spacing(8)
             .into()
         } else {
-            row![inp, ui::btn("➕  Adicionar", Btn::Primary, can_add.then_some(Msg::TaskAdd))]
-                .spacing(10)
-                .align_items(Alignment::Center)
-                .into()
+            row![
+                inp,
+                ui::btn(
+                    "➕  Adicionar",
+                    Btn::Primary,
+                    can_add.then_some(Msg::TaskAdd)
+                )
+            ]
+            .spacing(10)
+            .align_items(Alignment::Center)
+            .into()
         }
     };
 
@@ -315,9 +354,18 @@ fn tasks_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         "Resumo",
         "Acompanhe seu progresso diário.",
         column![
-            ui::list_row(row![text("⏳  Pendentes").size(14).width(Length::Fill), ui::strong(pending_count, 16)]),
-            ui::list_row(row![text("✅  Concluídas").size(14).width(Length::Fill), ui::strong(done_count, 16)]),
-            ui::list_row(row![text("📋  Total").size(14).width(Length::Fill), ui::strong(total, 16)]),
+            ui::list_row(row![
+                text("⏳  Pendentes").size(14).width(Length::Fill),
+                ui::strong(pending_count, 16)
+            ]),
+            ui::list_row(row![
+                text("✅  Concluídas").size(14).width(Length::Fill),
+                ui::strong(done_count, 16)
+            ]),
+            ui::list_row(row![
+                text("📋  Total").size(14).width(Length::Fill),
+                ui::strong(total, 16)
+            ]),
         ]
         .spacing(8),
     );
@@ -347,10 +395,14 @@ fn tasks_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
 pub fn calc_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     let c = env.c();
 
-    let expr_input = ui::input("Ex.: (125,50 + 40) * 1,10 ou 2^10", &state.calc_expr, Msg::CalcInput)
-        .on_submit(Msg::CalcEval)
-        .size(18)
-        .padding([12, 14]);
+    let expr_input = ui::input(
+        "Ex.: (125,50 + 40) * 1,10 ou 2^10",
+        &state.calc_expr,
+        Msg::CalcInput,
+    )
+    .on_submit(Msg::CalcEval)
+    .size(18)
+    .padding([12, 14]);
 
     let result_box: Element<'a, Msg> = match &state.calc_result {
         Some(Ok(val)) => container(
@@ -368,7 +420,9 @@ pub fn calc_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         Some(Err(err)) => ui::info_banner(env, BannerKind::Error, "⚠", err),
         None => container(
             row![
-                text("Digite ou use o teclado abaixo e clique em \"=\" para calcular.").size(13).style(c.muted),
+                text("Digite ou use o teclado abaixo e clique em \"=\" para calcular.")
+                    .size(13)
+                    .style(c.muted),
             ]
             .align_items(Alignment::Center),
         )
@@ -405,22 +459,30 @@ pub fn calc_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     let key_widgets: Vec<Element<'a, Msg>> = keys
         .iter()
         .map(|(label, kind, msg)| {
-            button(container(text(*label).size(18).font(SEMIBOLD)).center_x().width(Length::Fill))
-                .padding([12, 0])
-                .width(Length::Fill)
-                .style(theme::btn(*kind))
-                .on_press(msg.clone())
-                .into()
+            button(
+                container(text(*label).size(18).font(SEMIBOLD))
+                    .center_x()
+                    .width(Length::Fill),
+            )
+            .padding([12, 0])
+            .width(Length::Fill)
+            .style(theme::btn(*kind))
+            .on_press(msg.clone())
+            .into()
         })
         .collect();
 
     let keypad = ui::grid(key_widgets, 4, 8);
 
-    let eq_btn = button(container(text("=   Calcular agora").size(16).font(ui::BOLD)).center_x().width(Length::Fill))
-        .padding([13, 20])
-        .width(Length::Fill)
-        .style(theme::btn(Btn::Primary))
-        .on_press(Msg::CalcEval);
+    let eq_btn = button(
+        container(text("=   Calcular agora").size(16).font(ui::BOLD))
+            .center_x()
+            .width(Length::Fill),
+    )
+    .padding([13, 20])
+    .width(Length::Fill)
+    .style(theme::btn(Btn::Primary))
+    .on_press(Msg::CalcEval);
 
     let main = ui::section(
         env,
@@ -433,7 +495,10 @@ pub fn calc_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     // Histórico de cálculos
     let mut hist_col = column![].spacing(8);
     if state.calc_history.is_empty() {
-        hist_col = hist_col.push(ui::muted(env, "Seus cálculos recentes aparecerão aqui. Clique em um para reutilizar."));
+        hist_col = hist_col.push(ui::muted(
+            env,
+            "Seus cálculos recentes aparecerão aqui. Clique em um para reutilizar.",
+        ));
     } else {
         for (expr, res) in &state.calc_history {
             hist_col = hist_col.push(
@@ -454,7 +519,13 @@ pub fn calc_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     }
 
     let side = column![
-        ui::section(env, "🕒", "Últimos Cálculos", "Clique em um resultado para usá-lo na conta atual.", hist_col),
+        ui::section(
+            env,
+            "🕒",
+            "Últimos Cálculos",
+            "Clique em um resultado para usá-lo na conta atual.",
+            hist_col
+        ),
         ui::help(
             env,
             &[
@@ -528,14 +599,19 @@ fn organizer_view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
             Ok(items) => {
                 let total: usize = items.iter().map(|(_, n)| *n).sum();
                 let mut rows = column![ui::strong(
-                    format!("Prévia: {total} arquivo(s) serão organizados nas seguintes subpastas:"),
+                    format!(
+                        "Prévia: {total} arquivo(s) serão organizados nas seguintes subpastas:"
+                    ),
                     14
                 )]
                 .spacing(8);
                 for (cat, count) in items {
                     rows = rows.push(ui::list_row(
                         row![
-                            text(format!("📁  {cat}")).size(14).font(SEMIBOLD).width(Length::Fill),
+                            text(format!("📁  {cat}"))
+                                .size(14)
+                                .font(SEMIBOLD)
+                                .width(Length::Fill),
                             ui::badge(format!("{count} arquivo(s)"), c.primary),
                         ]
                         .align_items(Alignment::Center),

@@ -67,7 +67,12 @@ pub fn merge(output: PathBuf, inputs: Vec<PathBuf>) -> OperationResult {
 
         for (_, object_id) in doc.get_pages() {
             if !first {
-                let b = Bookmark::new(format!("Documento_{pagenum}"), [0.0, 0.0, 1.0], 0, object_id);
+                let b = Bookmark::new(
+                    format!("Documento_{pagenum}"),
+                    [0.0, 0.0, 1.0],
+                    0,
+                    object_id,
+                );
                 document.add_bookmark(b, None);
                 first = true;
                 pagenum += 1;
@@ -86,7 +91,11 @@ pub fn merge(output: PathBuf, inputs: Vec<PathBuf>) -> OperationResult {
         match object.type_name().unwrap_or("") {
             "Catalog" => {
                 catalog_object = Some((
-                    if let Some((id, _)) = catalog_object { id } else { *object_id },
+                    if let Some((id, _)) = catalog_object {
+                        id
+                    } else {
+                        *object_id
+                    },
                     object.clone(),
                 ));
             }
@@ -99,7 +108,11 @@ pub fn merge(output: PathBuf, inputs: Vec<PathBuf>) -> OperationResult {
                         }
                     }
                     pages_object = Some((
-                        if let Some((id, _)) = pages_object { id } else { *object_id },
+                        if let Some((id, _)) = pages_object {
+                            id
+                        } else {
+                            *object_id
+                        },
                         Object::Dictionary(dictionary),
                     ));
                 }
@@ -122,7 +135,9 @@ pub fn merge(output: PathBuf, inputs: Vec<PathBuf>) -> OperationResult {
         if let Ok(dictionary) = object.as_dict() {
             let mut dictionary = dictionary.clone();
             dictionary.set("Parent", page_id);
-            document.objects.insert(*object_id, Object::Dictionary(dictionary));
+            document
+                .objects
+                .insert(*object_id, Object::Dictionary(dictionary));
         }
     }
 
@@ -136,14 +151,18 @@ pub fn merge(output: PathBuf, inputs: Vec<PathBuf>) -> OperationResult {
                 .map(|&id| Object::Reference(id))
                 .collect::<Vec<_>>(),
         );
-        document.objects.insert(page_id, Object::Dictionary(dictionary));
+        document
+            .objects
+            .insert(page_id, Object::Dictionary(dictionary));
     }
 
     if let Ok(dictionary) = catalog_obj.as_dict() {
         let mut dictionary = dictionary.clone();
         dictionary.set("Pages", page_id);
         dictionary.remove(b"Outlines");
-        document.objects.insert(catalog_id, Object::Dictionary(dictionary));
+        document
+            .objects
+            .insert(catalog_id, Object::Dictionary(dictionary));
     }
 
     document.trailer.set("Root", catalog_id);
@@ -206,7 +225,11 @@ pub fn split(pdf_path: PathBuf, out_dir: PathBuf, range: Option<(u32, u32)>) -> 
 
     for page_num in from..=to {
         let mut doc = base_doc.clone();
-        let to_delete: Vec<u32> = all_pages.iter().copied().filter(|&p| p != page_num).collect();
+        let to_delete: Vec<u32> = all_pages
+            .iter()
+            .copied()
+            .filter(|&p| p != page_num)
+            .collect();
         doc.delete_pages(&to_delete);
         doc.prune_objects();
         doc.renumber_objects();
@@ -225,7 +248,9 @@ pub fn split(pdf_path: PathBuf, out_dir: PathBuf, range: Option<(u32, u32)>) -> 
     }
 
     let _ = Dictionary::new(); // garante import limpo
-    OperationResult::ok(format!("{created} página(s) extraída(s) em arquivos PDF individuais."))
-        .with_details(details)
-        .with_output(out_dir)
+    OperationResult::ok(format!(
+        "{created} página(s) extraída(s) em arquivos PDF individuais."
+    ))
+    .with_details(details)
+    .with_output(out_dir)
 }

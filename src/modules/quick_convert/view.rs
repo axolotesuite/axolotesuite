@@ -14,7 +14,11 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     let header = ui::page_header(
         env,
         "🔄",
-        if is_en { "Universal Quick Convert" } else { "Conversor Fácil — Tudo em 1 Lugar" },
+        if is_en {
+            "Universal Quick Convert"
+        } else {
+            "Conversor Fácil — Tudo em 1 Lugar"
+        },
         if is_en {
             "Select files (or drag & drop from File Explorer), click the target format button, and convert instantly without overwriting original files!"
         } else {
@@ -23,12 +27,28 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         Some(
             row![
                 ui::badge(
-                    format!("{}: {}", if is_en { "Source" } else { "Origem" }, if state.source_ext.is_empty() { "AUTO" } else { &state.source_ext }),
+                    format!(
+                        "{}: {}",
+                        if is_en { "Source" } else { "Origem" },
+                        if state.source_ext.is_empty() {
+                            "AUTO"
+                        } else {
+                            &state.source_ext
+                        }
+                    ),
                     c.primary
                 ),
                 ui::badge(
-                    format!("{} {}", state.files.len(), if is_en { "file(s)" } else { "arquivo(s)" }),
-                    if state.files.is_empty() { c.muted } else { c.success },
+                    format!(
+                        "{} {}",
+                        state.files.len(),
+                        if is_en { "file(s)" } else { "arquivo(s)" }
+                    ),
+                    if state.files.is_empty() {
+                        c.muted
+                    } else {
+                        c.success
+                    },
                 ),
             ]
             .spacing(8)
@@ -102,17 +122,35 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
             row![
                 ui::badge(if is_en { "SOURCE" } else { "ORIGEM" }, c.primary),
                 ui::strong(
-                    if state.source_ext.is_empty() { "AUTO" } else { &state.source_ext },
+                    if state.source_ext.is_empty() {
+                        "AUTO"
+                    } else {
+                        &state.source_ext
+                    },
                     16
                 ),
                 ui::muted(env, "   ───►   "),
-                ui::badge(if is_en { "TARGET" } else { "DESTINO SELECIONADO" }, c.accent),
+                ui::badge(
+                    if is_en {
+                        "TARGET"
+                    } else {
+                        "DESTINO SELECIONADO"
+                    },
+                    c.accent
+                ),
                 ui::strong(target_fmt, 16),
             ]
             .spacing(8)
             .align_items(Alignment::Center),
         ),
-        ui::strong(if is_en { "Click your desired target format:" } else { "Aperte no formato de destino desejado:" }, 14),
+        ui::strong(
+            if is_en {
+                "Click your desired target format:"
+            } else {
+                "Aperte no formato de destino desejado:"
+            },
+            14
+        ),
         formats_grid,
         ui::list_row(chk_instant),
     ]
@@ -137,13 +175,29 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
         env,
         vec![
             act(
-                if is_en { format!("🚀  Convert to {target_fmt} Now") } else { format!("🚀  Converter para {target_fmt} Agora") },
+                if is_en {
+                    format!("🚀  Convert to {target_fmt} Now")
+                } else {
+                    format!("🚀  Converter para {target_fmt} Agora")
+                },
                 Btn::Primary,
                 (!state.busy && !state.files.is_empty()).then_some(Msg::ConvertNow),
             ),
-            act(if is_en { "➕  Choose File(s)…" } else { "➕  Escolher Arquivo(s)…" }, Btn::Secondary, (!state.busy).then_some(Msg::AddFiles)),
             act(
-                if is_en { "🗑  Clear List" } else { "🗑  Limpar Lista" },
+                if is_en {
+                    "➕  Choose File(s)…"
+                } else {
+                    "➕  Escolher Arquivo(s)…"
+                },
+                Btn::Secondary,
+                (!state.busy).then_some(Msg::AddFiles),
+            ),
+            act(
+                if is_en {
+                    "🗑  Clear List"
+                } else {
+                    "🗑  Limpar Lista"
+                },
                 Btn::Ghost,
                 (!state.busy && !state.files.is_empty()).then_some(Msg::ClearFiles),
             ),
@@ -152,7 +206,10 @@ pub fn view<'a>(state: &'a State, env: &Env) -> Element<'a, Msg> {
     left_col = left_col.push(convert_btn);
 
     if state.busy {
-        left_col = left_col.push(ui::busy(env, "Convertendo arquivos com preservação do original"));
+        left_col = left_col.push(ui::busy(
+            env,
+            "Convertendo arquivos com preservação do original",
+        ));
     }
     if let Some(res) = &state.result {
         left_col = left_col.push(ui::result_banner(env, res, Some(Msg::OpenResult)));

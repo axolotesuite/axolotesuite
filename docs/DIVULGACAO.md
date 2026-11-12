@@ -1,4 +1,4 @@
-# 🚀 Kit Oficial de Divulgação — Axolote Suite v1.3.0
+# 🚀 Kit Oficial de Divulgação — Axolote Suite v1.4.0
 
 > Este documento contém os textos prontos para você copiar e colar em cada uma das plataformas de tecnologia mais influentes do mundo. Todos os links, tags e formatações já estão configurados para gerar máximo engajamento, downloads e estrelas (stars) no GitHub!
 
@@ -34,7 +34,7 @@ I decided to solve this once and for all: I built **Axolote Suite**, a complete,
 
 * 🌐 **Live Website:** [axolotesuite.github.io/axolotesuite](https://axolotesuite.github.io/axolotesuite/)
 * 🐙 **GitHub Repository:** [github.com/axolotesuite/axolotesuite](https://github.com/axolotesuite/axolotesuite)
-* 📦 **Download Latest Release (v1.3.0):** [GitHub Releases](https://github.com/axolotesuite/axolotesuite/releases/tag/v1.3.0)
+* 📦 **Download Latest Release (v1.4.0):** [GitHub Releases](https://github.com/axolotesuite/axolotesuite/releases/tag/v1.4.0)
 
 ---
 
@@ -93,7 +93,7 @@ Axolote Suite automatically probes your Windows OS locale (`sys_locale`). If you
 
 Axolote Suite is dual-licensed under **MIT / Apache-2.0**.
 
-- If you don't want browser warnings: grab the **portable `.zip` package** from [GitHub Releases](https://github.com/axolotesuite/axolotesuite/releases/tag/v1.3.0). Unzip and run!
+- If you don't want browser warnings: grab the **portable `.zip` package** from [GitHub Releases](https://github.com/axolotesuite/axolotesuite/releases/tag/v1.4.0). Unzip and run!
 - Prefer an installer? Grab `axolote_suite.exe` (SHA-256 audited on VirusTotal).
 
 If you find this project useful or believe in native desktop software over bloated web wrappers, please **give the repository a ⭐ on GitHub**!
@@ -135,7 +135,7 @@ The whole app runs cold in ~0.2s with zero telemetry or network calls.
 
 - GitHub: https://github.com/axolotesuite/axolotesuite
 - Website: https://axolotesuite.github.io/axolotesuite/
-- Releases: https://github.com/axolotesuite/axolotesuite/releases/tag/v1.3.0
+- Releases: https://github.com/axolotesuite/axolotesuite/releases/tag/v1.4.0
 
 Feedback and contributions are super welcome! Let me know what you think.
 ```
@@ -187,7 +187,7 @@ Would love your thoughts and feedback!
 ## 4. 🐦 Post para o X (Twitter / Bluesky / Threads)
 
 ```text
-🚀 Introducing Axolote Suite v1.3.0!
+🚀 Introducing Axolote Suite v1.4.0!
 
 A 100% offline, native Windows creative workstation built from scratch in pure Rust + Iced. 🦀
 
@@ -210,7 +210,7 @@ A 100% offline, native Windows creative workstation built from scratch in pure R
 ```text
 Cansado de subir documentos e fotos confidenciais em sites de conversão cheios de anúncios e limitações? Ou de usar aplicativos pesados em Electron que consomem toda a sua memória RAM?
 
-Desenvolvi e lancei o Axolote Suite v1.3.0: uma central completa de ferramentas utilitárias e criativas, 100% offline, nativa para Windows e escrita do zero em Rust puro + Iced! 🦎🦀
+Desenvolvi e lancei o Axolote Suite v1.4.0: uma central completa de ferramentas utilitárias e criativas, 100% offline, nativa para Windows e escrita do zero em Rust puro + Iced! 🦎🦀
 
 Principais recursos:
 ⚡ Conversor Universal em 1 clique (Imagens, PDF, DOCX, Markdown, Vídeos, Áudio e ZIP)
@@ -228,3 +228,4 @@ Feedback da comunidade de tecnologia e contribuições no código são muito bem
 
 #Rust #OpenSource #DesenvolvimentoDeSoftware #Windows #Produtividade #Tech
 ```
+

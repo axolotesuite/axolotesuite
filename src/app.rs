@@ -931,8 +931,8 @@ impl AxoloteSuite {
                         .font(BOLD)
                         .style(c.primary)
                 )
-                    .padding([2, 6])
-                    .style(theme::solid_box(Color::from_rgb8(42, 41, 49), 4.0)),
+                .padding([2, 6])
+                .style(theme::solid_box(Color::from_rgb8(42, 41, 49), 4.0)),
                 ui::btn("🛡️ Modo local", Btn::Secondary, None),
             ]
             .spacing(8)

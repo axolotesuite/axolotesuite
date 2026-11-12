@@ -1,17 +1,17 @@
 // ==========================================================================
-// Axolote Suite v1.4.1 — Dicionário Bilíngue Completo (Português / Inglês)
+// Axolote Suite v1.3.0 — Dicionário Bilíngue Completo (Português / Inglês)
 // ==========================================================================
 
 const i18nData = {
   pt: {
-    pageTitle: "Axolote Suite v1.4.1 — Sua central criativa e utilitária em Rust Nativo",
+    pageTitle: "Axolote Suite v1.3.0 — Sua central criativa e utilitária em Rust Nativo",
     navConvert: "Conversor Fácil",
     navTools: "12 Ferramentas",
     navInstall: "Instalação",
     navSecurity: "Segurança",
-    navDownload: "Baixar v1.4.1",
+    navDownload: "Baixar v1.3.0",
 
-    heroBadge: "Versão Oficial v1.4.1 • Windows 10 & 11 (64-bit) • 100% Offline",
+    heroBadge: "Versão Oficial v1.3.0 • Windows 10 & 11 (64-bit) • 100% Offline",
     heroH1: "Sua central completa <br><span class=\"gradient-cyan-blue\">criativa e utilitária</span> <br>em <span class=\"gradient-blue-indigo\">Rust Nativo.</span>",
     heroSubtitle: "Menos uploads. Mais produtividade.",
     heroP: "Converta imagens, DOCX, PDF, HTML, Markdown, vídeos, áudios e ZIP em um clique. Tudo fica no seu PC. Zero nuvem. Sem telemetria. Apenas seus arquivos, do seu jeito.",
@@ -109,18 +109,18 @@ const i18nData = {
     point3Heading: "Rust nativo do começo ao fim",
     point3Text: "Uma suíte de desktop de alta performance feita para durar.",
 
-    footerSubtext: "v1.4.1 · Construído em Rust. Feito para você usar 100% offline.",
+    footerSubtext: "v1.3.0 · Construído em Rust. Feito para você usar 100% offline.",
     footerTagline: "Projetado para Windows. Construído em torno da sua privacidade."
   },
   en: {
-    pageTitle: "Axolote Suite v1.4.1 — Your complete local creative & utility suite in Native Rust",
+    pageTitle: "Axolote Suite v1.3.0 — Your complete local creative & utility suite in Native Rust",
     navConvert: "Quick Convert",
     navTools: "12 Tools",
     navInstall: "Installation",
     navSecurity: "Security",
-    navDownload: "Download v1.4.1",
+    navDownload: "Download v1.3.0",
 
-    heroBadge: "Official v1.4.1 Release • Windows 10 & 11 (64-bit) • 100% Offline",
+    heroBadge: "Official v1.3.0 Release • Windows 10 & 11 (64-bit) • 100% Offline",
     heroH1: "Your complete <br><span class=\"gradient-cyan-blue\">local creative &amp;</span> <br>utility suite in <br><span class=\"gradient-blue-indigo\">Native Rust.</span>",
     heroSubtitle: "Less uploading. More doing.",
     heroP: "Convert images, DOCX, PDF, HTML, Markdown, video, audio and ZIP in one click. Everything stays on your PC. No cloud. No telemetry. Just your files, your way.",
@@ -218,7 +218,7 @@ const i18nData = {
     point3Heading: "Native Rust, all the way",
     point3Text: "A desktop suite built to feel right at home.",
 
-    footerSubtext: "v1.4.1 · Built in Rust. Yours to keep local.",
+    footerSubtext: "v1.3.0 · Built in Rust. Yours to keep local.",
     footerTagline: "Designed for Windows. Built around your privacy."
   }
 };

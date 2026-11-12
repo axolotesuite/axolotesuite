@@ -1,0 +1,3 @@
+﻿e74f1cf979b4cac0929313db5e8e9dea86434f12bccc4d8054241e068e83f60d  axolote_suite.exe
+64eb26b4458222d21f0d8d9d9cccfe3a0d0457362954dc63a505b510697fbed1  Axolote_Setup.exe
+06812f77efd361f7f73de2a46133856773863582ca33aef2feccd67e46c335a6  axolote_suite-portable.zip

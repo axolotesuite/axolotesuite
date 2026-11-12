@@ -11,9 +11,7 @@
 use std::path::PathBuf;
 use std::time::Instant;
 
-use iced::widget::{
-    button, column, container, image as iced_image, row, scrollable, text, Space,
-};
+use iced::widget::{button, column, container, image as iced_image, row, scrollable, text, Space};
 use iced::{Alignment, Application, Color, Command, Element, Event, Length, Subscription, Theme};
 
 use crate::core::Ctx;
@@ -927,7 +925,12 @@ impl AxoloteSuite {
                 .padding(2)
                 .style(theme::logo_container),
                 ui::strong("Axolote", 18),
-                container(text(format!("v{}", env!("CARGO_PKG_VERSION"))).size(10).font(BOLD).style(c.primary))
+                container(
+                    text(format!("v{}", env!("CARGO_PKG_VERSION")))
+                        .size(10)
+                        .font(BOLD)
+                        .style(c.primary)
+                )
                     .padding([2, 6])
                     .style(theme::solid_box(Color::from_rgb8(42, 41, 49), 4.0)),
                 ui::btn("🛡️ Modo local", Btn::Secondary, None),
@@ -1154,7 +1157,11 @@ impl AxoloteSuite {
                     ui::fill(),
                     ui::badge(
                         format!("{} ativa(s)", running_jobs),
-                        if running_jobs == 0 { c.success } else { c.accent }
+                        if running_jobs == 0 {
+                            c.success
+                        } else {
+                            c.accent
+                        }
                     ),
                 ]
                 .align_items(Alignment::Center),
@@ -1273,7 +1280,9 @@ impl AxoloteSuite {
                 .spacing(8),
                 Space::with_height(6),
                 row![
-                    text("Mesclar • dividir • inspecionar").size(11).style(c.muted),
+                    text("Mesclar • dividir • inspecionar")
+                        .size(11)
+                        .style(c.muted),
                     ui::fill(),
                     ui::btn(
                         "Abrir Central ➔",

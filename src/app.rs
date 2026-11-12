@@ -11,8 +11,9 @@
 use std::path::PathBuf;
 use std::time::Instant;
 
+use iced::widget::text::Shaping;
 use iced::widget::{button, column, container, image as iced_image, row, scrollable, text, Space};
-use iced::{Alignment, Application, Color, Command, Element, Event, Length, Subscription, Theme};
+use iced::{Alignment, Application, Command, Element, Event, Length, Subscription, Theme};
 
 use crate::core::Ctx;
 use crate::modules::{
@@ -49,7 +50,7 @@ impl Module {
             Module::Home => "🏠",
             Module::QuickConvert => "🔄",
             Module::Productivity => "📋",
-            Module::Calculator => "🖩",
+            Module::Calculator => "🔢",
             Module::Pdf => "📄",
             Module::Images => "🖼",
             Module::Video => "🎬",
@@ -83,7 +84,7 @@ impl Module {
                 Module::Settings => "Settings",
                 Module::Installer => {
                     if is_installed {
-                        "Apagar Tudo / Cleanup"
+                        "Uninstall / Cleanup"
                     } else {
                         "Install / Setup"
                     }
@@ -209,8 +210,10 @@ pub enum Message {
     Navigate(Module),
     OpenQuickConvertShortcut,
     GlobalGestureTriggered(bool),
+    QuickLaunchQuickConvert(quick_convert::WheelCategory),
     QuickLaunchProductivity(productivity::Tab),
     QuickLaunchImages(images::Mode),
+    QuickLaunchVideo(video::Mode),
     QuickLaunchPdf(pdf::Mode),
     QuickLaunchDevTools(devtools::Tab),
     QuickLaunchZip(zip::Mode),
@@ -429,6 +432,17 @@ impl Application for AxoloteSuite {
                 }
                 Command::none()
             }
+            Message::QuickLaunchQuickConvert(cat) => {
+                self.quick_convert.category = cat;
+                self.quick_convert.source_ext = cat.default_source_ext().into();
+                self.quick_convert.selected_idx = 0;
+                self.quick_convert.refresh_targets();
+                self.active = Module::QuickConvert;
+                self.home_search.clear();
+                self.nav_pulse = 1.0;
+                self.last_tick = Some(Instant::now());
+                Command::none()
+            }
             Message::QuickLaunchProductivity(tab) => {
                 self.productivity.tab = tab;
                 self.active = if tab == productivity::Tab::Calc {
@@ -444,6 +458,14 @@ impl Application for AxoloteSuite {
             Message::QuickLaunchImages(mode) => {
                 self.images.mode = mode;
                 self.active = Module::Images;
+                self.home_search.clear();
+                self.nav_pulse = 1.0;
+                self.last_tick = Some(Instant::now());
+                Command::none()
+            }
+            Message::QuickLaunchVideo(mode) => {
+                self.video.mode = mode;
+                self.active = Module::Video;
                 self.home_search.clear();
                 self.nav_pulse = 1.0;
                 self.last_tick = Some(Instant::now());
@@ -562,8 +584,28 @@ impl Application for AxoloteSuite {
             Message::Zip(m) => self.zip.update(m, &mut self.ctx).map(Message::Zip),
             Message::Images(m) => self.images.update(m, &mut self.ctx).map(Message::Images),
             Message::Pdf(m) => self.pdf.update(m, &mut self.ctx).map(Message::Pdf),
-            Message::Audio(m) => self.audio.update(m, &mut self.ctx).map(Message::Audio),
-            Message::Video(m) => self.video.update(m, &mut self.ctx).map(Message::Video),
+            Message::Audio(m) => {
+                let refresh_ff = matches!(
+                    m,
+                    audio::Msg::DownloadFfmpegDone(_) | audio::Msg::RecheckFfmpeg
+                );
+                let cmd = self.audio.update(m, &mut self.ctx).map(Message::Audio);
+                if refresh_ff {
+                    self.sync_ffmpeg_status();
+                }
+                cmd
+            }
+            Message::Video(m) => {
+                let refresh_ff = matches!(
+                    m,
+                    video::Msg::DownloadFfmpegDone(_) | video::Msg::RecheckFfmpeg
+                );
+                let cmd = self.video.update(m, &mut self.ctx).map(Message::Video);
+                if refresh_ff {
+                    self.sync_ffmpeg_status();
+                }
+                cmd
+            }
             Message::DevTools(m) => self
                 .devtools
                 .update(m, &mut self.ctx)
@@ -585,9 +627,7 @@ impl Application for AxoloteSuite {
                     .update(m, &mut self.ctx)
                     .map(Message::Installer);
                 if refresh_ff {
-                    let ok = crate::core::system::find_ffmpeg().is_some();
-                    self.video.ffmpeg_ok = ok;
-                    self.audio.ffmpeg_ok = ok;
+                    self.sync_ffmpeg_status();
                 }
                 if go_home {
                     self.mandatory_setup = false;
@@ -668,6 +708,13 @@ impl Application for AxoloteSuite {
 }
 
 impl AxoloteSuite {
+    fn sync_ffmpeg_status(&mut self) {
+        let ok = crate::core::system::find_ffmpeg().is_some();
+        self.video.ffmpeg_ok = ok;
+        self.audio.ffmpeg_ok = ok;
+        self.quick_convert.refresh_targets();
+    }
+
     fn is_sidebar_collapsed(&self) -> bool {
         self.sidebar_collapsed.unwrap_or(self.window_width < 940.0)
     }
@@ -682,11 +729,20 @@ impl AxoloteSuite {
     }
 
     fn calculator_standalone_view<'a>(&'a self, env: &Env) -> Element<'a, Message> {
+        let is_en = env.lang.is_en();
         let header = ui::page_header(
             env,
-            "🖩",
-            "Calculadora Científica Expressa",
-            "Faça contas rápidas ou expressões completas com parênteses, potência (^), porcentagem (%) e histórico clicável.",
+            "🔢",
+            if is_en {
+                "Express Scientific Calculator"
+            } else {
+                "Calculadora Científica Expressa"
+            },
+            if is_en {
+                "Evaluate quick math or full expressions with parentheses, power (^), modulo (%), and clickable history."
+            } else {
+                "Faça contas rápidas ou expressões completas com parênteses, potência (^), porcentagem (%) e histórico clicável."
+            },
             None,
         );
         let body =
@@ -838,9 +894,13 @@ impl AxoloteSuite {
                 let item_content: Element<'_, Message> = if collapsed {
                     row![
                         pill_ind,
-                        container(text(m.icon()).size(if is_active { 21 } else { 19 }))
-                            .center_x()
-                            .width(Length::Fill),
+                        container(
+                            text(m.icon())
+                                .size(if is_active { 20 } else { 18 })
+                                .shaping(Shaping::Advanced)
+                        )
+                        .center_x()
+                        .width(Length::Fill),
                     ]
                     .align_items(Alignment::Center)
                     .into()
@@ -854,10 +914,13 @@ impl AxoloteSuite {
                     let mut r = row![
                         pill_ind,
                         Space::with_width(Length::Fixed(indent)),
-                        text(m.icon()).size(if is_active { 18 } else { 16 }),
+                        text(m.icon())
+                            .size(if is_active { 17 } else { 15 })
+                            .shaping(Shaping::Advanced),
                         text(m.title_in(env.lang, self.installer.is_installed()))
                             .size(13)
                             .font(if is_active { BOLD } else { SEMIBOLD })
+                            .shaping(Shaping::Advanced)
                             .width(Length::Fill),
                     ]
                     .spacing(9)
@@ -883,38 +946,58 @@ impl AxoloteSuite {
             }
         }
 
-        let theme_label = if collapsed {
-            if self.ctx.settings.dark_mode {
-                "☀"
-            } else {
-                "🌙"
-            }
-        } else if env.lang.is_en() {
-            if self.ctx.settings.dark_mode {
-                "☀  Light Theme"
-            } else {
-                "🌙  Dark Theme"
-            }
-        } else if self.ctx.settings.dark_mode {
-            "☀  Tema Claro"
+        let theme_icon = if self.ctx.settings.dark_mode {
+            "☀"
         } else {
-            "🌙  Tema Escuro"
+            "🌙"
+        };
+        let footer_content: Element<'_, Message> = if collapsed {
+            container(text(theme_icon).size(15).shaping(Shaping::Advanced))
+                .center_x()
+                .width(Length::Fill)
+                .into()
+        } else {
+            let theme_text = if env.lang.is_en() {
+                if self.ctx.settings.dark_mode {
+                    "Light Theme"
+                } else {
+                    "Dark Theme"
+                }
+            } else if self.ctx.settings.dark_mode {
+                "Tema Claro"
+            } else {
+                "Tema Escuro"
+            };
+            container(
+                row![
+                    text(theme_icon).size(14).shaping(Shaping::Advanced),
+                    text(theme_text)
+                        .size(12)
+                        .font(SEMIBOLD)
+                        .shaping(Shaping::Advanced),
+                ]
+                .spacing(8)
+                .align_items(Alignment::Center),
+            )
+            .center_x()
+            .width(Length::Fill)
+            .into()
         };
 
-        let footer = button(
-            container(text(theme_label).size(12).font(SEMIBOLD))
-                .center_x()
-                .width(Length::Fill),
-        )
-        .padding([10, 10])
-        .width(Length::Fill)
-        .style(theme::btn(Btn::Secondary))
-        .on_press(Message::ToggleTheme);
+        let footer = button(footer_content)
+            .padding([10, 10])
+            .width(Length::Fill)
+            .style(theme::btn(Btn::Secondary))
+            .on_press(Message::ToggleTheme);
 
         let col = column![
             brand_header,
             Space::with_height(6),
-            scrollable(nav).height(Length::Fill),
+            scrollable(nav)
+                .height(Length::Fill)
+                .direction(scrollable::Direction::Vertical(
+                    scrollable::Properties::new().width(4).scroller_width(4),
+                )),
             footer,
         ]
         .spacing(8)
@@ -933,13 +1016,14 @@ impl AxoloteSuite {
         let c = env.c();
         let is_en = env.lang.is_en();
         let wide_grid = env.is_desktop_wide();
+        let med_grid = env.is_medium();
 
         // 1. Barra Superior Responsiva
         let top_bar: Element<'a, Message> = {
             let search_ph = if is_en {
-                "Search tools, actions or formats... (Enter to open)"
+                "Search tools, actions or formats…"
             } else {
-                "Buscar ferramenta, ação ou formato... (Enter para abrir)"
+                "Buscar ferramenta, ação ou formato…"
             };
             let search_input = ui::input(search_ph, &self.home_search, Message::SearchChanged)
                 .on_submit(Message::SearchSubmitted)
@@ -1036,9 +1120,10 @@ impl AxoloteSuite {
                 .spacing(10)
                 .into()
             } else {
+                let search_w = (env.width - 560.0).clamp(240.0, 460.0);
                 row![
                     brand_tag,
-                    container(search_box).width(Length::Fill).max_width(460.0),
+                    container(search_box).width(Length::Fixed(search_w)),
                     ui::fill(),
                     status_btn,
                 ]
@@ -1048,36 +1133,49 @@ impl AxoloteSuite {
             }
         };
 
-        let row1_h = wide_grid.then_some(296.0);
-        let row2_h = wide_grid.then_some(268.0);
-        let row3_h = wide_grid.then_some(176.0);
+        let hero_h = wide_grid.then_some(280.0);
+        let row1_pair_h = if wide_grid {
+            Some(280.0)
+        } else if med_grid {
+            Some(266.0)
+        } else {
+            None
+        };
+        let row2_pair_h = if wide_grid {
+            Some(252.0)
+        } else if med_grid {
+            Some(242.0)
+        } else {
+            None
+        };
+        let shortcuts_h = wide_grid.then_some(252.0);
+        let row3_pair_h = (wide_grid || med_grid).then_some(164.0);
+        let prod_h = wide_grid.then_some(164.0);
 
         // 2. Card 1 (Span 2): Conversão & Despacho Rápido
         let quick_actions: Element<'a, Message> = {
             let b1 = home_action_btn(
                 if is_en {
-                    "🖼  Convert Images"
+                    "🖼  Images"
                 } else {
-                    "🖼  Converter Imagens"
+                    "🖼  Imagens"
                 },
                 Btn::Secondary,
-                Some(Message::Navigate(Module::QuickConvert)),
+                Some(Message::QuickLaunchQuickConvert(
+                    quick_convert::WheelCategory::Image,
+                )),
             );
             let b2 = home_action_btn(
                 if is_en {
-                    "🎬  Compress Video"
+                    "🎬  Compress"
                 } else {
-                    "🎬  Comprimir Vídeo"
+                    "🎬  Comprimir"
                 },
                 Btn::Secondary,
-                Some(Message::Navigate(Module::Video)),
+                Some(Message::QuickLaunchVideo(video::Mode::ConvertCompress)),
             );
             let b3 = home_action_btn(
-                if is_en {
-                    "🎵  Convert Audio"
-                } else {
-                    "🎵  Converter Áudio"
-                },
+                if is_en { "🎵  Audio" } else { "🎵  Áudio" },
                 Btn::Secondary,
                 Some(Message::Navigate(Module::Audio)),
             );
@@ -1090,12 +1188,12 @@ impl AxoloteSuite {
 
         let hero_card = bento_panel(
             env,
-            row1_h,
+            hero_h,
             column![
                 row![
                     row![
-                        container(text("⇄").size(18).font(BOLD).style(c.accent))
-                            .padding([6, 10])
+                        container(text("🔄").size(17).shaping(Shaping::Advanced))
+                            .padding([6, 9])
                             .style(theme::solid_box(c.surface2, 8.0)),
                         column![
                             ui::strong(
@@ -1130,12 +1228,17 @@ impl AxoloteSuite {
                     column![
                         button(
                             column![
-                                container(text("☁ ⬆").size(22).style(c.primary))
-                                    .padding([10, 14])
-                                    .style(theme::solid_box(c.primary_soft, 999.0)),
+                                container(
+                                    text("☁ ⬆")
+                                        .size(20)
+                                        .style(c.primary)
+                                        .shaping(Shaping::Advanced)
+                                )
+                                .padding([8, 12])
+                                .style(theme::solid_box(c.primary_soft, 999.0)),
                                 ui::strong(
                                     if is_en {
-                                        "Drop files anywhere or click to open Quick Convert"
+                                        "Drop files anywhere or click to choose"
                                     } else {
                                         "Solte arquivos na janela ou clique para escolher"
                                     },
@@ -1144,41 +1247,42 @@ impl AxoloteSuite {
                                 ui::muted(
                                     env,
                                     if is_en {
-                                        "Images (PNG/JPG/WebP), Docs (TXT/MD/HTML/DOCX/PDF), Video, Audio & ZIP"
+                                        "Images, Docs (PDF/DOCX/MD/HTML), Video, Audio & ZIP"
                                     } else {
-                                        "Imagens (PNG/JPG/WebP), Docs (TXT/MD/HTML/DOCX/PDF), Vídeo, Áudio e ZIP"
+                                        "Imagens, Docs (PDF/DOCX/MD/HTML), Vídeo, Áudio e ZIP"
                                     },
                                 )
                                 .size(11),
                             ]
-                            .spacing(5)
+                            .spacing(4)
                             .align_items(Alignment::Center)
                             .width(Length::Fill),
                         )
-                        .padding([10, 12])
+                        .padding([8, 10])
                         .width(Length::Fill)
                         .style(theme::btn(Btn::Ghost))
                         .on_press(Message::Navigate(Module::QuickConvert)),
                         quick_actions,
                     ]
-                    .spacing(10)
+                    .spacing(8)
                     .width(Length::Fill),
                 )
-                .padding([12, 14])
+                .padding([10, 12])
                 .width(Length::Fill)
                 .style(theme::dropzone_box),
-                Space::with_height(Length::Fill),
+                card_spacer(hero_h),
                 row![
                     row![
-                        container(Space::new(Length::Fixed(6.0), Length::Fixed(6.0)))
-                            .style(theme::solid_box(
+                        container(Space::new(Length::Fixed(6.0), Length::Fixed(6.0))).style(
+                            theme::solid_box(
                                 if self.video.ffmpeg_ok {
                                     c.success
                                 } else {
                                     c.warning
                                 },
                                 999.0
-                            )),
+                            )
+                        ),
                         ui::muted(
                             env,
                             if self.video.ffmpeg_ok {
@@ -1200,27 +1304,27 @@ impl AxoloteSuite {
                     ui::fill(),
                     home_link_btn(
                         if is_en {
-                            "Open Converter ➔"
+                            "Open Converter →"
                         } else {
-                            "Abrir Conversor ➔"
+                            "Abrir Conversor →"
                         },
                         Some(Message::Navigate(Module::QuickConvert)),
                     ),
                 ]
                 .align_items(Alignment::Center),
             ]
-            .spacing(10)
+            .spacing(8)
             .into(),
         );
 
         // 3. Card 2: Estúdio de Imagens
         let bento_images = bento_panel(
             env,
-            row1_h,
+            row1_pair_h,
             column![
                 row![
                     row![
-                        container(text("🖼").size(16).style(c.primary))
+                        container(text("🖼").size(16).shaping(Shaping::Advanced))
                             .padding([5, 8])
                             .style(theme::inner_box),
                         ui::strong(
@@ -1243,9 +1347,9 @@ impl AxoloteSuite {
                 ui::muted(
                     env,
                     if is_en {
-                        "Live RGB histogram, light/color adjustments, crop, batch sync and formats."
+                        "Live RGB histogram, light/color edits, crop and batch."
                     } else {
-                        "Histograma RGB ao vivo, ajustes de luz/cor, recorte, lote e formatos."
+                        "Histograma RGB ao vivo, ajustes de luz/cor e lote."
                     }
                 )
                 .size(12),
@@ -1278,20 +1382,20 @@ impl AxoloteSuite {
                         Some(Message::QuickLaunchImages(images::Mode::ConvertResize)),
                     ),
                 ]
-                .spacing(7)
+                .spacing(6)
                 .width(Length::Fill),
-                Space::with_height(Length::Fill),
+                card_spacer(row1_pair_h),
                 row![
                     text("PNG • JPG • WebP • ICO").size(10).style(c.muted),
                     ui::fill(),
                     home_link_btn(
-                        if is_en { "Open ➔" } else { "Abrir ➔" },
+                        if is_en { "Open →" } else { "Abrir →" },
                         Some(Message::Navigate(Module::Images)),
                     ),
                 ]
                 .align_items(Alignment::Center),
             ]
-            .spacing(10)
+            .spacing(8)
             .into(),
         );
 
@@ -1299,7 +1403,7 @@ impl AxoloteSuite {
         let jobs = self.ctx.jobs.all();
         let running_jobs = self.ctx.jobs.running();
         let finished_jobs = jobs.len().saturating_sub(running_jobs);
-        let mut jobs_list = column![].spacing(7).width(Length::Fill);
+        let mut jobs_list = column![].spacing(6).width(Length::Fill);
 
         if jobs.is_empty() {
             jobs_list = jobs_list.push(
@@ -1346,19 +1450,27 @@ impl AxoloteSuite {
                     Some(d) => format_duration_short(d),
                     None => job.started_at.clone(),
                 };
-                let detail = truncate_label(&format!("{} • {}", job.module, job.message), 38);
+                let detail = truncate_label(&format!("{} • {}", job.module, job.message), 48);
+                let detail_color = if job.status == crate::core::jobs::JobStatus::Failed {
+                    c.danger
+                } else {
+                    c.muted
+                };
 
                 jobs_list = jobs_list.push(
                     container(
                         column![
                             row![
-                                ui::strong(truncate_label(&job.title, 24), 12).width(Length::Fill),
+                                ui::strong(truncate_label(&job.title, 26), 12).width(Length::Fill),
                                 ui::badge(status, status_color),
                             ]
                             .spacing(6)
                             .align_items(Alignment::Center),
                             row![
-                                text(detail).size(10).style(c.muted).width(Length::Fill),
+                                text(detail)
+                                    .size(10)
+                                    .style(detail_color)
+                                    .width(Length::Fill),
                                 text(time_info).size(10).style(c.muted),
                             ]
                             .spacing(6)
@@ -1366,7 +1478,7 @@ impl AxoloteSuite {
                         ]
                         .spacing(3),
                     )
-                    .padding([8, 10])
+                    .padding([7, 10])
                     .width(Length::Fill)
                     .style(theme::inner_box),
                 );
@@ -1396,7 +1508,7 @@ impl AxoloteSuite {
             if is_en {
                 format!("{} logged", jobs.len())
             } else {
-                format!("{} registrada(s)", jobs.len())
+                format!("{} na sessão", jobs.len())
             }
         } else if is_en {
             "Idle".to_string()
@@ -1406,11 +1518,11 @@ impl AxoloteSuite {
 
         let bento_queue = bento_panel(
             env,
-            row1_h,
+            row1_pair_h,
             column![
                 row![
                     row![
-                        container(text("⚡").size(16).style(c.success))
+                        container(text("⚡").size(16).shaping(Shaping::Advanced))
                             .padding([5, 8])
                             .style(theme::inner_box),
                         ui::strong(
@@ -1436,7 +1548,7 @@ impl AxoloteSuite {
                 ]
                 .align_items(Alignment::Center),
                 jobs_list,
-                Space::with_height(Length::Fill),
+                card_spacer(row1_pair_h),
                 row![
                     if finished_jobs > 0 {
                         home_link_btn(
@@ -1458,27 +1570,27 @@ impl AxoloteSuite {
                     ui::fill(),
                     home_link_btn(
                         if is_en {
-                            "Open queue ➔"
+                            "Open queue →"
                         } else {
-                            "Abrir fila ➔"
+                            "Abrir fila →"
                         },
                         Some(Message::Navigate(Module::Queue)),
                     ),
                 ]
                 .align_items(Alignment::Center),
             ]
-            .spacing(10)
+            .spacing(8)
             .into(),
         );
 
         // 5. Card 4: Cores & Senhas (DevTools)
         let bento_colors_pass = bento_panel(
             env,
-            row2_h,
+            row2_pair_h,
             column![
                 row![
                     row![
-                        container(text("🎨").size(16).style(c.primary))
+                        container(text("🎨").size(16).shaping(Shaping::Advanced))
                             .padding([5, 8])
                             .style(theme::inner_box),
                         ui::strong(
@@ -1501,9 +1613,9 @@ impl AxoloteSuite {
                 ui::muted(
                     env,
                     if is_en {
-                        "HEX/RGB/HSL/CMYK converter, photo palette picker, strong passwords and UUID v4."
+                        "HEX/RGB/HSL/CMYK converter, photo palette, passwords & UUID."
                     } else {
-                        "Conversor HEX/RGB/HSL/CMYK, paleta de fotos, senhas fortes e UUID v4."
+                        "Conversor HEX/RGB/HSL/CMYK, paleta de fotos, senhas e UUID."
                     }
                 )
                 .size(12),
@@ -1519,45 +1631,41 @@ impl AxoloteSuite {
                     ),
                     home_action_btn(
                         if is_en {
-                            "🎨  Colors & Photo Palette"
+                            "🎨  Colors & Palette"
                         } else {
-                            "🎨  Cores & Paleta de Foto"
+                            "🎨  Cores & Paleta"
                         },
                         Btn::Secondary,
                         Some(Message::QuickLaunchDevTools(devtools::Tab::Colors)),
                     ),
                 ]
-                .spacing(7)
+                .spacing(6)
                 .width(Length::Fill),
-                Space::with_height(Length::Fill),
+                card_spacer(row2_pair_h),
                 row![
-                    text(if is_en {
-                        "Generated on demand"
-                    } else {
-                        "Gerado sob demanda"
-                    })
-                    .size(10)
-                    .style(c.muted),
+                    text(if is_en { "On demand" } else { "Sob demanda" })
+                        .size(10)
+                        .style(c.muted),
                     ui::fill(),
                     home_link_btn(
-                        if is_en { "Open ➔" } else { "Abrir ➔" },
+                        if is_en { "Open →" } else { "Abrir →" },
                         Some(Message::Navigate(Module::DevTools)),
                     ),
                 ]
                 .align_items(Alignment::Center),
             ]
-            .spacing(10)
+            .spacing(8)
             .into(),
         );
 
         // 6. Card 5: PDF & Docs
         let bento_pdf = bento_panel(
             env,
-            row2_h,
+            row2_pair_h,
             column![
                 row![
                     row![
-                        container(text("📄").size(16).style(c.accent))
+                        container(text("📄").size(16).shaping(Shaping::Advanced))
                             .padding([5, 8])
                             .style(theme::inner_box),
                         ui::strong("PDF & Docs", 15),
@@ -1574,7 +1682,7 @@ impl AxoloteSuite {
                     button(
                         container(
                             column![
-                                text("🔗").size(18).style(c.accent),
+                                text("🔗").size(17).shaping(Shaping::Advanced),
                                 ui::strong(if is_en { "Merge" } else { "Unir" }, 12),
                                 text(if is_en { "Order PDFs" } else { "Juntar PDFs" })
                                     .size(10)
@@ -1583,7 +1691,7 @@ impl AxoloteSuite {
                             .spacing(2)
                             .align_items(Alignment::Center),
                         )
-                        .padding([10, 8])
+                        .padding([9, 6])
                         .width(Length::Fill)
                         .style(theme::inner_box),
                     )
@@ -1593,20 +1701,16 @@ impl AxoloteSuite {
                     button(
                         container(
                             column![
-                                text("✂").size(18).style(c.success),
+                                text("✂").size(17).shaping(Shaping::Advanced),
                                 ui::strong(if is_en { "Split" } else { "Dividir" }, 12),
-                                text(if is_en {
-                                    "Page ranges"
-                                } else {
-                                    "Páginas/trechos"
-                                })
-                                .size(10)
-                                .style(c.muted),
+                                text(if is_en { "Page ranges" } else { "Páginas" })
+                                    .size(10)
+                                    .style(c.muted),
                             ]
                             .spacing(2)
                             .align_items(Alignment::Center),
                         )
-                        .padding([10, 8])
+                        .padding([9, 6])
                         .width(Length::Fill)
                         .style(theme::inner_box),
                     )
@@ -1619,34 +1723,34 @@ impl AxoloteSuite {
                 ui::muted(
                     env,
                     if is_en {
-                        "Inspect document pages and metadata without modifying original files."
+                        "Inspect pages and metadata without modifying originals."
                     } else {
-                        "Inspecione páginas e metadados sem alterar os arquivos originais."
+                        "Inspecione páginas e metadados sem alterar os originais."
                     }
                 )
                 .size(11),
-                Space::with_height(Length::Fill),
+                card_spacer(row2_pair_h),
                 row![
                     text(if is_en {
-                        "Merge • Split • Inspect"
+                        "Merge • Split"
                     } else {
-                        "Unir • Dividir • Inspecionar"
+                        "Unir • Dividir"
                     })
                     .size(10)
                     .style(c.muted),
                     ui::fill(),
                     home_link_btn(
                         if is_en {
-                            "Open Hub ➔"
+                            "Open Hub →"
                         } else {
-                            "Abrir Central ➔"
+                            "Abrir Central →"
                         },
                         Some(Message::Navigate(Module::Pdf)),
                     ),
                 ]
                 .align_items(Alignment::Center),
             ]
-            .spacing(10)
+            .spacing(8)
             .into(),
         );
 
@@ -1677,31 +1781,31 @@ impl AxoloteSuite {
                     } else {
                         (if is_en { "Failed" } else { "Falhou" }, c.danger)
                     };
-                    let subtitle = if entry.details.trim().is_empty()
+                    let time_short = short_timestamp(&entry.timestamp);
+                    let detail = if entry.details.trim().is_empty()
                         || entry.details.trim() == entry.action.trim()
                     {
-                        format!("{} • {}", entry.module, entry.timestamp)
+                        entry.module.clone()
                     } else {
-                        truncate_label(
-                            &format!("{} • {} • {}", entry.module, entry.details, entry.timestamp),
-                            62,
-                        )
+                        truncate_label(&format!("{} • {}", entry.module, entry.details), 52)
                     };
+                    let detail_color = if entry.success { c.muted } else { c.danger };
                     rows = rows.push(
                         container(
-                            row![
-                                column![
-                                    ui::strong(truncate_label(&entry.action, 44), 11),
-                                    text(subtitle).size(10).style(c.muted),
+                            column![
+                                row![
+                                    ui::strong(truncate_label(&entry.action, 40), 11)
+                                        .width(Length::Fill),
+                                    text(time_short).size(10).style(c.muted),
+                                    ui::badge(status, status_color),
                                 ]
-                                .spacing(2)
-                                .width(Length::Fill),
-                                ui::badge(status, status_color),
+                                .spacing(6)
+                                .align_items(Alignment::Center),
+                                text(detail).size(10).style(detail_color),
                             ]
-                            .spacing(8)
-                            .align_items(Alignment::Center),
+                            .spacing(2),
                         )
-                        .padding([7, 10])
+                        .padding([6, 10])
                         .width(Length::Fill)
                         .style(theme::inner_box),
                     );
@@ -1712,31 +1816,19 @@ impl AxoloteSuite {
 
         let quick_tiles: Element<'a, Message> = {
             let t1 = quick_nav_tile(
-                env,
-                if is_en { "Quick Convert" } else { "Conversor" },
-                if is_en { "Open" } else { "Abrir" },
-                c.accent,
+                "🔄",
+                if is_en { "Convert" } else { "Conversor" },
                 Message::Navigate(Module::QuickConvert),
             );
             let t2 = quick_nav_tile(
-                env,
+                "🖼",
                 if is_en { "Photos" } else { "Imagens" },
-                if is_en { "Open" } else { "Abrir" },
-                c.primary,
                 Message::Navigate(Module::Images),
             );
-            let t3 = quick_nav_tile(
-                env,
-                if is_en { "Calculator" } else { "Calculadora" },
-                if is_en { "Open" } else { "Abrir" },
-                c.primary,
-                Message::Navigate(Module::Calculator),
-            );
+            let t3 = quick_nav_tile("🔢", "Calc", Message::Navigate(Module::Calculator));
             let t4 = quick_nav_tile(
-                env,
+                "📦",
                 if is_en { "Queue" } else { "Fila" },
-                if is_en { "Open" } else { "Abrir" },
-                c.success,
                 Message::Navigate(Module::Queue),
             );
             if env.narrow() {
@@ -1754,11 +1846,11 @@ impl AxoloteSuite {
 
         let bento_shortcuts = bento_panel(
             env,
-            row2_h,
+            shortcuts_h,
             column![
                 row![
                     row![
-                        container(text("🕒").size(16).style(c.primary))
+                        container(text("🕒").size(16).shaping(Shaping::Advanced))
                             .padding([5, 8])
                             .style(theme::inner_box),
                         ui::strong(
@@ -1773,9 +1865,16 @@ impl AxoloteSuite {
                     .spacing(8)
                     .align_items(Alignment::Center),
                     ui::fill(),
-                    container(text("Ctrl + Alt + N").size(10).font(BOLD).style(c.accent))
-                        .padding([3, 7])
-                        .style(theme::inner_box),
+                    button(
+                        text("Ctrl + Alt + N")
+                            .size(10)
+                            .font(BOLD)
+                            .style(c.accent)
+                            .shaping(Shaping::Advanced),
+                    )
+                    .padding([4, 8])
+                    .style(theme::btn(Btn::Secondary))
+                    .on_press(Message::OpenQuickConvertShortcut),
                 ]
                 .align_items(Alignment::Center),
                 quick_tiles,
@@ -1790,9 +1889,9 @@ impl AxoloteSuite {
                     ui::fill(),
                     home_link_btn(
                         if is_en {
-                            "Full history ➔"
+                            "Full history →"
                         } else {
-                            "Ver histórico completo ➔"
+                            "Ver histórico completo →"
                         },
                         Some(Message::Navigate(Module::History)),
                     ),
@@ -1800,18 +1899,18 @@ impl AxoloteSuite {
                 .align_items(Alignment::Center),
                 recent_activity,
             ]
-            .spacing(8)
+            .spacing(7)
             .into(),
         );
 
         // 8. Linha 3: Demais módulos reais da suíte (Vídeo/Áudio, ZIP/Lote, Produtividade/Calculadora)
         let bento_media = bento_panel(
             env,
-            row3_h,
+            row3_pair_h,
             column![
                 row![
                     row![
-                        container(text("🎬").size(15).style(c.primary))
+                        container(text("🎬").size(15).shaping(Shaping::Advanced))
                             .padding([4, 7])
                             .style(theme::inner_box),
                         ui::strong(
@@ -1836,7 +1935,7 @@ impl AxoloteSuite {
                         } else if is_en {
                             "FFmpeg on demand"
                         } else {
-                            "FFmpeg sob demanda"
+                            "FFmpeg pendente"
                         },
                         if self.video.ffmpeg_ok {
                             c.success
@@ -1849,17 +1948,17 @@ impl AxoloteSuite {
                 ui::muted(
                     env,
                     if is_en {
-                        "Trim clips, 9:16/16:9 framing, CRF compression, audio extraction and bitrate."
+                        "Trim clips, 9:16/16:9 framing, CRF compression, and audio bitrate."
                     } else {
-                        "Corte na linha do tempo, 9:16/16:9, compressão CRF, extração e bitrate de áudio."
+                        "Corte na linha do tempo, 9:16/16:9, compressão CRF e bitrate."
                     }
                 )
                 .size(11),
-                Space::with_height(Length::Fill),
+                card_spacer(row3_pair_h),
                 row![
                     home_action_btn(
                         if is_en {
-                            "🎬  Video Studio"
+                            "🎬  Videos"
                         } else {
                             "🎬  Vídeos"
                         },
@@ -1867,11 +1966,7 @@ impl AxoloteSuite {
                         Some(Message::Navigate(Module::Video)),
                     ),
                     home_action_btn(
-                        if is_en {
-                            "🎵  Audio Studio"
-                        } else {
-                            "🎵  Áudio"
-                        },
+                        if is_en { "🎵  Audio" } else { "🎵  Áudio" },
                         Btn::Secondary,
                         Some(Message::Navigate(Module::Audio)),
                     ),
@@ -1885,18 +1980,18 @@ impl AxoloteSuite {
 
         let bento_files = bento_panel(
             env,
-            row3_h,
+            row3_pair_h,
             column![
                 row![
                     row![
-                        container(text("🗜").size(15).style(c.accent))
+                        container(text("🗜").size(15).shaping(Shaping::Advanced))
                             .padding([4, 7])
                             .style(theme::inner_box),
                         ui::strong(
                             if is_en {
                                 "ZIP & Batch Files"
                             } else {
-                                "ZIP & Arquivos em Lote"
+                                "ZIP & Lote"
                             },
                             14
                         ),
@@ -1912,20 +2007,16 @@ impl AxoloteSuite {
                 ui::muted(
                     env,
                     if is_en {
-                        "Compress folders, extract ZIP archives safely, and bulk rename files with preview."
+                        "Compress folders, extract ZIPs safely, and bulk rename files."
                     } else {
-                        "Compacte pastas, extraia ZIPs com segurança e renomeie arquivos com pré-visualização."
+                        "Compacte pastas, extraia ZIPs e renomeie arquivos em lote."
                     }
                 )
                 .size(11),
-                Space::with_height(Length::Fill),
+                card_spacer(row3_pair_h),
                 row![
                     home_action_btn(
-                        if is_en {
-                            "🗜  ZIP Archiver"
-                        } else {
-                            "🗜  ZIP"
-                        },
+                        "🗜  ZIP",
                         Btn::Secondary,
                         Some(Message::QuickLaunchZip(zip::Mode::Extract)),
                     ),
@@ -1933,7 +2024,7 @@ impl AxoloteSuite {
                         if is_en {
                             "📁  Batch Rename"
                         } else {
-                            "📁  Renomear Lote"
+                            "📁  Renomear"
                         },
                         Btn::Secondary,
                         Some(Message::Navigate(Module::BatchRename)),
@@ -1948,13 +2039,20 @@ impl AxoloteSuite {
 
         let notes_count = self.productivity.notes.len();
         let pending_tasks = self.productivity.pending_tasks();
+        let prod_badge = if env.width < 1120.0 && wide_grid {
+            format!("{notes_count}N • {pending_tasks}T")
+        } else if is_en {
+            format!("{notes_count} notes • {pending_tasks} pend.")
+        } else {
+            format!("{notes_count} notas • {pending_tasks} pend.")
+        };
         let bento_productivity = bento_panel(
             env,
-            row3_h,
+            prod_h,
             column![
                 row![
                     row![
-                        container(text("📋").size(15).style(c.primary))
+                        container(text("📋").size(15).shaping(Shaping::Advanced))
                             .padding([4, 7])
                             .style(theme::inner_box),
                         ui::strong(
@@ -1969,17 +2067,10 @@ impl AxoloteSuite {
                     .spacing(8)
                     .align_items(Alignment::Center),
                     ui::fill(),
-                    ui::badge(
-                        if is_en {
-                            format!("{notes_count} note(s) • {pending_tasks} pending")
-                        } else {
-                            format!("{notes_count} nota(s) • {pending_tasks} tarefa(s)")
-                        },
-                        c.primary,
-                    ),
+                    ui::badge(prod_badge, c.primary),
                 ]
                 .align_items(Alignment::Center),
-                Space::with_height(Length::Fill),
+                card_spacer(prod_h),
                 column![
                     row![
                         home_action_btn(
@@ -1998,9 +2089,9 @@ impl AxoloteSuite {
                     row![
                         home_action_btn(
                             if is_en {
-                                "🖩  Calculator"
+                                "🔢  Calculator"
                             } else {
-                                "🖩  Calculadora"
+                                "🔢  Calculadora"
                             },
                             Btn::Secondary,
                             Some(Message::QuickLaunchProductivity(productivity::Tab::Calc)),
@@ -2035,45 +2126,45 @@ impl AxoloteSuite {
                     container(bento_images).width(Length::FillPortion(1)),
                     container(bento_queue).width(Length::FillPortion(1)),
                 ]
-                .spacing(14),
+                .spacing(12),
                 row![
                     container(bento_colors_pass).width(Length::FillPortion(1)),
                     container(bento_pdf).width(Length::FillPortion(1)),
                     container(bento_shortcuts).width(Length::FillPortion(2)),
                 ]
-                .spacing(14),
+                .spacing(12),
                 row![
                     container(bento_media).width(Length::FillPortion(1)),
                     container(bento_files).width(Length::FillPortion(1)),
                     container(bento_productivity).width(Length::FillPortion(1)),
                 ]
-                .spacing(14),
+                .spacing(12),
             ]
-            .spacing(14)
+            .spacing(12)
             .width(Length::Fill)
             .into()
-        } else if env.is_medium() {
+        } else if med_grid {
             column![
                 hero_card,
                 row![
                     container(bento_images).width(Length::FillPortion(1)),
                     container(bento_queue).width(Length::FillPortion(1)),
                 ]
-                .spacing(14),
+                .spacing(12),
                 row![
                     container(bento_colors_pass).width(Length::FillPortion(1)),
                     container(bento_pdf).width(Length::FillPortion(1)),
                 ]
-                .spacing(14),
+                .spacing(12),
                 bento_shortcuts,
                 row![
                     container(bento_media).width(Length::FillPortion(1)),
                     container(bento_files).width(Length::FillPortion(1)),
                 ]
-                .spacing(14),
+                .spacing(12),
                 bento_productivity,
             ]
-            .spacing(14)
+            .spacing(12)
             .width(Length::Fill)
             .into()
         } else {
@@ -2088,17 +2179,17 @@ impl AxoloteSuite {
                 bento_files,
                 bento_productivity,
             ]
-            .spacing(14)
+            .spacing(12)
             .width(Length::Fill)
             .into()
         };
 
         if !self.home_search.trim().is_empty() {
             let search_results = self.search_results_view(env, self.home_search.trim());
-            return ui::page(env, vec![top_bar, search_results]);
+            return home_page(env, vec![top_bar, search_results]);
         }
 
-        ui::page(env, vec![top_bar, bento_grid])
+        home_page(env, vec![top_bar, bento_grid])
     }
 
     fn open_search_target(&mut self, module: Module, raw_query: &str) {
@@ -2172,11 +2263,32 @@ impl AxoloteSuite {
                 }
                 self.active = Module::Images;
             }
+            Module::Video => {
+                if q.contains("comprimir")
+                    || q.contains("compress")
+                    || q.contains("converter")
+                    || q.contains("convert")
+                    || q.contains("crf")
+                    || q.contains("formato")
+                    || q.contains("format")
+                    || q.contains("mp4")
+                    || q.contains("mkv")
+                    || q.contains("webm")
+                    || q.contains("avi")
+                    || q.contains("mov")
+                {
+                    self.video.mode = video::Mode::ConvertCompress;
+                } else {
+                    self.video.mode = video::Mode::VideoEditor;
+                }
+                self.active = Module::Video;
+            }
             Module::Zip => {
                 if q.contains("criar")
                     || q.contains("compact")
                     || q.contains("create")
                     || q.contains("compress")
+                    || q.contains("comprimir")
                 {
                     self.zip.mode = zip::Mode::Create;
                 } else if q.contains("extrair") || q.contains("descompact") || q.contains("extract")
@@ -2221,7 +2333,7 @@ impl AxoloteSuite {
             ),
             (
                 Module::Audio,
-                &["audio", "áudio", "som", "musica", "música", "mp3", "flac", "wav", "ogg", "m4a", "aac", "extrair", "bitrate", "comprimir", "converter", "estudio"],
+                &["audio", "áudio", "som", "musica", "música", "mp3", "flac", "wav", "ogg", "m4a", "aac", "extrair", "extracao", "bitrate", "comprimir", "converter", "estudio"],
                 "Conversão de áudio, extração de trilha sonora de vídeos e compressão por bitrate.",
                 "Audio format conversion, soundtrack extraction from video, and bitrate compression.",
             ),
@@ -2239,7 +2351,7 @@ impl AxoloteSuite {
             ),
             (
                 Module::Zip,
-                &["zip", "compactar", "descompactar", "extrair", "extract", "compressao", "arquivo", "backup", "deflate", "zip-slip", "pastas"],
+                &["zip", "compactar", "comprimir", "descompactar", "extrair", "extract", "compressao", "arquivo", "backup", "deflate", "zip-slip", "pastas"],
                 "Compactação de arquivos/pastas em ZIP e extração protegida contra Zip-Slip.",
                 "Create ZIP archives from files/folders and extract safely with Zip-Slip protection.",
             ),
@@ -2278,6 +2390,12 @@ impl AxoloteSuite {
                 &["configuracoes", "configurações", "settings", "tema", "escuro", "claro", "dark", "light", "idioma", "linguagem", "privacidade", "abrir pasta", "preferencias"],
                 "Tema escuro/claro, idioma automático ou manual, abertura de pasta e privacidade local.",
                 "Dark/light theme, automatic or manual language, output folder opening, and local privacy.",
+            ),
+            (
+                Module::Installer,
+                &["instalador", "instalar", "setup", "desinstalar", "uninstall", "apagar tudo", "limpar", "atalho", "dependencias", "ffmpeg"],
+                "Instalar no PC, baixar motor FFmpeg automático, criar atalhos ou desinstalar por completo.",
+                "Install on PC, download FFmpeg automatically, create shortcuts, or uninstall completely.",
             ),
         ];
 
@@ -2341,58 +2459,64 @@ impl AxoloteSuite {
         let is_en = env.lang.is_en();
         let matches = self.search_matches(query);
 
-        let header = row![
-            column![
-                row![
-                    ui::strong(
-                        if is_en {
-                            "Search Results"
-                        } else {
-                            "Resultados da Busca"
-                        },
-                        18
-                    ),
-                    container(
-                        text(format!(
-                            "{} {}",
-                            matches.len(),
-                            if is_en { "found" } else { "ferramenta(s)" }
-                        ))
-                        .size(11)
-                        .font(BOLD)
-                        .style(c.primary)
-                    )
-                    .padding([2, 8])
-                    .style(theme::solid_box(c.primary_soft, 6.0)),
-                ]
-                .spacing(10)
-                .align_items(Alignment::Center),
-                ui::muted(
-                    env,
+        let title_col = column![
+            row![
+                ui::strong(
                     if is_en {
-                        format!("Showing tools matching \"{}\"", query)
+                        "Search Results"
                     } else {
-                        format!(
-                            "Exibindo ferramentas correspondentes ao termo \"{}\"",
-                            query
-                        )
-                    }
+                        "Resultados da Busca"
+                    },
+                    18
+                ),
+                container(
+                    text(format!(
+                        "{} {}",
+                        matches.len(),
+                        if is_en { "found" } else { "ferramenta(s)" }
+                    ))
+                    .size(11)
+                    .font(BOLD)
+                    .style(c.primary)
                 )
-                .size(12),
+                .padding([2, 8])
+                .style(theme::solid_box(c.primary_soft, 6.0)),
             ]
-            .spacing(4),
-            ui::fill(),
-            ui::btn(
+            .spacing(10)
+            .align_items(Alignment::Center),
+            ui::muted(
+                env,
                 if is_en {
-                    "✕ Clear Search"
+                    format!("Showing tools matching \"{}\"", query)
                 } else {
-                    "✕ Limpar Busca"
-                },
-                Btn::Secondary,
-                Some(Message::SearchChanged(String::new()))
-            ),
+                    format!(
+                        "Exibindo ferramentas correspondentes ao termo \"{}\"",
+                        query
+                    )
+                }
+            )
+            .size(12),
         ]
-        .align_items(Alignment::Center);
+        .spacing(4);
+
+        let clear_btn = ui::btn(
+            if is_en {
+                "✕ Clear Search"
+            } else {
+                "✕ Limpar Busca"
+            },
+            Btn::Secondary,
+            Some(Message::SearchChanged(String::new())),
+        );
+
+        let header: Element<'a, Message> = if env.narrow() {
+            column![title_col, clear_btn].spacing(8).into()
+        } else {
+            row![title_col.width(Length::Fill), clear_btn]
+                .spacing(10)
+                .align_items(Alignment::Center)
+                .into()
+        };
 
         if matches.is_empty() {
             let suggestion_items: Vec<Element<'a, Message>> = vec![
@@ -2426,9 +2550,9 @@ impl AxoloteSuite {
                 ),
                 home_action_btn(
                     if is_en {
-                        "🖩 Calculator"
+                        "🔢 Calculator"
                     } else {
-                        "🖩 Calculadora"
+                        "🔢 Calculadora"
                     },
                     Btn::Secondary,
                     Some(Message::Navigate(Module::Calculator)),
@@ -2447,7 +2571,7 @@ impl AxoloteSuite {
 
             let empty_box = container(
                 column![
-                    text("🔍").size(36),
+                    text("🔍").size(36).shaping(Shaping::Advanced),
                     Space::with_height(6),
                     ui::strong(
                         if is_en {
@@ -2484,13 +2608,13 @@ impl AxoloteSuite {
 
             for (module, desc_pt, desc_en) in matches {
                 let desc = if is_en { desc_en } else { desc_pt };
-                let title = module.title_in(env.lang, false);
+                let title = module.title_in(env.lang, self.installer.is_installed());
                 let icon = module.icon();
 
                 let item_card = button(
                     container(
                         row![
-                            container(text(icon).size(24))
+                            container(text(icon).size(24).shaping(Shaping::Advanced))
                                 .padding([10, 14])
                                 .style(theme::solid_box(c.surface2, 8.0)),
                             column![
@@ -2499,13 +2623,14 @@ impl AxoloteSuite {
                                     ui::fill(),
                                     container(
                                         text(if is_en {
-                                            "Open Tool ➔"
+                                            "Open Tool →"
                                         } else {
-                                            "Abrir Ferramenta ➔"
+                                            "Abrir Ferramenta →"
                                         })
                                         .size(12)
                                         .font(BOLD)
                                         .style(c.primary)
+                                        .shaping(Shaping::Advanced)
                                     )
                                     .padding([4, 10])
                                     .style(theme::inner_box),
@@ -2537,13 +2662,39 @@ impl AxoloteSuite {
     }
 }
 
+fn home_page<'a>(env: &Env, children: Vec<Element<'a, Message>>) -> Element<'a, Message> {
+    let mut col = column![].spacing(14).width(Length::Fill).max_width(1240);
+    for child in children {
+        col = col.push(child);
+    }
+    let pad: [u16; 2] = if env.narrow() {
+        [14, 14]
+    } else if env.is_desktop_wide() {
+        [20, 26]
+    } else {
+        [18, 22]
+    };
+    scrollable(container(col).padding(pad).width(Length::Fill).center_x())
+        .height(Length::Fill)
+        .width(Length::Fill)
+        .into()
+}
+
+fn card_spacer<'a>(fixed_h: Option<f32>) -> Element<'a, Message> {
+    if fixed_h.is_some() {
+        Space::with_height(Length::Fill).into()
+    } else {
+        Space::with_height(Length::Fixed(2.0)).into()
+    }
+}
+
 fn bento_panel<'a>(
     env: &Env,
     fixed_h: Option<f32>,
     body: Element<'a, Message>,
 ) -> Element<'a, Message> {
     let mut box_ = container(body)
-        .padding(if env.narrow() { 16 } else { 18 })
+        .padding(if env.narrow() { 14 } else { 16 })
         .width(Length::Fill)
         .style(theme::bento_card);
     if let Some(h) = fixed_h {
@@ -2562,7 +2713,7 @@ fn home_action_btn<'a>(
             text(label)
                 .size(12)
                 .font(SEMIBOLD)
-                .shaping(iced::widget::text::Shaping::Advanced),
+                .shaping(Shaping::Advanced),
         )
         .center_x()
         .width(Length::Fill),
@@ -2579,7 +2730,7 @@ fn home_link_btn<'a>(label: impl ToString, msg: Option<Message>) -> Element<'a, 
         text(label)
             .size(11)
             .font(SEMIBOLD)
-            .shaping(iced::widget::text::Shaping::Advanced),
+            .shaping(Shaping::Advanced),
     )
     .padding([4, 8])
     .style(theme::btn(Btn::Ghost))
@@ -2587,27 +2738,21 @@ fn home_link_btn<'a>(label: impl ToString, msg: Option<Message>) -> Element<'a, 
     .into()
 }
 
-fn quick_nav_tile<'a>(
-    env: &Env,
-    title: &'a str,
-    action: &'a str,
-    accent: Color,
-    msg: Message,
-) -> Element<'a, Message> {
-    let c = env.c();
+fn quick_nav_tile<'a>(icon: &'a str, title: &'a str, msg: Message) -> Element<'a, Message> {
     button(
         container(
             row![
-                text(title).size(11).style(c.text),
-                ui::fill(),
-                container(text(action).size(10).font(BOLD).style(accent))
-                    .padding([2, 6])
-                    .style(theme::solid_box(c.surface2, 4.0)),
+                text(icon).size(12).shaping(Shaping::Advanced),
+                text(title)
+                    .size(11)
+                    .font(SEMIBOLD)
+                    .shaping(Shaping::Advanced),
             ]
             .spacing(6)
             .align_items(Alignment::Center),
         )
-        .padding([7, 9])
+        .center_x()
+        .padding([7, 8])
         .width(Length::Fill)
         .style(theme::inner_box),
     )
@@ -2615,6 +2760,19 @@ fn quick_nav_tile<'a>(
     .style(theme::btn(Btn::Ghost))
     .on_press(msg)
     .into()
+}
+
+fn short_timestamp(ts: &str) -> String {
+    let parts: Vec<&str> = ts.split_whitespace().collect();
+    if parts.len() == 2 {
+        let date = parts[0];
+        let time = parts[1];
+        let short_date = if date.len() >= 5 { &date[..5] } else { date };
+        let short_time = if time.len() >= 5 { &time[..5] } else { time };
+        format!("{short_date} {short_time}")
+    } else {
+        truncate_label(ts, 12)
+    }
 }
 
 fn truncate_label(s: &str, max_chars: usize) -> String {
@@ -2763,17 +2921,39 @@ mod tests {
         assert_eq!(app.active, Module::Images);
         assert_eq!(app.images.mode, images::Mode::Batch);
 
+        let _ = app.update(Message::QuickLaunchVideo(video::Mode::ConvertCompress));
+        assert_eq!(app.active, Module::Video);
+        assert_eq!(app.video.mode, video::Mode::ConvertCompress);
+
+        let _ = app.update(Message::QuickLaunchQuickConvert(
+            quick_convert::WheelCategory::Image,
+        ));
+        assert_eq!(app.active, Module::QuickConvert);
+        assert_eq!(
+            app.quick_convert.category,
+            quick_convert::WheelCategory::Image
+        );
+
         let _ = app.update(Message::SearchChanged("tarefas".into()));
         let _ = app.update(Message::SearchSubmitted);
         assert_eq!(app.active, Module::Productivity);
         assert_eq!(app.productivity.tab, productivity::Tab::Tasks);
         assert!(app.home_search.is_empty());
+
+        let _ = app.update(Message::SearchChanged("comprimir video".into()));
+        let _ = app.update(Message::SearchSubmitted);
+        assert_eq!(app.active, Module::Video);
+        assert_eq!(app.video.mode, video::Mode::ConvertCompress);
+
+        let inst_hits = app.search_matches("desinstalar");
+        assert_eq!(inst_hits.first().map(|x| x.0), Some(Module::Installer));
     }
 
     #[test]
     fn truncate_label_preserves_utf8_boundaries() {
         assert_eq!(truncate_label("Olá", 10), "Olá");
         assert_eq!(truncate_label("Conversão de vídeo", 9), "Conversão…");
+        assert_eq!(short_timestamp("11/11/2026 22:05:33"), "11/11 22:05");
     }
 
     #[test]
@@ -2782,12 +2962,21 @@ mod tests {
         let job_id = app.ctx.jobs.start("PDF", "Dividir contrato.pdf");
         let done_res = crate::shared::types::OperationResult::ok("3 páginas extraídas");
         let _ = app.ctx.jobs.finish(job_id, &done_res);
+        let fail_id = app.ctx.jobs.start("ZIP", "Extrair corrompido.zip");
+        let fail_res = crate::shared::types::OperationResult::err("Arquivo ZIP corrompido");
+        let _ = app.ctx.jobs.finish(fail_id, &fail_res);
         app.ctx
             .history
             .add_in_memory("PDF", "Dividir contrato.pdf", "3 páginas extraídas", true);
         let _running_id = app.ctx.jobs.start("Vídeo", "Comprimir clipe.mp4");
 
-        for (w, h) in [(560, 480), (880, 720), (1380, 880), (1920, 1080)] {
+        for (w, h) in [
+            (560, 480),
+            (880, 720),
+            (1300, 760),
+            (1380, 880),
+            (1920, 1080),
+        ] {
             app.window_width = w as f32;
             app.window_height = h as f32;
             for dark in [true, false] {

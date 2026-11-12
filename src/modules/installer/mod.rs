@@ -439,7 +439,7 @@ fn create_windows_shortcut_with_args(
     desc: &str,
 ) -> bool {
     let ps = format!(
-        "$s=(New-Object -COM WScript.Shell).CreateShortcut('{}');$s.TargetPath='{}';$s.Arguments='{}';$s.IconLocation='{}';$s.Description='{}';$s.Save()",
+        "$s=(New-Object -COM WScript.Shell).CreateShortcut('{}');$s.TargetPath='{}';$s.Arguments='{}';$s.IconLocation='{},0';$s.Description='{}';$s.Save()",
         lnk.display().to_string().replace('\'', "''"),
         target.display().to_string().replace('\'', "''"),
         args.replace('\'', "''"),

@@ -16,7 +16,7 @@
   <img alt="100% Rust" src="https://img.shields.io/badge/100%25-Rust-b7410e?style=flat-square&logo=rust">
   <img alt="Windows 10 · 11" src="https://img.shields.io/badge/Windows%2010%20%C2%B7%2011-nativo-2f7bf5?style=flat-square&logo=windows">
   <img alt="Licença: MIT OU Apache-2.0" src="https://img.shields.io/badge/licen%C3%A7a-MIT%20%2F%20Apache--2.0-3a3a3a?style=flat-square">
-  <img alt="Versão v1.4.1" src="https://img.shields.io/badge/vers%C3%A3o-v1.4.1-7c3aed?style=flat-square">
+  <img alt="Versão v1.4.2" src="https://img.shields.io/badge/vers%C3%A3o-v1.4.2-7c3aed?style=flat-square">
   <br>
   <a href="https://github.com/axolotesuite/axolotesuite/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/axolotesuite/axolotesuite/ci.yml?branch=main&style=flat-square&label=CI&logo=githubactions&logoColor=white"></a>
   <a href="https://www.virustotal.com/gui/search/86dfba6f0aa76a07ecc77604fb540fa7cfab0b969851bdac9403293dc5277a68"><img alt="Verificado no VirusTotal" src="https://img.shields.io/badge/VirusTotal-verificado-10b981?style=flat-square&logo=virustotal&logoColor=white"></a>
@@ -24,8 +24,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/axolotesuite/axolotesuite/releases/download/v1.4.1/Axolote_Setup.exe"><img alt="Baixar Instalador Oficial" src="https://img.shields.io/badge/⬇_Baixar_Instalador_Oficial-v1.4.1-10b981?style=for-the-badge&logo=windows&logoColor=white" height="40"></a>
-  <a href="https://github.com/axolotesuite/axolotesuite/releases/download/v1.4.1/axolote_suite.exe"><img alt="Baixar Executável Direto" src="https://img.shields.io/badge/Baixar_Executável_Portátil_(.exe)-v1.4.1-7c3aed?style=for-the-badge&logo=windows&logoColor=white" height="40"></a>
+  <a href="https://github.com/axolotesuite/axolotesuite/releases/download/v1.4.2/Axolote_Setup.exe"><img alt="Baixar Instalador Oficial" src="https://img.shields.io/badge/⬇_Baixar_Instalador_Oficial-v1.4.2-10b981?style=for-the-badge&logo=windows&logoColor=white" height="40"></a>
+  <a href="https://github.com/axolotesuite/axolotesuite/releases/download/v1.4.2/axolote_suite.exe"><img alt="Baixar Executável Direto" src="https://img.shields.io/badge/Baixar_Executável_Portátil_(.exe)-v1.4.2-7c3aed?style=for-the-badge&logo=windows&logoColor=white" height="40"></a>
 </p>
 
 <p align="center">
@@ -194,10 +194,10 @@ Novos contribuidores e agentes de IA: comecem por [`AGENTS.md`](AGENTS.md) e [`C
 
 | Sistema | Pacote | Formato | Observações |
 |---|---|---|---|
-| Windows 10 / 11 (x64) | [**`Axolote_Setup.exe`**](https://github.com/axolotesuite/axolotesuite/releases/download/v1.4.1/Axolote_Setup.exe) | Instalador Oficial | **Recomendado**: instalador e desinstalador completo em 19 idiomas |
-| Windows 10 / 11 (x64) | [**`axolote_suite-portable.zip`**](https://github.com/axolotesuite/axolotesuite/releases/download/v1.4.1/axolote_suite-portable.zip) | ZIP Portátil | Executável + licenças prontos para extrair e rodar |
-| Windows 10 / 11 (x64) | [**`axolote_suite.exe`**](https://github.com/axolotesuite/axolotesuite/releases/download/v1.4.1/axolote_suite.exe) | Executável Portátil | Executável direto sem instalação |
-| Todos | [**`SHA256SUMS.txt`**](https://github.com/axolotesuite/axolotesuite/releases/download/v1.4.1/SHA256SUMS.txt) | Assinaturas | Hashes criptográficos oficiais para conferência |
+| Windows 10 / 11 (x64) | [**`Axolote_Setup.exe`**](https://github.com/axolotesuite/axolotesuite/releases/download/v1.4.2/Axolote_Setup.exe) | Instalador Oficial | **Recomendado**: instalador e desinstalador completo em 19 idiomas |
+| Windows 10 / 11 (x64) | [**`axolote_suite-portable.zip`**](https://github.com/axolotesuite/axolotesuite/releases/download/v1.4.2/axolote_suite-portable.zip) | ZIP Portátil | Executável + licenças prontos para extrair e rodar |
+| Windows 10 / 11 (x64) | [**`axolote_suite.exe`**](https://github.com/axolotesuite/axolotesuite/releases/download/v1.4.2/axolote_suite.exe) | Executável Portátil | Executável direto sem instalação |
+| Todos | [**`SHA256SUMS.txt`**](https://github.com/axolotesuite/axolotesuite/releases/download/v1.4.2/SHA256SUMS.txt) | Assinaturas | Hashes criptográficos oficiais para conferência |
 
 Versões anteriores e notas de cada lançamento ficam em [Releases](https://github.com/axolotesuite/axolotesuite/releases).
 

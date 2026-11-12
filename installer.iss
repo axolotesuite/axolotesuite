@@ -2,7 +2,7 @@
 ; Multi-language with Uninstaller and Desktop/Start Menu shortcuts
 
 #define MyAppName "Axolote Suite"
-#define MyAppVersion "1.4.1"
+#define MyAppVersion "1.4.2"
 #define MyAppPublisher "Axolote Open Source"
 #define MyAppURL "https://axolotesuite.github.io/axolotesuite/"
 #define MyAppExeName "axolote_suite.exe"
@@ -36,7 +36,7 @@ UninstallDisplayName={#MyAppName}
 CreateUninstallRegKey=yes
 
 ; Version Information
-VersionInfoVersion=1.4.1.0
+VersionInfoVersion=1.4.2.0
 VersionInfoCompany=Axolote
 VersionInfoDescription=Axolote Suite - Workstation Nativa Offline
 VersionInfoCopyright=Copyright (C) 2026 Axolote Team

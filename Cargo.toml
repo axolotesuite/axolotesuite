@@ -13,7 +13,7 @@ readme = "README.md"
 
 [dependencies]
 # Interface gráfica nativa com suporte a renderização de imagens (logos + preview de fotos)
-iced = { version = "0.12", features = ["image"] }
+iced = { version = "0.14", features = ["image"] }
 # Diálogos nativos do Windows para escolher arquivos/pastas
 rfd = "0.15"
 # Processamento e edição de imagens

@@ -3,34 +3,6 @@
 Todas as mudanças importantes do Axolote Suite ficam aqui.
 O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e as versões seguem o [SemVer](https://semver.org/lang/pt-BR/).
 
-## [1.4.2] - 2026-11-11
-
-### Corrigido
-- **Tela Inicial (Home/Dashboard) e Barra Lateral**:
-  - Correção de espaçamento vertical nos modos médio e estreito (`< 1040 px`) removendo o preenchimento expansivo que esticava os cartões além da altura do conteúdo.
-  - Ajuste de proporções e alturas da grade desktop (`1300×760` até `1920×1080`) para evitar cortes de texto, sobreposição nos blocos de atalhos rápidos e rolagem desnecessária na janela padrão (`1380×880`).
-  - Substituição de glifos ausentes (`⇄`, `➔`, `🖩`) e habilitação de `Shaping::Advanced` na barra lateral e cartões para eliminar caixas vazias (`▯`) nos temas claro e escuro.
-  - Sincronização do status do FFmpeg entre os módulos Vídeo, Áudio e Conversor Fácil, além de atalhos diretos reais para `Comprimir Vídeo` (aba Converter & Comprimir) e `Converter Imagens`.
-  - Exibição mais clara do timestamp no histórico recente e destaque visual para mensagens de erro na fila de operações.
-- **Ícone Multi-Resolução para Atalhos e Executável**:
-  - `assets/icon.ico` atualizado com camadas dedicadas em `16×16`, `24×24`, `32×32`, `48×48`, `64×64` e `256×256` para renderização nítida nos atalhos da Área de Trabalho, Menu Iniciar e executável Windows.
-
-## [1.4.1] - 2026-11-11
-
-### Adicionado
-- **Ícone Oficial no Executável e nos Atalhos do Windows**:
-  - Embedding nativo do `assets/icon.ico` no executável `axolote_suite.exe` via `build.rs`.
-  - Atalhos do Menu Iniciar, Área de Trabalho e Desinstalador no `installer.iss` configurados explicitamente com `IconFilename: "{app}\assets\icon.ico"`.
-- **Testes Automatizados da Tela Inicial (`app.rs`)**:
-  - Cobertura de responsividade (`560×480` até `1920×1080`), temas claro/escuro, idiomas PT/EN, busca por relevância e navegação direta por abas.
-
-### Alterado
-- **Tela Inicial (Home/Dashboard) Mais Equilibrada e Funcional**:
-  - Ajuste do breakpoint de desktop amplo (`>= 1040 px`) para exibir o Bento Grid completo já na janela padrão (`1380×880`), com alturas alinhadas entre os cartões de cada linha e inclusão de acesso direto a **Vídeo & Áudio**, **ZIP & Arquivos em Lote** e **Produtividade & Calculadora**.
-  - Remoção de botões decorativos sem ação (`Modo local`), remoção de botões aninhados na área de arrastar e soltar e substituição de rótulos não implementados (`Comprimir H.265`, `Converter WebP/AVIF`, `Remover Chiado`, `Segurança & Hash`).
-  - Cartões com navegação real para abas/modos específicos (`Cores & Paleta` / `Senhas Fortes & UUID`, `Unir PDFs` / `Dividir PDF`, `Revelador` / `Lote` / `Redimensionar`) e exibição real da fila da sessão e histórico recente.
-  - Busca rápida corrigida com correspondência por palavras, ranking por relevância de título/tags e remoção de palavras-chave de recursos inexistentes.
-
 ## [1.4.0] - 2026-11-11
 
 ### Adicionado
@@ -66,7 +38,5 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e 
 - Efeitos sonoros do sistema.
 - Abas de Hash e Base64/JSON/Texto.
 
-[1.4.2]: https://github.com/axolotesuite/axolotesuite/releases/tag/v1.4.2
-[1.4.1]: https://github.com/axolotesuite/axolotesuite/releases/tag/v1.4.1
 [1.4.0]: https://github.com/axolotesuite/axolotesuite/releases/tag/v1.4.0
 [1.3.0]: https://github.com/axolotesuite/axolotesuite/releases/tag/v1.3.0

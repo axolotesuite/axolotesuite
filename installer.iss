@@ -2,7 +2,7 @@
 ; Multi-language with Uninstaller and Desktop/Start Menu shortcuts
 
 #define MyAppName "Axolote Suite"
-#define MyAppVersion "1.4.2"
+#define MyAppVersion "1.3.0"
 #define MyAppPublisher "Axolote Open Source"
 #define MyAppURL "https://axolotesuite.github.io/axolotesuite/"
 #define MyAppExeName "axolote_suite.exe"
@@ -31,12 +31,12 @@ ShowLanguageDialog=yes
 UsePreviousLanguage=no
 
 ; Uninstaller registry settings
-UninstallDisplayIcon={app}\assets\icon.ico
+UninstallDisplayIcon={app}\{#MyAppExeName}
 UninstallDisplayName={#MyAppName}
 CreateUninstallRegKey=yes
 
 ; Version Information
-VersionInfoVersion=1.4.2.0
+VersionInfoVersion=1.3.0.0
 VersionInfoCompany=Axolote
 VersionInfoDescription=Axolote Suite - Workstation Nativa Offline
 VersionInfoCopyright=Copyright (C) 2026 Axolote Team
@@ -80,11 +80,11 @@ Source: "NOTICE"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 ; Programa principal no Menu Iniciar
-Name: "{autoprograms}\{#MyAppName}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\assets\icon.ico"; Tasks: startmenuicon
+Name: "{autoprograms}\{#MyAppName}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: startmenuicon
 ; Desinstalador dedicado no Menu Iniciar
-Name: "{autoprograms}\{#MyAppName}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"; IconFilename: "{app}\assets\icon.ico"; Tasks: startmenuicon
+Name: "{autoprograms}\{#MyAppName}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"; Tasks: startmenuicon
 ; Atalho na Área de Trabalho (Desktop)
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\assets\icon.ico"; Tasks: desktopicon
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent

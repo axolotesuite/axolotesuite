@@ -83,12 +83,12 @@ impl Env {
 
     /// Tela média (organizada em 2 colunas equilibradas).
     pub fn is_medium(&self) -> bool {
-        self.width >= 680.0 && self.width < 1180.0
+        self.width >= 680.0 && self.width < 1040.0
     }
 
-    /// Tela ampla (desktop completo com 4 colunas de Bento Grid).
+    /// Tela ampla (desktop completo em Bento Grid).
     pub fn is_desktop_wide(&self) -> bool {
-        self.width >= 1180.0
+        self.width >= 1040.0
     }
 
     /// Tela larga o bastante para duas colunas lado a lado.

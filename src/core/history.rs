@@ -68,4 +68,27 @@ impl History {
             let _ = std::fs::write(paths::history_file(), json);
         }
     }
+
+    #[cfg(test)]
+    pub fn empty_for_test(max: usize) -> Self {
+        Self {
+            entries: Vec::new(),
+            max: max.max(10),
+        }
+    }
+
+    #[cfg(test)]
+    pub fn add_in_memory(&mut self, module: &str, action: &str, details: &str, success: bool) {
+        self.entries.insert(
+            0,
+            HistoryEntry {
+                module: module.to_string(),
+                action: action.to_string(),
+                details: details.to_string(),
+                timestamp: "11/11/2026 22:00:00".to_string(),
+                success,
+            },
+        );
+        self.entries.truncate(self.max);
+    }
 }

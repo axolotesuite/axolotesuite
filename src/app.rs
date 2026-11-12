@@ -285,7 +285,7 @@ impl Application for AxoloteSuite {
     }
 
     fn title(&self) -> String {
-        format!("Axolote Suite v1.3 — {}", self.active.title())
+        format!("Axolote Suite v{} — {}", env!("CARGO_PKG_VERSION"), self.active.title())
     }
 
     fn theme(&self) -> Theme {
@@ -599,7 +599,7 @@ impl AxoloteSuite {
                                 text("Axolote ").size(16).font(BOLD),
                                 ui::colored("Suite", 16, c.accent).font(BOLD),
                             ],
-                            text("v1.3.0 • 100% Offline").size(11).style(c.muted),
+                            text(concat!("v", env!("CARGO_PKG_VERSION"), " • 100% Offline")).size(11).style(c.muted),
                         ]
                         .spacing(1),
                     ]

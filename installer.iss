@@ -4,7 +4,7 @@
 #define MyAppName "Axolote Suite"
 #define MyAppVersion "1.4.0"
 #define MyAppPublisher "Axolote Open Source"
-#define MyAppURL "https://joaofauze.github.io/Axolote_Site/"
+#define MyAppURL "https://axolotesuite.github.io/axolotesuite/"
 #define MyAppExeName "axolote_suite.exe"
 
 [Setup]
@@ -75,6 +75,8 @@ Source: "target\release\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "assets\*"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE-MIT"; DestDir: "{app}"; Flags: ignoreversion
+Source: "LICENSE-APACHE"; DestDir: "{app}"; Flags: ignoreversion
+Source: "NOTICE"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 ; Programa principal no Menu Iniciar

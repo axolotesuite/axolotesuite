@@ -295,8 +295,9 @@ fn perform_uninstall(target_dir: PathBuf, remove_user_data: bool) -> OperationRe
     unregister_hkcu();
     details.push("✓ Registro de instalação do Windows removido".into());
 
-    if target_dir.exists() {
+    if is_safe_install_dir(&target_dir) && target_dir.exists() {
         let _ = fs::remove_dir_all(target_dir.join("bin"));
+        let _ = fs::remove_dir_all(target_dir.join("assets"));
         let _ = fs::remove_file(target_dir.join("axolote.ico"));
         let exe = target_dir.join("axolote_suite.exe");
         if fs::remove_file(&exe).is_ok() {
@@ -338,11 +339,15 @@ pub fn perform_purge_everything(install_dir: PathBuf) -> OperationResult {
         if lnk.exists() && fs::remove_file(&lnk).is_ok() {
             details.push("✓ Atalho do Menu Iniciar apagado".into());
         }
+        let folder = start.join("Axolote Suite");
+        if folder.exists() && fs::remove_dir_all(&folder).is_ok() {
+            details.push("✓ Pasta do Menu Iniciar apagada".into());
+        }
     }
 
     // 2. Registro do Windows
     unregister_hkcu();
-    details.push("✓ Registro do Windows limpo".into());
+    details.push("✓ Registro de instalação do Windows limpo".into());
 
     // 3. Pasta de dados completos em %APPDATA%\AxoloteSuite (notas, tarefas, histórico, configs, bin/ffmpeg)
     let data = paths::data_dir();
@@ -351,8 +356,8 @@ pub fn perform_purge_everything(install_dir: PathBuf) -> OperationResult {
         details.push("✓ Todos os dados, configurações, histórico e notas em %APPDATA% apagados".into());
     }
 
-    // 4. Pasta de instalação
-    if install_dir.exists() {
+    // 4. Pasta de instalação (com verificação rigorosa de segurança de diretório)
+    if is_safe_install_dir(&install_dir) && install_dir.exists() {
         let running_exe = env::current_exe().ok();
         let is_running_from_install = running_exe
             .as_ref()
@@ -363,9 +368,16 @@ pub fn perform_purge_everything(install_dir: PathBuf) -> OperationResult {
             schedule_self_delete(&install_dir);
             details.push(format!("✓ Pasta de instalação ({}) agendada para exclusão completa", install_dir.display()));
         } else {
-            let _ = fs::remove_dir_all(&install_dir);
-            details.push(format!("✓ Pasta de instalação ({}) apagada", install_dir.display()));
+            // Remove apenas arquivos conhecidos do aplicativo antes de apagar a pasta
+            let _ = fs::remove_file(install_dir.join("axolote_suite.exe"));
+            let _ = fs::remove_file(install_dir.join("axolote.ico"));
+            let _ = fs::remove_dir_all(install_dir.join("bin"));
+            let _ = fs::remove_dir_all(install_dir.join("assets"));
+            let _ = fs::remove_dir(&install_dir);
+            details.push(format!("✓ Pasta de instalação ({}) apagada com segurança", install_dir.display()));
         }
+    } else if install_dir.exists() {
+        details.push("⚠ Pasta informada não corresponde ao padrão do Axolote Suite; mantida por segurança.".into());
     }
 
     OperationResult::ok("Limpeza Completa Realizada: Tudo do Axolote Suite foi apagado do computador.")
@@ -422,7 +434,53 @@ fn unregister_hkcu() {
     let _ = system::hidden_command("reg").args(["delete", key, "/f"]).status();
 }
 
+fn is_safe_install_dir(dir: &Path) -> bool {
+    if !dir.is_absolute() {
+        return false;
+    }
+    // Impede pastas raízes de volume (C:\, D:\) ou pastas críticas de usuário e sistema
+    let comps: Vec<_> = dir.components().collect();
+    if comps.len() < 3 {
+        return false;
+    }
+    let Some(last) = dir.file_name().and_then(|n| n.to_str()) else {
+        return false;
+    };
+    // Exige que a pasta alvo termine exatamente em "Axolote Suite"
+    last.eq_ignore_ascii_case("Axolote Suite")
+}
+
 fn schedule_self_delete(dir: &Path) {
-    let cmd_str = format!("ping 127.0.0.1 -n 3 > nul & rmdir /s /q \"{}\"", dir.display());
-    let _ = system::hidden_command("cmd").args(["/C", &cmd_str]).spawn();
+    if !is_safe_install_dir(dir) {
+        return;
+    }
+    // Remove os artefatos com PowerShell sem interpolação de comandos shell cmd.exe
+    let script = r#"
+        param([string]$targetDir)
+        Start-Sleep -Seconds 3
+        if ($targetDir -and (Test-Path -LiteralPath $targetDir)) {
+            $known = @("axolote_suite.exe", "axolote.ico", "bin", "assets")
+            foreach ($item in $known) {
+                $p = Join-Path $targetDir $item
+                if (Test-Path -LiteralPath $p) {
+                    Remove-Item -LiteralPath $p -Recurse -Force -ErrorAction SilentlyContinue
+                }
+            }
+            if ((Get-ChildItem -LiteralPath $targetDir -Force | Measure-Object).Count -eq 0) {
+                Remove-Item -LiteralPath $targetDir -Force -ErrorAction SilentlyContinue
+            }
+        }
+    "#;
+    let _ = system::hidden_command("powershell")
+        .args([
+            "-NoProfile",
+            "-NonInteractive",
+            "-WindowStyle",
+            "Hidden",
+            "-Command",
+            script,
+            "-targetDir",
+        ])
+        .arg(dir)
+        .spawn();
 }

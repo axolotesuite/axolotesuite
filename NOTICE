@@ -16,6 +16,14 @@ própria licença, incluindo:
   - walkdir     (MIT OR Unlicense)   https://github.com/BurntSushi/walkdir
   - chrono      (MIT OR Apache-2.0)  https://github.com/chronotope/chrono
 
-O FFmpeg não é distribuído junto com o Axolote Suite. Ele é baixado
-separadamente no primeiro uso, a partir de builds oficiais, e é
-licenciado sob LGPL/GPL pelos seus autores (https://ffmpeg.org).
+  - sys-locale  (MIT OR Apache-2.0)  https://github.com/1Password/sys-locale
+  - getrandom   (MIT OR Apache-2.0)  https://github.com/rust-random/getrandom
+
+O executável binário do Axolote Suite inclui bibliotecas transitivas de código aberto
+sob as licenças MIT, Apache-2.0, BSD-3-Clause, BSD-2-Clause, Unicode-3.0, ISC,
+BSL-1.0 e Zlib, conforme documentado em seus respectivos repositórios upstream.
+
+O FFmpeg não é distribuído junto com o instalador do Axolote Suite. Quando o usuário
+opta por baixar o motor multimídia através do aplicativo, este obtém compilações
+independentes de terceiros (BtbN / Gyan.dev) licenciadas sob GNU General Public License v3 (GPLv3)
+pelos seus respectivos autores (https://ffmpeg.org e https://github.com/BtbN/FFmpeg-Builds).

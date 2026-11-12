@@ -223,7 +223,11 @@ impl State {
                 return paths::output_path(input, Some(&p), suffix, ext);
             }
             p.set_extension(ext);
-            p
+            if p == input {
+                paths::output_path(input, None, suffix, ext)
+            } else {
+                paths::unique_path(p)
+            }
         }
     }
 }

@@ -212,18 +212,14 @@ Versões anteriores e notas de cada lançamento ficam em [Releases](https://gith
 | **Navegador** (Chrome / Edge) | Clique nos três pontinhos `⋯` do download → **Manter** → **Manter assim mesmo** |
 | **Windows SmartScreen** | Clique em **Mais informações** → **Executar assim mesmo** |
 
-Confira você mesmo se os arquivos são os oficiais usando o hash SHA-256:
-
-| Arquivo | Tamanho | SHA-256 Oficial |
-|---|---|---|
-| `axolote_suite.exe` | 13.6 MB | `86dfba6f0aa76a07ecc77604fb540fa7cfab0b969851bdac9403293dc5277a68` |
-| `axolote_suite-portable.zip` | 5.5 MB | `657b019690f58f08ed4e47da47d7fcd1487de9e370fddf7dd5acc26760c77fd9` |
+Confira você mesmo se os arquivos são os oficiais usando o hash SHA-256 e o arquivo `SHA256SUMS.txt` gerado automaticamente em cada release:
 
 ```powershell
 Get-FileHash .\axolote_suite.exe -Algorithm SHA256
+Get-FileHash .\Axolote_Setup.exe -Algorithm SHA256
 ```
 
-Relatório público: **[ver no VirusTotal](https://www.virustotal.com/gui/search/86dfba6f0aa76a07ecc77604fb540fa7cfab0b969851bdac9403293dc5277a68)**. Para relatar uma vulnerabilidade, veja a [política de segurança](SECURITY.md).
+Compare com o arquivo de assinaturas oficial publicado em [Releases](https://github.com/axolotesuite/axolotesuite/releases) e consulte o hash no [VirusTotal](https://www.virustotal.com/). Para relatar uma vulnerabilidade, veja a [política de segurança](SECURITY.md).
 
 <br>
 

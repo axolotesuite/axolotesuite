@@ -2,7 +2,7 @@
 //! contra Zip-Slip) e criar arquivos compactados (incluindo pastas inteiras).
 
 use std::fs::{self, File};
-use std::io;
+use std::io::{self, Read};
 use std::path::{Component, Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -20,14 +20,44 @@ pub struct ZipEntryInfo {
     pub is_dir: bool,
 }
 
-/// Verifica se o caminho interno do ZIP é seguro (rejeita `..`, raízes e prefixos de disco).
+/// Limites de segurança contra ataques de negação de serviço e ZIP Bombs
+pub const MAX_ZIP_ENTRIES: usize = 20_000;
+pub const MAX_ENTRY_BYTES: u64 = 1024 * 1024 * 1024; // 1 GiB por arquivo
+pub const MAX_TOTAL_UNCOMPRESSED_BYTES: u64 = 4 * 1024 * 1024 * 1024; // 4 GiB acumulados
+
+pub fn is_windows_reserved_name(comp: &str) -> bool {
+    let stem = comp.split('.').next().unwrap_or(comp);
+    let upper = stem.to_ascii_uppercase();
+    matches!(
+        upper.as_str(),
+        "CON" | "PRN" | "AUX" | "NUL"
+            | "COM1" | "COM2" | "COM3" | "COM4" | "COM5" | "COM6" | "COM7" | "COM8" | "COM9"
+            | "LPT1" | "LPT2" | "LPT3" | "LPT4" | "LPT5" | "LPT6" | "LPT7" | "LPT8" | "LPT9"
+    )
+}
+
+/// Verifica se o caminho interno do ZIP é seguro (rejeita `..`, raízes, prefixos de disco,
+/// NTFS Alternate Data Streams, nomes reservados Windows e caracteres de controle).
 pub fn sanitize_relative_path(name: &str) -> Option<PathBuf> {
+    if name.contains('\0') {
+        return None;
+    }
     let normalized = name.replace('\\', "/");
     let path = Path::new(&normalized);
     let mut out = PathBuf::new();
     for comp in path.components() {
         match comp {
-            Component::Normal(part) => out.push(part),
+            Component::Normal(part) => {
+                let s = part.to_str()?;
+                if s.is_empty()
+                    || s.ends_with([' ', '.'])
+                    || s.chars().any(|c| "<>:\"|?*".contains(c) || c.is_control())
+                    || is_windows_reserved_name(s)
+                {
+                    return None;
+                }
+                out.push(s);
+            }
             Component::CurDir => {}
             Component::ParentDir | Component::RootDir | Component::Prefix(_) => return None,
         }
@@ -78,12 +108,27 @@ pub fn extract(zip_path: PathBuf, dest_dir: PathBuf) -> OperationResult {
         return OperationResult::err(format!("Não foi possível criar a pasta de destino: {e}"));
     }
 
+    if archive.len() > MAX_ZIP_ENTRIES {
+        return OperationResult::err(format!(
+            "Arquivo ZIP contém entradas em excesso ({} > limite de {}). Bloqueado por segurança.",
+            archive.len(),
+            MAX_ZIP_ENTRIES
+        ));
+    }
+
     let mut extracted = 0usize;
     let mut blocked = 0usize;
     let mut total_bytes = 0u64;
 
     for i in 0..archive.len() {
         let Ok(mut entry) = archive.by_index(i) else { continue };
+
+        // Rejeita links simbólicos em arquivos ZIP
+        if entry.unix_mode().map(|m| (m & 0o170000) == 0o120000).unwrap_or(false) {
+            blocked += 1;
+            continue;
+        }
+
         let Some(rel) = sanitize_relative_path(entry.name()) else {
             blocked += 1;
             continue;
@@ -96,10 +141,23 @@ pub fn extract(zip_path: PathBuf, dest_dir: PathBuf) -> OperationResult {
         if let Some(parent) = target.parent() {
             let _ = fs::create_dir_all(parent);
         }
-        if let Ok(mut out) = File::create(&target) {
-            if let Ok(n) = io::copy(&mut entry, &mut out) {
+
+        // Não sobrescreve silenciosamente arquivos existentes: gera caminho único seguro
+        let safe_target = if target.exists() {
+            crate::core::paths::unique_path(target)
+        } else {
+            target
+        };
+
+        if let Ok(mut out) = File::create(&safe_target) {
+            let mut limited = (&mut entry).take(MAX_ENTRY_BYTES);
+            if let Ok(n) = io::copy(&mut limited, &mut out) {
                 extracted += 1;
                 total_bytes += n;
+                if total_bytes > MAX_TOTAL_UNCOMPRESSED_BYTES {
+                    blocked += 1;
+                    break;
+                }
             }
         }
     }
@@ -204,6 +262,11 @@ mod tests {
         assert!(sanitize_relative_path("../segredo.txt").is_none());
         assert!(sanitize_relative_path("pasta/../../etc/passwd").is_none());
         assert!(sanitize_relative_path("/absoluto.txt").is_none());
+        assert!(sanitize_relative_path("C:\\Windows\\system.ini").is_none());
+        assert!(sanitize_relative_path("CON").is_none());
+        assert!(sanitize_relative_path("NUL.txt").is_none());
+        assert!(sanitize_relative_path("doc.txt:ads.exe").is_none());
+        assert!(sanitize_relative_path("arquivo_com_espaco ").is_none());
         assert_eq!(sanitize_relative_path("fotos/praia.jpg"), Some(PathBuf::from("fotos").join("praia.jpg")));
     }
 

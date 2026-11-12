@@ -271,8 +271,8 @@ fn compress_files_to_zip(files: &[PathBuf], custom_dir: Option<&Path>) -> Operat
                 .unwrap_or("arquivo");
             zw.start_file(name, opts)
                 .map_err(|e| format!("Erro ao iniciar entrada ZIP ({name}): {e}"))?;
-            let data = fs::read(src).map_err(|e| format!("Erro ao ler {}: {e}", src.display()))?;
-            zw.write_all(&data)
+            let mut f = File::open(src).map_err(|e| format!("Erro ao abrir {}: {e}", src.display()))?;
+            std::io::copy(&mut f, &mut zw)
                 .map_err(|e| format!("Erro ao comprimir {name}: {e}"))?;
             details.push(format!("✓ Adicionado ao pacote (original intacto): {}", src.display()));
         }
@@ -316,21 +316,37 @@ fn extract_zip_archives(files: &[PathBuf], custom_dir: Option<&Path>) -> Operati
         let _ = fs::create_dir_all(&dest_dir);
 
         let mut extracted_here = 0usize;
+        let mut total_bytes_here = 0u64;
         for i in 0..archive.len() {
             let Ok(mut entry) = archive.by_index(i) else { continue };
-            let Some(safe_rel) = entry.enclosed_name().map(|p| p.to_path_buf()) else {
+            // Rejeita links simbólicos
+            if entry.unix_mode().map(|m| (m & 0o170000) == 0o120000).unwrap_or(false) {
+                continue;
+            }
+            let Some(rel) = crate::modules::zip::service::sanitize_relative_path(entry.name()) else {
                 continue;
             };
-            let out_path = dest_dir.join(safe_rel);
+            let out_path = dest_dir.join(rel);
             if entry.is_dir() {
                 let _ = fs::create_dir_all(&out_path);
             } else {
                 if let Some(p) = out_path.parent() {
                     let _ = fs::create_dir_all(p);
                 }
-                if let Ok(mut out_f) = File::create(&out_path) {
-                    let _ = std::io::copy(&mut entry, &mut out_f);
-                    extracted_here += 1;
+                let safe_out = if out_path.exists() {
+                    crate::core::paths::unique_path(out_path)
+                } else {
+                    out_path
+                };
+                if let Ok(mut out_f) = File::create(&safe_out) {
+                    let mut limited = (&mut entry).take(crate::modules::zip::service::MAX_ENTRY_BYTES);
+                    if let Ok(n) = std::io::copy(&mut limited, &mut out_f) {
+                        extracted_here += 1;
+                        total_bytes_here += n;
+                        if total_bytes_here > crate::modules::zip::service::MAX_TOTAL_UNCOMPRESSED_BYTES {
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -906,10 +922,12 @@ fn convert_media_batch(
         let out_path = unique_output_path(src, &ext, custom_dir);
         // O FFmpeg precisa da extensão final para detectar o container, então colocamos .axolote_tmp ANTES da extensão
         let stem = out_path.file_stem().and_then(|s| s.to_str()).unwrap_or("midia");
-        let tmp_path = out_path.with_file_name(format!(".{stem}.axolote_tmp.{ext}"));
+        let pid = std::process::id();
+        let tmp_path = out_path.with_file_name(format!(".{stem}.{pid}.axolote_tmp.{ext}"));
 
         let mut cmd = system::hidden_command(&ffmpeg);
-        cmd.arg("-y").arg("-i").arg(src);
+        cmd.args(["-hide_banner", "-protocol_whitelist", "file", "-y", "-i"])
+            .arg(src);
 
         match ext.as_str() {
             "gif" => {

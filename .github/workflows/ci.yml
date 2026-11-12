@@ -1,10 +1,12 @@
-name: Release Build
+name: CI & Release Build
 
 on:
   push:
     branches: [main]
     tags:
       - 'v*'
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -15,9 +17,33 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  test:
+    name: Test & Quality Check
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Format Check
+        run: cargo fmt --all -- --check
+
+      - name: Clippy Warnings Check
+        run: cargo clippy --all-targets --locked -- -D warnings
+
+      - name: Run Tests
+        run: cargo test --locked --all-targets
+
   build-release:
     name: Build Release & Installer (Windows)
     runs-on: windows-latest
+    needs: [test]
     permissions:
       contents: write
     steps:

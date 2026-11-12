@@ -242,17 +242,14 @@ pub fn generate_passwords(
     } else if entropy < 100.0 {
         "Forte"
     } else {
-        "Excelente (Nível Militar)"
+        "Excelente (Criptográfica)"
     };
 
-    let mut state = seed_u64();
     let mut list = Vec::with_capacity(count);
-    for i in 0..count {
-        state = state.wrapping_add((i as u64).wrapping_mul(0x9E37_79B9_7F4A_7C15));
+    for _ in 0..count {
         let mut pwd = String::with_capacity(length);
         for _ in 0..length {
-            state = xorshift64(state);
-            let idx = (state as usize) % pool_len;
+            let idx = secure_random_index(pool_len);
             pwd.push(chars[idx]);
         }
         list.push(pwd);
@@ -262,16 +259,10 @@ pub fn generate_passwords(
 }
 
 pub fn generate_uuids(count: usize) -> Vec<String> {
-    let mut state = seed_u64() ^ 0xA5A5_5A5A_F0F0_0F0F;
     let mut out = Vec::with_capacity(count);
-    for i in 0..count {
-        state = xorshift64(state.wrapping_add(i as u64 * 17));
-        let a = state;
-        state = xorshift64(state);
-        let b = state;
+    for _ in 0..count {
         let mut bytes = [0u8; 16];
-        bytes[..8].copy_from_slice(&a.to_le_bytes());
-        bytes[8..].copy_from_slice(&b.to_le_bytes());
+        let _ = getrandom::fill(&mut bytes);
         // RFC 4122 v4
         bytes[6] = (bytes[6] & 0x0f) | 0x40;
         bytes[8] = (bytes[8] & 0x3f) | 0x80;
@@ -287,21 +278,31 @@ pub fn generate_uuids(count: usize) -> Vec<String> {
     out
 }
 
-fn seed_u64() -> u64 {
-    let nanos = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_nanos() as u64)
-        .unwrap_or(0x1234_5678_9ABC_DEF0);
-    let addr = &nanos as *const u64 as usize as u64;
-    xorshift64(nanos ^ addr.rotate_left(19) ^ 0xD1B5_4A32_D192_ED03)
+fn secure_random_u32() -> u32 {
+    let mut buf = [0u8; 4];
+    if getrandom::fill(&mut buf).is_ok() {
+        u32::from_le_bytes(buf)
+    } else {
+        // Fallback defensivo com nanosegundos caso a chamada de sistema falhe
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|d| d.as_nanos() as u64)
+            .unwrap_or(0x1234_5678_9ABC_DEF0);
+        (nanos ^ (nanos >> 32)) as u32
+    }
 }
 
-fn xorshift64(mut x: u64) -> u64 {
-    if x == 0 {
-        x = 0x2545_F491_4F6C_DD1D;
+/// Sorteia um índice no intervalo [0, pool_len) sem viés de módulo (Rejection Sampling).
+fn secure_random_index(pool_len: usize) -> usize {
+    if pool_len <= 1 {
+        return 0;
     }
-    x ^= x << 13;
-    x ^= x >> 7;
-    x ^= x << 17;
-    x.wrapping_mul(0x2545_F491_4F6C_DD1D)
+    let n = pool_len as u32;
+    let zone = u32::MAX - (u32::MAX % n);
+    loop {
+        let r = secure_random_u32();
+        if r < zone {
+            return (r % n) as usize;
+        }
+    }
 }

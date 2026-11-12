@@ -30,6 +30,8 @@ serde_json = "1.0"
 sys-locale = "0.3"
 # Data/hora local para o histórico
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
+# Entropia segura nativa para senhas criptográficas e identificadores
+getrandom = "0.3"
 
 [profile.release]
 opt-level = 3

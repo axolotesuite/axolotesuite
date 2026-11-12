@@ -27,7 +27,7 @@ pub fn list_notes(dir: &Path) -> Vec<String> {
     notes
 }
 
-/// Remove caracteres que o Windows não aceita em nomes de arquivo.
+/// Remove caracteres que o Windows não aceita em nomes de arquivo e protege contra nomes de dispositivos DOS.
 pub fn sanitize_name(name: &str) -> String {
     let cleaned: String = name
         .trim()
@@ -35,11 +35,16 @@ pub fn sanitize_name(name: &str) -> String {
         .map(|c| if "\\/:*?\"<>|".contains(c) || c.is_control() { '_' } else { c })
         .collect();
     let cleaned = cleaned.trim_end_matches(".txt").trim().trim_end_matches('.').to_string();
-    cleaned
+    if crate::modules::zip::service::is_windows_reserved_name(&cleaned) {
+        format!("_{cleaned}")
+    } else {
+        cleaned
+    }
 }
 
 pub fn read_note(dir: &Path, name: &str) -> std::io::Result<String> {
-    fs::read_to_string(dir.join(format!("{name}.txt")))
+    let safe = sanitize_name(name);
+    fs::read_to_string(dir.join(format!("{safe}.txt")))
 }
 
 pub fn save_note(dir: &Path, name: &str, content: &str) -> OperationResult {
@@ -55,8 +60,9 @@ pub fn save_note(dir: &Path, name: &str, content: &str) -> OperationResult {
 }
 
 pub fn delete_note(dir: &Path, name: &str) -> OperationResult {
-    match fs::remove_file(dir.join(format!("{name}.txt"))) {
-        Ok(_) => OperationResult::ok(format!("Nota \"{name}\" excluída.")),
+    let safe = sanitize_name(name);
+    match fs::remove_file(dir.join(format!("{safe}.txt"))) {
+        Ok(_) => OperationResult::ok(format!("Nota \"{safe}\" excluída.")),
         Err(e) => OperationResult::err(format!("Erro ao excluir a nota: {e}")),
     }
 }

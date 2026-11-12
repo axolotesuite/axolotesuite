@@ -110,24 +110,26 @@ pub fn find_ffmpeg() -> Option<PathBuf> {
         candidates.push(base.join("bin").join("ffmpeg.exe"));
         candidates.push(base.join("ffmpeg.exe"));
     }
-    if let Ok(exe) = std::env::current_exe() {
-        if let Some(dir) = exe.parent() {
-            candidates.push(dir.join("ffmpeg.exe"));
-            candidates.push(dir.join("bin").join("ffmpeg.exe"));
-            candidates.push(dir.join("ffmpeg").join("ffmpeg.exe"));
-        }
-    }
     for candidate in candidates {
         if candidate.is_file() {
             return Some(candidate);
         }
     }
-    let ok = hidden_command("ffmpeg")
-        .arg("-version")
-        .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false);
-    ok.then(|| PathBuf::from("ffmpeg"))
+    // Só recorre ao executável local se estiver explicitamente na pasta do próprio executável
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(dir) = exe.parent() {
+            let local_bin = dir.join("bin").join("ffmpeg.exe");
+            if local_bin.is_file() {
+                return Some(local_bin);
+            }
+            let local_ffmpeg = dir.join("ffmpeg.exe");
+            if local_ffmpeg.is_file() {
+                return Some(local_ffmpeg);
+            }
+        }
+    }
+    // Não executa "ffmpeg" cego do PATH para evitar CWE-426 Binary Planting
+    None
 }
 
 /// Baixa e instala automaticamente o `ffmpeg.exe` para a pasta `dest_bin_dir` (e também
@@ -220,7 +222,7 @@ fn extract_ffmpeg_from_zip(zip_path: &Path, target_ffmpeg: &Path) -> std::io::Re
 /// últimas linhas da saída para ajudar a entender o problema.
 pub fn run_ffmpeg(ffmpeg: &Path, args: &[String]) -> Result<(), String> {
     let out = hidden_command(ffmpeg)
-        .args(["-hide_banner", "-loglevel", "error", "-y"])
+        .args(["-hide_banner", "-loglevel", "error"])
         .args(args)
         .output()
         .map_err(|e| format!("Não foi possível iniciar o FFmpeg: {e}"))?;
@@ -236,7 +238,15 @@ pub fn run_ffmpeg(ffmpeg: &Path, args: &[String]) -> Result<(), String> {
 
 /// Lê informações básicas de um arquivo de mídia (duração, codecs...).
 pub fn probe_media(ffmpeg: &Path, input: &Path) -> Vec<String> {
-    let out = match hidden_command(ffmpeg).arg("-hide_banner").arg("-i").arg(input).output() {
+    if !input.is_file() {
+        return vec!["Arquivo de mídia não encontrado.".into()];
+    }
+    let out = match hidden_command(ffmpeg)
+        .args(["-hide_banner", "-protocol_whitelist", "file"])
+        .arg("-i")
+        .arg(input)
+        .output()
+    {
         Ok(o) => o,
         Err(e) => return vec![format!("Erro ao executar o FFmpeg: {e}")],
     };

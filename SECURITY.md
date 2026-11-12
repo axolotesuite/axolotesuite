@@ -4,8 +4,8 @@
 
 | Versão | Suporte |
 |---|---|
-| 1.3.x | ✅ Sim |
-| < 1.3 | ❌ Não, atualize para a mais recente |
+| 1.4.x | ✅ Sim |
+| < 1.4 | ❌ Não, atualize para a mais recente |
 
 ## Como relatar uma vulnerabilidade
 

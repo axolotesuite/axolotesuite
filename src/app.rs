@@ -930,7 +930,7 @@ impl AxoloteSuite {
                 container(text(format!("v{}", env!("CARGO_PKG_VERSION"))).size(10).font(BOLD).style(c.primary))
                     .padding([2, 6])
                     .style(theme::solid_box(Color::from_rgb8(42, 41, 49), 4.0)),
-                ui::btn("🛡️ LGPD Local", Btn::Secondary, None),
+                ui::btn("🛡️ Modo local", Btn::Secondary, None),
             ]
             .spacing(8)
             .align_items(Alignment::Center);
@@ -991,7 +991,7 @@ impl AxoloteSuite {
                     .spacing(10)
                     .align_items(Alignment::Center),
                     ui::fill(),
-                    container(text("Rayon SIMD").size(10).font(BOLD).style(c.accent))
+                    container(text("Conversão local").size(10).font(BOLD).style(c.accent))
                         .padding([3, 8])
                         .style(theme::inner_box),
                 ]
@@ -1422,7 +1422,7 @@ impl AxoloteSuite {
                         row![
                             text("Paleta").size(11).style(c.muted),
                             ui::fill(),
-                            container(text("Ctrl+K").size(10).font(BOLD).style(c.primary))
+                            container(text("Abrir").size(10).font(BOLD).style(c.primary))
                                 .padding([2, 6])
                                 .style(theme::solid_box(Color::from_rgb8(31, 31, 38), 4.0)),
                         ]
@@ -1440,7 +1440,7 @@ impl AxoloteSuite {
                         row![
                             text("Conversor").size(11).style(c.muted),
                             ui::fill(),
-                            container(text("Ctrl+D").size(10).font(BOLD).style(c.accent))
+                            container(text("Abrir").size(10).font(BOLD).style(c.accent))
                                 .padding([2, 6])
                                 .style(theme::solid_box(Color::from_rgb8(31, 31, 38), 4.0)),
                         ]
@@ -1458,7 +1458,7 @@ impl AxoloteSuite {
                         row![
                             text("Revelador").size(11).style(c.muted),
                             ui::fill(),
-                            container(text("Ctrl+P").size(10).font(BOLD).style(c.primary))
+                            container(text("Abrir").size(10).font(BOLD).style(c.primary))
                                 .padding([2, 6])
                                 .style(theme::solid_box(Color::from_rgb8(31, 31, 38), 4.0)),
                         ]
@@ -1476,7 +1476,7 @@ impl AxoloteSuite {
                         row![
                             text("Fila Tasks").size(11).style(c.muted),
                             ui::fill(),
-                            container(text("Ctrl+B").size(10).font(BOLD).style(c.success))
+                            container(text("Abrir").size(10).font(BOLD).style(c.success))
                                 .padding([2, 6])
                                 .style(theme::solid_box(Color::from_rgb8(31, 31, 38), 4.0)),
                         ]
